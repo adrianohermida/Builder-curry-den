@@ -16,6 +16,7 @@ import ClienteDetalhesTest from "./pages/ClienteDetalhesTest";
 import TesteConfiguracaoStorage from "./pages/TesteConfiguracaoStorage";
 import ConfiguracaoArmazenamento from "./pages/ConfiguracaoArmazenamento";
 import PublicacoesExample from "./pages/PublicacoesExample";
+import GEDJuridico from "./pages/GEDJuridico";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="/" element={<Layout />}>
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="crm" element={<CRM />} />
+                <Route path="ged" element={<GEDJuridico />} />
                 <Route path="tickets" element={<Tickets />} />
                 <Route path="agenda" element={<Calendar />} />
                 <Route path="ai" element={<AI />} />
