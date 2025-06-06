@@ -10,6 +10,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import { NotificationCenter } from "@/components/CRM/NotificationCenter";
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -67,12 +68,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         <ThemeSwitcher />
 
         {/* Notifications */}
-        <Button variant="ghost" size="sm" className="relative">
-          <Bell className="h-5 w-5" />
-          <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-[rgb(var(--theme-primary))]">
-            3
-          </Badge>
-        </Button>
+        <NotificationCenter />
 
         {/* User Menu */}
         <DropdownMenu>
