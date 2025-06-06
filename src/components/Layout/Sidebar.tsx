@@ -9,20 +9,10 @@ import {
   Settings,
   X,
   Scale,
-  ChevronDown,
-  ChevronRight,
-  HardDrive,
   FileText,
-  Shield,
-  BarChart,
+  FolderOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 
 interface SidebarProps {
   open: boolean;
@@ -39,6 +29,12 @@ const menuItems = [
     title: "CRM Jurídico",
     href: "/crm",
     icon: Users,
+  },
+  {
+    title: "GED Jurídico",
+    href: "/ged",
+    icon: FolderOpen,
+    description: "Gestão Eletrônica de Documentos",
   },
   {
     title: "Atendimento",
@@ -59,55 +55,11 @@ const menuItems = [
     title: "Configurações",
     href: "/settings",
     icon: Settings,
-    submenu: [
-      {
-        title: "Armazenamento de Documentos",
-        href: "/configuracoes/armazenamento",
-        icon: HardDrive,
-        description: "Configure provedores e monitore uploads",
-      },
-      {
-        title: "Dashboard de Arquivos",
-        href: "/configuracoes/armazenamento?tab=dashboard",
-        icon: BarChart,
-        description: "Estatísticas e análises de armazenamento",
-      },
-      {
-        title: "Logs de Auditoria",
-        href: "/configuracoes/armazenamento?tab=logs",
-        icon: Shield,
-        description: "Histórico completo de ações",
-      },
-      {
-        title: "Teste de Configuração",
-        href: "/teste-configuracao-storage",
-        icon: FileText,
-        description: "Simular e validar configurações",
-      },
-    ],
   },
 ];
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const location = useLocation();
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
-
-  const toggleExpanded = (title: string) => {
-    setExpandedItems((prev) =>
-      prev.includes(title)
-        ? prev.filter((item) => item !== title)
-        : [...prev, title],
-    );
-  };
-
-  const isSubmenuActive = (submenu: any[]) => {
-    return submenu.some(
-      (item) =>
-        location.pathname === item.href ||
-        (item.href.includes("?") &&
-          location.pathname + location.search === item.href),
-    );
-  };
 
   return (
     <>
@@ -139,90 +91,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {menuItems.map((item) => {
-              const isActive = location.pathname === item.href;
-              const hasSubmenu = item.submenu && item.submenu.length > 0;
-              const isExpanded = expandedItems.includes(item.title);
-              const isSubmenuItemActive =
-                hasSubmenu && isSubmenuActive(item.submenu);
+              const isActive =
+                location.pathname === item.href ||
+                (item.href === "/ged" && location.pathname.startsWith("/ged"));
               const Icon = item.icon;
-
-              if (hasSubmenu) {
-                return (
-                  <Collapsible key={item.title} open={isExpanded}>
-                    <div className="space-y-1">
-                      {/* Item principal */}
-                      <Link
-                        to={item.href}
-                        onClick={() => onClose()}
-                        className={cn(
-                          "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                          isActive || isSubmenuItemActive
-                            ? "bg-[rgb(var(--theme-primary))] text-white"
-                            : "text-muted-foreground hover:text-foreground hover:bg-accent",
-                        )}
-                      >
-                        <Icon className="h-5 w-5" />
-                        <span className="flex-1">{item.title}</span>
-                      </Link>
-
-                      {/* Toggle do submenu */}
-                      <CollapsibleTrigger
-                        onClick={() => toggleExpanded(item.title)}
-                        className={cn(
-                          "flex items-center space-x-3 px-3 py-1 rounded-lg text-xs font-medium transition-colors w-full",
-                          isExpanded
-                            ? "text-[rgb(var(--theme-primary))]"
-                            : "text-muted-foreground hover:text-foreground hover:bg-accent",
-                        )}
-                      >
-                        <HardDrive className="h-4 w-4" />
-                        <span className="flex-1">Armazenamento</span>
-                        {isExpanded ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4" />
-                        )}
-                      </CollapsibleTrigger>
-
-                      {/* Submenu */}
-                      <CollapsibleContent className="pl-6 space-y-1">
-                        {item.submenu.map((subItem) => {
-                          const isSubActive =
-                            location.pathname === subItem.href ||
-                            (subItem.href.includes("?") &&
-                              location.pathname + location.search ===
-                                subItem.href);
-                          const SubIcon = subItem.icon;
-
-                          return (
-                            <Link
-                              key={subItem.href}
-                              to={subItem.href}
-                              onClick={() => onClose()}
-                              className={cn(
-                                "flex items-start space-x-3 px-3 py-2 rounded-lg text-xs transition-colors",
-                                isSubActive
-                                  ? "bg-[rgb(var(--theme-primary))]/10 text-[rgb(var(--theme-primary))] border-l-2 border-[rgb(var(--theme-primary))]"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-accent",
-                              )}
-                            >
-                              <SubIcon className="h-4 w-4 mt-0.5" />
-                              <div>
-                                <div className="font-medium">
-                                  {subItem.title}
-                                </div>
-                                <div className="text-xs text-muted-foreground leading-tight">
-                                  {subItem.description}
-                                </div>
-                              </div>
-                            </Link>
-                          );
-                        })}
-                      </CollapsibleContent>
-                    </div>
-                  </Collapsible>
-                );
-              }
 
               return (
                 <Link
@@ -237,12 +109,19 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   )}
                 >
                   <Icon className="h-5 w-5" />
-                  <span>{item.title}</span>
+                  <div className="flex-1">
+                    <span>{item.title}</span>
+                    {item.description && (
+                      <div className="text-xs opacity-75 mt-0.5">
+                        {item.description}
+                      </div>
+                    )}
+                  </div>
                 </Link>
               );
             })}
 
-            {/* Acesso rápido ao sistema de publicações */}
+            {/* Acesso rápido */}
             <div className="pt-4 border-t">
               <div className="text-xs font-medium text-muted-foreground mb-2 px-3">
                 ACESSO RÁPIDO
@@ -260,6 +139,20 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 <FileText className="h-5 w-5" />
                 <span>Publicações Jurídicas</span>
               </Link>
+
+              <Link
+                to="/configuracoes/armazenamento"
+                onClick={() => onClose()}
+                className={cn(
+                  "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  location.pathname === "/configuracoes/armazenamento"
+                    ? "bg-[rgb(var(--theme-primary))] text-white"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent",
+                )}
+              >
+                <Settings className="h-5 w-5" />
+                <span>Config. Armazenamento</span>
+              </Link>
             </div>
           </nav>
 
@@ -269,7 +162,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               © 2024 Lawdesk CRM
             </div>
             <div className="text-xs text-muted-foreground">
-              v2.1.0 - Sistema Integrado
+              v2.2.0 - GED Jurídico
             </div>
           </div>
         </div>
