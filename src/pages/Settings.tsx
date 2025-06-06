@@ -498,13 +498,13 @@ export default function Settings() {
                     <p className="text-sm text-muted-foreground mb-3">
                       Visualize estatísticas e logs de atividade.
                     </p>
-                    <Link to="/configuracoes/armazenamento?tab=dashboard">
-                      <Button variant="outline" className="w-full">
+                    <Button asChild variant="outline" className="w-full">
+                      <Link to="/configuracoes/armazenamento?tab=dashboard">
                         <BarChart3 className="h-4 w-4 mr-2" />
                         Ver Dashboard
                         <ChevronRight className="h-3 w-3 ml-2" />
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </div>
                 </div>
 
