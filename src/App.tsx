@@ -51,6 +51,10 @@ const App = () => (
                   path="teste-configuracao-storage"
                   element={<TesteConfiguracaoStorage />}
                 />
+                <Route
+                  path="publicacoes-example"
+                  element={<PublicacoesExample />}
+                />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
