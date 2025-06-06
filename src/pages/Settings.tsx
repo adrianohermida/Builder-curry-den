@@ -481,13 +481,16 @@ export default function Settings() {
                     <p className="text-sm text-muted-foreground mb-3">
                       Configure o destino dos documentos, contratos e anexos.
                     </p>
-                    <Link to="/configuracoes/armazenamento">
-                      <Button className="w-full bg-[rgb(var(--theme-primary))] hover:bg-[rgb(var(--theme-primary))]/90">
+                    <Button
+                      asChild
+                      className="w-full bg-[rgb(var(--theme-primary))] hover:bg-[rgb(var(--theme-primary))]/90"
+                    >
+                      <Link to="/configuracoes/armazenamento">
                         <Settings className="h-4 w-4 mr-2" />
                         Configurar Armazenamento
                         <ExternalLink className="h-3 w-3 ml-2" />
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </div>
 
                   <div className="p-4 border rounded-lg">
