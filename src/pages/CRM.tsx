@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
   Users,
   Plus,
@@ -12,18 +12,23 @@ import {
   Mail,
   MapPin,
   Calendar,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+  Scale,
+  FileText,
+  ArrowLeft,
+  Building,
+  User
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   Table,
   TableBody,
@@ -31,45 +36,124 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ClientForm } from '@/components/CRM/ClientForm';
+import { ClientProcesses } from '@/components/CRM/ClientProcesses';
+import { ClientPublications } from '@/components/CRM/ClientPublications';
+
+type ViewMode = 'list' | 'form' | 'processes' | 'publications';
+
+interface SelectedClient {
+  id: number;
+  name: string;
+  document: string;
+  email: string;
+  phone: string;
+  company: string;
+  status: string;
+  lastContact: string;
+  cases: number;
+  revenue: string;
+  address?: {
+    street: string;
+    number: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+    cep: string;
+    complement?: string;
+  };
+}
 
 export default function CRM() {
-  const [activeTab, setActiveTab] = useState("clientes");
+  const [activeTab, setActiveTab] = useState('clientes');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [selectedClient, setSelectedClient] = useState<SelectedClient | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const clients = [
+  const clients: SelectedClient[] = [
     {
       id: 1,
-      name: "João Silva",
-      email: "joao.silva@email.com",
-      phone: "(11) 99999-9999",
-      company: "Silva & Associados",
-      status: "ativo",
-      lastContact: "2024-12-15",
+      name: 'João Silva',
+      document: '123.456.789-00',
+      email: 'joao.silva@email.com',
+      phone: '(11) 99999-9999',
+      company: 'Silva & Associados',
+      status: 'ativo',
+      lastContact: '2024-12-15',
       cases: 3,
-      revenue: "R$ 15.000",
+      revenue: 'R$ 15.000',
+      address: {
+        street: 'Av. Paulista',
+        number: '1000',
+        neighborhood: 'Bela Vista',
+        city: 'São Paulo',
+        state: 'SP',
+        cep: '01310-100',
+        complement: 'Conjunto 101'
+      }
     },
     {
       id: 2,
-      name: "Maria Santos",
-      email: "maria@empresa.com",
-      phone: "(11) 88888-8888",
-      company: "Empresa XYZ Ltda",
-      status: "ativo",
-      lastContact: "2024-12-10",
+      name: 'Maria Santos',
+      document: '987.654.321-00',
+      email: 'maria@empresa.com',
+      phone: '(11) 88888-8888',
+      company: 'Empresa XYZ Ltda',
+      status: 'ativo',
+      lastContact: '2024-12-10',
       cases: 1,
-      revenue: "R$ 8.500",
+      revenue: 'R$ 8.500',
+      address: {
+        street: 'Rua Augusta',
+        number: '2500',
+        neighborhood: 'Consolação',
+        city: 'São Paulo',
+        state: 'SP',
+        cep: '01412-100'
+      }
     },
     {
       id: 3,
-      name: "Carlos Oliveira",
-      email: "carlos@email.com",
-      phone: "(11) 77777-7777",
-      company: "Pessoa Física",
-      status: "inativo",
-      lastContact: "2024-11-20",
+      name: 'Carlos Oliveira',
+      document: '111.222.333-44',
+      email: 'carlos@email.com',
+      phone: '(11) 77777-7777',
+      company: 'Pessoa Física',
+      status: 'inativo',
+      lastContact: '2024-11-20',
       cases: 0,
-      revenue: "R$ 3.200",
+      revenue: 'R$ 3.200',
+      address: {
+        street: 'Rua da Consolação',
+        number: '1500',
+        neighborhood: 'Centro',
+        city: 'São Paulo',
+        state: 'SP',
+        cep: '01301-100'
+      }
+    },
+    {
+      id: 4,
+      name: 'Empresa ABC Ltda',
+      document: '12.345.678/0001-90',
+      email: 'contato@empresaabc.com.br',
+      phone: '(11) 3333-4444',
+      company: 'Empresa ABC Ltda',
+      status: 'ativo',
+      lastContact: '2024-12-12',
+      cases: 5,
+      revenue: 'R$ 25.000',
+      address: {
+        street: 'Av. Faria Lima',
+        number: '3000',
+        neighborhood: 'Itaim Bibi',
+        city: 'São Paulo',
+        state: 'SP',
+        cep: '04538-132',
+        complement: '10º andar'
+      }
     },
   ];
 
@@ -98,19 +182,94 @@ export default function CRM() {
     },
   ];
 
+  // Form submission handler
+  const handleClientSubmit = async (formData: any) => {
+    setIsSubmitting(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Client data:', formData);
+
+      // In real app, this would save to backend
+      setViewMode('list');
+      // Show success message
+    } catch (error) {
+      console.error('Error saving client:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Navigation handlers
+  const handleViewProcesses = (client: SelectedClient) => {
+    setSelectedClient(client);
+    setViewMode('processes');
+  };
+
+  const handleViewPublications = (client: SelectedClient) => {
+    setSelectedClient(client);
+    setViewMode('publications');
+  };
+
+  const handleBackToList = () => {
+    setSelectedClient(null);
+    setViewMode('list');
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "ativo":
-      case "em_andamento":
+      case 'ativo':
+      case 'em_andamento':
         return <Badge variant="default">Ativo</Badge>;
-      case "inativo":
+      case 'inativo':
         return <Badge variant="secondary">Inativo</Badge>;
-      case "aguardando":
+      case 'aguardando':
         return <Badge variant="outline">Aguardando</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
+
+  const getClientTypeBadge = (document: string) => {
+    const cleanDoc = document.replace(/[^\d]/g, '');
+    if (cleanDoc.length === 11) {
+      return <Badge variant="outline" className="text-xs"><User className="h-3 w-3 mr-1" />PF</Badge>;
+    } else if (cleanDoc.length === 14) {
+      return <Badge variant="outline" className="text-xs"><Building className="h-3 w-3 mr-1" />PJ</Badge>;
+    }
+    return null;
+  };
+
+  // Render different views based on current mode
+  if (viewMode === 'form') {
+    return (
+      <ClientForm
+        onSubmit={handleClientSubmit}
+        onCancel={handleBackToList}
+        isLoading={isSubmitting}
+      />
+    );
+  }
+
+  if (viewMode === 'processes' && selectedClient) {
+    return (
+      <ClientProcesses
+        clientCpf={selectedClient.document}
+        clientName={selectedClient.name}
+        onBack={handleBackToList}
+      />
+    );
+  }
+
+  if (viewMode === 'publications' && selectedClient) {
+    return (
+      <ClientPublications
+        clientCpf={selectedClient.document}
+        clientName={selectedClient.name}
+        onBack={handleBackToList}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -121,7 +280,10 @@ export default function CRM() {
             Gestão de clientes, contratos e processos
           </p>
         </div>
-        <Button className="bg-[rgb(var(--theme-primary))] hover:bg-[rgb(var(--theme-primary))]/90">
+        <Button
+          onClick={() => setViewMode('form')}
+          className="bg-[rgb(var(--theme-primary))] hover:bg-[rgb(var(--theme-primary))]/90"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Novo Cliente
         </Button>
@@ -205,12 +367,13 @@ export default function CRM() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Cliente</TableHead>
+                    <TableHead>Documento</TableHead>
                     <TableHead>Contato</TableHead>
                     <TableHead>Empresa</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Casos</TableHead>
                     <TableHead>Receita</TableHead>
-                    <TableHead></TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -220,20 +383,22 @@ export default function CRM() {
                         <div className="flex items-center space-x-3">
                           <Avatar className="h-8 w-8">
                             <AvatarFallback>
-                              {client.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
+                              {client.name.split(' ').map(n => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <p className="font-medium">{client.name}</p>
                             <p className="text-xs text-muted-foreground">
-                              Último contato:{" "}
-                              {new Date(client.lastContact).toLocaleDateString(
-                                "pt-BR",
-                              )}
+                              Último contato: {new Date(client.lastContact).toLocaleDateString('pt-BR')}
                             </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-mono text-sm">{client.document}</span>
+                            {getClientTypeBadge(client.document)}
                           </div>
                         </div>
                       </TableCell>
@@ -252,33 +417,56 @@ export default function CRM() {
                       <TableCell>{client.company}</TableCell>
                       <TableCell>{getStatusBadge(client.status)}</TableCell>
                       <TableCell>{client.cases}</TableCell>
-                      <TableCell className="font-medium">
-                        {client.revenue}
-                      </TableCell>
+                      <TableCell className="font-medium">{client.revenue}</TableCell>
                       <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Eye className="h-4 w-4 mr-2" />
-                              Ver Detalhes
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <div className="flex items-center space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewProcesses(client)}
+                            title="Ver Processos"
+                          >
+                            <Scale className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewPublications(client)}
+                            title="Ver Publicações"
+                          >
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver Detalhes
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleViewProcesses(client)}>
+                                <Scale className="h-4 w-4 mr-2" />
+                                Consultar Processos
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleViewPublications(client)}>
+                                <FileText className="h-4 w-4 mr-2" />
+                                Ver Publicações
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-600">
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
-                    </TableRow>
                   ))}
                 </TableBody>
               </Table>
