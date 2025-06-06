@@ -341,16 +341,16 @@ export default function GEDJuridico() {
             {/* Filtros */}
             <div className="flex space-x-2">
               <Select
-                value={filters.source || ""}
+                value={filters.source || "all"}
                 onValueChange={(value) =>
-                  updateFilters({ source: value || undefined })
+                  updateFilters({ source: value === "all" ? undefined : value })
                 }
               >
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Origem" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   <SelectItem value="UPLOAD_DIRETO">Upload Direto</SelectItem>
                   <SelectItem value="CRM">CRM</SelectItem>
                   <SelectItem value="ATENDIMENTO">Atendimento</SelectItem>
@@ -360,16 +360,18 @@ export default function GEDJuridico() {
               </Select>
 
               <Select
-                value={filters.visibility || ""}
+                value={filters.visibility || "all"}
                 onValueChange={(value) =>
-                  updateFilters({ visibility: value || undefined })
+                  updateFilters({
+                    visibility: value === "all" ? undefined : value,
+                  })
                 }
               >
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Visibilidade" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   <SelectItem value="INTERNO">Interno</SelectItem>
                   <SelectItem value="VISIVEL_CLIENTE">
                     Visível Cliente
@@ -378,16 +380,18 @@ export default function GEDJuridico() {
               </Select>
 
               <Select
-                value={filters.fileType || ""}
+                value={filters.fileType || "all"}
                 onValueChange={(value) =>
-                  updateFilters({ fileType: value || undefined })
+                  updateFilters({
+                    fileType: value === "all" ? undefined : value,
+                  })
                 }
               >
                 <SelectTrigger className="w-32">
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="PDF">PDF</SelectItem>
                   <SelectItem value="DOCX">DOCX</SelectItem>
                   <SelectItem value="XLSX">XLSX</SelectItem>
