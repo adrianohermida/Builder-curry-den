@@ -486,7 +486,7 @@ export default function Settings() {
                       className="w-full bg-[rgb(var(--theme-primary))] hover:bg-[rgb(var(--theme-primary))]/90"
                     >
                       <Link to="/configuracoes/armazenamento">
-                        <Settings className="h-4 w-4 mr-2" />
+                        <SettingsIcon className="h-4 w-4 mr-2" />
                         Configurar Armazenamento
                         <ExternalLink className="h-3 w-3 ml-2" />
                       </Link>
