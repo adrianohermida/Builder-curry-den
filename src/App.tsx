@@ -12,6 +12,7 @@ import Calendar from "./pages/Calendar";
 import AI from "./pages/AI";
 import Settings from "./pages/Settings";
 import ClienteDetalhesTest from "./pages/ClienteDetalhesTest";
+import TesteConfiguracaoStorage from "./pages/TesteConfiguracaoStorage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,10 @@ const App = () => (
               <Route
                 path="cliente-detalhes-test"
                 element={<ClienteDetalhesTest />}
+              />
+              <Route
+                path="teste-configuracao-storage"
+                element={<TesteConfiguracaoStorage />}
               />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
