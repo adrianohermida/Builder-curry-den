@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { StorageProvider } from "@/hooks/useStorageConfig";
 import { Layout } from "@/components/Layout/Layout";
 import Dashboard from "./pages/Dashboard";
 import CRM from "./pages/CRM";
@@ -21,39 +22,41 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/" element={<Layout />}>
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="crm" element={<CRM />} />
-              <Route path="tickets" element={<Tickets />} />
-              <Route path="agenda" element={<Calendar />} />
-              <Route path="ai" element={<AI />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="configuracoes">
+      <StorageProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/" element={<Layout />}>
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="crm" element={<CRM />} />
+                <Route path="tickets" element={<Tickets />} />
+                <Route path="agenda" element={<Calendar />} />
+                <Route path="ai" element={<AI />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="configuracoes">
+                  <Route
+                    path="armazenamento"
+                    element={<ConfiguracaoArmazenamento />}
+                  />
+                </Route>
                 <Route
-                  path="armazenamento"
-                  element={<ConfiguracaoArmazenamento />}
+                  path="cliente-detalhes-test"
+                  element={<ClienteDetalhesTest />}
+                />
+                <Route
+                  path="teste-configuracao-storage"
+                  element={<TesteConfiguracaoStorage />}
                 />
               </Route>
-              <Route
-                path="cliente-detalhes-test"
-                element={<ClienteDetalhesTest />}
-              />
-              <Route
-                path="teste-configuracao-storage"
-                element={<TesteConfiguracaoStorage />}
-              />
-            </Route>
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </StorageProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );

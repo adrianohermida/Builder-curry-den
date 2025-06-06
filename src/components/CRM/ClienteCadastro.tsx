@@ -51,6 +51,8 @@ import {
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { FileUpload } from "@/components/ui/file-upload";
+import { getUploadPath } from "@/hooks/useStorageConfig";
 
 // Validation schema
 const clienteSchema = z.object({
@@ -834,70 +836,38 @@ export function ClienteCadastro({
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6 space-y-6">
-                    {/* File Upload */}
+                    {/* File Upload with Storage Integration */}
                     <div className="space-y-4">
                       <Label>Documentos do Cliente</Label>
-                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center space-y-4">
-                        <FileText className="h-8 w-8 text-muted-foreground mx-auto" />
-                        <div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => fileInputRef.current?.click()}
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            Escolher Arquivos
-                          </Button>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            PDF, DOC, JPG até 5MB cada
-                          </p>
-                        </div>
-                      </div>
-
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        multiple
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                        aria-label="Upload de documentos do cliente"
+                      <FileUpload
+                        uploadPath={getUploadPath.cliente("temp-client-id")}
+                        acceptedFileTypes={[
+                          "pdf",
+                          "doc",
+                          "docx",
+                          "jpg",
+                          "jpeg",
+                          "png",
+                        ]}
+                        maxFiles={10}
+                        maxSizeInMB={5}
+                        onFilesUploaded={(files) => {
+                          toast.success(
+                            `${files.length} arquivo(s) enviado(s) com sucesso`,
+                          );
+                          setUploadedFiles((prev) => [
+                            ...prev,
+                            ...files.map((f) => ({
+                              name: f.name,
+                              size: f.size,
+                            })),
+                          ]);
+                        }}
+                        onUploadError={(error) => {
+                          toast.error(`Erro no upload: ${error}`);
+                        }}
+                        showStorageProvider={true}
                       />
-
-                      {uploadProgress > 0 && uploadProgress < 100 && (
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>Enviando...</span>
-                            <span>{uploadProgress}%</span>
-                          </div>
-                          <Progress value={uploadProgress} />
-                        </div>
-                      )}
-
-                      <AnimatePresence>
-                        {uploadedFiles.map((file, index) => (
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            className="flex items-center justify-between p-3 bg-muted rounded-lg"
-                          >
-                            <div className="flex items-center space-x-3">
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm">{file.name}</span>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeFile(index)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
                     </div>
 
                     {/* Smart Notes with Markdown support */}
