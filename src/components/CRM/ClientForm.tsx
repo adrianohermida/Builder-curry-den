@@ -594,7 +594,31 @@ export function ClientForm({
                             </SelectItem>
                             <SelectItem value="PR">Paraná</SelectItem>
                             <SelectItem value="SC">Santa Catarina</SelectItem>
-                            {/* Add more states as needed */}
+                            <SelectItem value="BA">Bahia</SelectItem>
+                            <SelectItem value="GO">Goiás</SelectItem>
+                            <SelectItem value="ES">Espírito Santo</SelectItem>
+                            <SelectItem value="MT">Mato Grosso</SelectItem>
+                            <SelectItem value="MS">
+                              Mato Grosso do Sul
+                            </SelectItem>
+                            <SelectItem value="DF">Distrito Federal</SelectItem>
+                            <SelectItem value="CE">Ceará</SelectItem>
+                            <SelectItem value="PE">Pernambuco</SelectItem>
+                            <SelectItem value="PB">Paraíba</SelectItem>
+                            <SelectItem value="RN">
+                              Rio Grande do Norte
+                            </SelectItem>
+                            <SelectItem value="AL">Alagoas</SelectItem>
+                            <SelectItem value="SE">Sergipe</SelectItem>
+                            <SelectItem value="PI">Piauí</SelectItem>
+                            <SelectItem value="MA">Maranhão</SelectItem>
+                            <SelectItem value="PA">Pará</SelectItem>
+                            <SelectItem value="AM">Amazonas</SelectItem>
+                            <SelectItem value="RO">Rondônia</SelectItem>
+                            <SelectItem value="AC">Acre</SelectItem>
+                            <SelectItem value="RR">Roraima</SelectItem>
+                            <SelectItem value="AP">Amapá</SelectItem>
+                            <SelectItem value="TO">Tocantins</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
