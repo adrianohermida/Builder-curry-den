@@ -519,18 +519,16 @@ export default function Settings() {
                         Mantenha seus documentos seguros e em conformidade com a
                         Lei Geral de Proteção de Dados.
                       </p>
-                      <Link
-                        to="/configuracoes/armazenamento?tab=configuracao"
-                        className="inline-block mt-2"
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        className="border-blue-300 text-blue-700 hover:bg-blue-100 mt-2"
                       >
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-blue-300 text-blue-700 hover:bg-blue-100"
-                        >
+                        <Link to="/configuracoes/armazenamento?tab=configuracao">
                           Revisar Configurações
-                        </Button>
-                      </Link>
+                        </Link>
+                      </Button>
                     </div>
                   </div>
                 </div>
