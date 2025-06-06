@@ -1,0 +1,216 @@
+{
+  "versao": "1.0.0",
+  "dataAtualizacao": "2024-01-15",
+  "regrasGerais": {
+    "djen": {
+      "nome": "Diário de Justiça Eletrônico Nacional",
+      "prazoBase": 1,
+      "unidade": "dias_uteis",
+      "descricao": "D+1 útil da publicação"
+    },
+    "domicilioJudicial": {
+      "intimacaoConfirmada": {
+        "prazoBase": 0,
+        "unidade": "dias_corridos",
+        "descricao": "No dia da leitura confirmada"
+      },
+      "intimacaoNaoConfirmada": {
+        "prazoBase": 10,
+        "unidade": "dias_corridos",
+        "descricao": "D+10 corridos se não confirmada"
+      },
+      "citacaoConfirmada": {
+        "prazoBase": 5,
+        "unidade": "dias_uteis",
+        "descricao": "D+5 úteis da citação confirmada"
+      }
+    }
+  },
+  "tiposProcesso": {
+    "cpc": {
+      "nome": "Código de Processo Civil",
+      "prazos": {
+        "contestacao": {
+          "prazo": 15,
+          "unidade": "dias_uteis",
+          "origem": "citacao",
+          "descricao": "Prazo para contestação (Art. 335 CPC)"
+        },
+        "apelacao": {
+          "prazo": 15,
+          "unidade": "dias_uteis",
+          "origem": "intimacao_sentenca",
+          "descricao": "Prazo para apelação (Art. 1003 CPC)"
+        },
+        "embargosDeclaracao": {
+          "prazo": 5,
+          "unidade": "dias_uteis",
+          "origem": "intimacao_decisao",
+          "descricao": "Prazo para embargos de declaração (Art. 1023 CPC)"
+        },
+        "recursoEspecial": {
+          "prazo": 15,
+          "unidade": "dias_uteis",
+          "origem": "intimacao_acordao",
+          "descricao": "Prazo para recurso especial (Art. 1003 CPC)"
+        },
+        "recursoExtraordinario": {
+          "prazo": 15,
+          "unidade": "dias_uteis",
+          "origem": "intimacao_acordao",
+          "descricao": "Prazo para recurso extraordinário (Art. 1003 CPC)"
+        },
+        "agravoinstrumento": {
+          "prazo": 15,
+          "unidade": "dias_uteis",
+          "origem": "intimacao_decisao",
+          "descricao": "Prazo para agravo de instrumento (Art. 1003 CPC)"
+        }
+      }
+    },
+    "penal": {
+      "nome": "Processo Penal",
+      "prazos": {
+        "respostaNegacao": {
+          "prazo": 10,
+          "unidade": "dias_corridos",
+          "origem": "citacao",
+          "descricao": "Prazo para resposta à acusação (Art. 396 CPP)"
+        },
+        "apelaçao": {
+          "prazo": 5,
+          "unidade": "dias_corridos",
+          "origem": "intimacao_sentenca",
+          "descricao": "Prazo para apelação criminal (Art. 593 CPP)"
+        },
+        "embargosDeclaracao": {
+          "prazo": 2,
+          "unidade": "dias_corridos",
+          "origem": "intimacao_decisao",
+          "descricao": "Prazo para embargos de declaração (Art. 619 CPP)"
+        },
+        "recursoEspecial": {
+          "prazo": 15,
+          "unidade": "dias_corridos",
+          "origem": "intimacao_acordao",
+          "descricao": "Prazo para recurso especial criminal"
+        },
+        "recursoExtraordinario": {
+          "prazo": 15,
+          "unidade": "dias_corridos",
+          "origem": "intimacao_acordao",
+          "descricao": "Prazo para recurso extraordinário criminal"
+        }
+      }
+    },
+    "trabalhista": {
+      "nome": "Processo Trabalhista",
+      "prazos": {
+        "defesa": {
+          "prazo": 15,
+          "unidade": "dias_corridos",
+          "origem": "citacao",
+          "descricao": "Prazo para defesa trabalhista (Art. 847 CLT)"
+        },
+        "recursoOrdinario": {
+          "prazo": 8,
+          "unidade": "dias_corridos",
+          "origem": "intimacao_sentenca",
+          "descricao": "Prazo para recurso ordinário (Art. 895 CLT)"
+        },
+        "embargosDeclaracao": {
+          "prazo": 5,
+          "unidade": "dias_corridos",
+          "origem": "intimacao_decisao",
+          "descricao": "Prazo para embargos de declaração trabalhista"
+        },
+        "recursoRevisao": {
+          "prazo": 8,
+          "unidade": "dias_corridos",
+          "origem": "intimacao_acordao",
+          "descricao": "Prazo para recurso de revista (Art. 896 CLT)"
+        },
+        "agravoPetição": {
+          "prazo": 8,
+          "unidade": "dias_corridos",
+          "origem": "intimacao_despacho",
+          "descricao": "Prazo para agravo de petição (Art. 897 CLT)"
+        }
+      }
+    },
+    "jef": {
+      "nome": "Juizados Especiais Federais",
+      "prazos": {
+        "contestacao": {
+          "prazo": 30,
+          "unidade": "dias_corridos",
+          "origem": "citacao",
+          "descricao": "Prazo para contestação no JEF (Art. 7º Lei 10.259/01)"
+        },
+        "recursoInominado": {
+          "prazo": 10,
+          "unidade": "dias_corridos",
+          "origem": "intimacao_sentenca",
+          "descricao": "Prazo para recurso inominado (Art. 5º Lei 10.259/01)"
+        },
+        "embargosDeclaracao": {
+          "prazo": 5,
+          "unidade": "dias_corridos",
+          "origem": "intimacao_decisao",
+          "descricao": "Prazo para embargos de declaração no JEF"
+        }
+      }
+    }
+  },
+  "tiposPartes": {
+    "fazendaPublica": {
+      "multiplicador": 2,
+      "descricao": "Prazo em dobro para Fazenda Pública (Art. 183 CPC)"
+    },
+    "defensoria": {
+      "multiplicador": 2,
+      "descricao": "Prazo em dobro para Defensoria Pública (Art. 186 CPC)"
+    },
+    "ministerioPublico": {
+      "multiplicador": 2,
+      "descricao": "Prazo em dobro para Ministério Público (Art. 180 CPC)"
+    },
+    "advogadoUnico": {
+      "multiplicador": 1,
+      "descricao": "Prazo normal para advogado único"
+    },
+    "advogadosMultiplos": {
+      "multiplicador": 1.5,
+      "adicionalDias": 0,
+      "descricao": "Prazo em quádruplo quando múltiplos advogados com procurações em autos distintos"
+    }
+  },
+  "feriados": {
+    "nacionais": [
+      "01-01",
+      "04-21",
+      "09-07",
+      "10-12",
+      "11-02",
+      "11-15",
+      "12-25"
+    ],
+    "pontosFacultativos": [
+      "02-20",
+      "02-21",
+      "04-23",
+      "06-12",
+      "10-28",
+      "11-20",
+      "12-24",
+      "12-31"
+    ]
+  },
+  "configuracao": {
+    "modoContagem": "automatica",
+    "tipoProcessoPadrao": "cpc",
+    "notificacaoAntecipada": 3,
+    "integracaoIA": true,
+    "backupLocal": true
+  }
+}

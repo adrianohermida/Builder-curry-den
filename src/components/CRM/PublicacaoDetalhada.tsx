@@ -27,6 +27,16 @@ import {
   Settings,
   Shield,
   Globe,
+  Send,
+  Zap,
+  BookOpen,
+  Calculator,
+  Target,
+  Users,
+  Archive,
+  Trash2,
+  Star,
+  Flag,
 } from "lucide-react";
 import {
   Dialog,
@@ -50,978 +60,1134 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import {
-  useProcessualIntelligence,
-  PublicacaoData,
-} from "@/hooks/useProcessualIntelligence";
+
+// Hooks personalizados
+import { useRegrasProcessuais } from "@/contexts/RegrasProcessuaisContext";
+import { useCalculaPrazo } from "@/hooks/useCalculaPrazo";
+import { useAdviseAPI } from "@/hooks/useAdviseAPI";
 import { useModuleIntegration } from "@/hooks/useModuleIntegration";
 import { IAAssistant } from "@/components/IA/IAAssistant";
-import { generateWhatsAppMessage } from "@/utils/processualUtils";
+import {
+  identifyTribunal,
+  validateProcessNumber,
+} from "@/utils/processualUtils";
+
+export interface PublicacaoData {
+  id: string;
+  numeroProcesso: string;
+  tribunal: string;
+  dataPublicacao: string;
+  conteudo: string;
+  tipo:
+    | "intimacao"
+    | "citacao"
+    | "despacho"
+    | "sentenca"
+    | "acordao"
+    | "outros";
+  partes: string[];
+  urgencia: "baixa" | "media" | "alta" | "urgente";
+  status: "nao_lida" | "lida" | "processada";
+  origem: "djen" | "domicilio_judicial" | "tribunal_local";
+  metadados?: {
+    segredoJustica: boolean;
+    valorCausa?: number;
+    classe: string;
+    assunto: string;
+  };
+  clienteId?: string;
+  processoVinculado?: string;
+  visivelCliente?: boolean;
+  observacoes?: string;
+  tags?: string[];
+}
 
 interface PublicacaoDetalhadaProps {
+  publicacao: PublicacaoData;
   isOpen: boolean;
   onClose: () => void;
-  publicacao: PublicacaoData | null;
   onUpdate?: (publicacao: PublicacaoData) => void;
 }
 
 export function PublicacaoDetalhada({
+  publicacao,
   isOpen,
   onClose,
-  publicacao,
   onUpdate,
 }: PublicacaoDetalhadaProps) {
-  const [isRead, setIsRead] = useState(false);
-  const [isVisibleToClient, setIsVisibleToClient] = useState(false);
-  const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
-  const [selectedProcess, setSelectedProcess] = useState<string>("");
-  const [whatsappMessage, setWhatsappMessage] = useState("");
-  const [activeTab, setActiveTab] = useState("content");
+  const [activeTab, setActiveTab] = useState("conteudo");
+  const [visivelCliente, setVisivelCliente] = useState(
+    publicacao.visivelCliente || false,
+  );
+  const [observacoes, setObservacoes] = useState(publicacao.observacoes || "");
+  const [tags, setTags] = useState(publicacao.tags || []);
+  const [newTag, setNewTag] = useState("");
+  const [showIAChat, setShowIAChat] = useState(false);
+  const [analisandoIA, setAnalisandoIA] = useState(false);
+  const [analiseIA, setAnaliseIA] = useState<any>(null);
+  const [calculandoPrazo, setCalculandoPrazo] = useState(false);
+  const [resultadoPrazo, setResultadoPrazo] = useState<any>(null);
+  const [processoVinculado, setProcessoVinculado] = useState(
+    publicacao.processoVinculado || "",
+  );
+  const [clienteVinculado, setClienteVinculado] = useState(
+    publicacao.clienteId || "",
+  );
 
-  const {
-    analysis,
-    loading: iaLoading,
-    analyzePublication,
-    generatePetitionSuggestion,
-  } = useProcessualIntelligence();
-  const {
-    loading: moduleLoading,
-    executeAction,
-    createTaskFromPublication,
-    createTicketFromPublication,
-    createAIContextFromPublication,
-  } = useModuleIntegration();
+  const { configuracao } = useRegrasProcessuais();
+  const { calcularPrazo, calcularPrazoIA, criarTarefaPrazo } =
+    useCalculaPrazo();
+  const { marcarComoLida, processarPublicacao } = useAdviseAPI();
+  const { openTicket, createCalendarTask, startIAConversation, linkToProcess } =
+    useModuleIntegration();
 
+  // Marcar como lida automaticamente ao abrir
   useEffect(() => {
-    if (publicacao) {
-      setIsRead(publicacao.lida);
-      setIsVisibleToClient(publicacao.visivel_cliente);
-      setWhatsappMessage(generateWhatsAppMessage(publicacao));
-
-      // Analisar automaticamente a publicação
-      analyzePublication(publicacao);
+    if (isOpen && publicacao.status === "nao_lida") {
+      handleMarcarComoLida();
     }
-  }, [publicacao, analyzePublication]);
+  }, [isOpen]);
 
-  if (!publicacao) return null;
+  // Identificar tribunal automaticamente
+  const tribunalInfo = publicacao.numeroProcesso
+    ? identifyTribunal(publicacao.numeroProcesso)
+    : null;
 
-  const handleMarkAsRead = async () => {
-    const newStatus = !isRead;
-    setIsRead(newStatus);
-
-    const updatedPublicacao = { ...publicacao, lida: newStatus };
-    onUpdate?.(updatedPublicacao);
-
-    toast.success(
-      newStatus
-        ? "Publicação marcada como lida"
-        : "Publicação marcada como não lida",
-    );
-  };
-
-  const handleVisibilityToggle = async () => {
-    const newVisibility = !isVisibleToClient;
-    setIsVisibleToClient(newVisibility);
-
-    const updatedPublicacao = { ...publicacao, visivel_cliente: newVisibility };
-    onUpdate?.(updatedPublicacao);
-
-    toast.success(
-      newVisibility
-        ? "Publicação visível no Portal do Cliente"
-        : "Publicação oculta do Portal do Cliente",
-    );
-  };
-
-  const handleGenerateAISummary = async () => {
+  const handleMarcarComoLida = async () => {
     try {
-      await analyzePublication(publicacao);
-      setActiveTab("analysis");
-      toast.success("Resumo gerado com sucesso");
+      await marcarComoLida(publicacao.id);
+      if (onUpdate) {
+        onUpdate({ ...publicacao, status: "lida" });
+      }
     } catch (error) {
-      toast.error("Erro ao gerar resumo");
+      toast.error("Erro ao marcar como lida");
     }
   };
 
-  const handleGeneratePetition = async () => {
+  const handleGerarResumoIA = async () => {
+    setAnalisandoIA(true);
     try {
-      const petition = await generatePetitionSuggestion(publicacao);
-      // Aqui você poderia abrir um modal com a petição ou redirecionar para um editor
-      toast.success("Sugestão de petição gerada");
-      console.log("Petição:", petition);
+      // Simular análise da IA
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const analise = {
+        resumo:
+          "Esta publicação refere-se a uma intimação para manifestação em 15 dias úteis sobre a decisão interlocutória que deferiu a tutela antecipada.",
+        acoesSugeridas: [
+          "Elaborar manifestação sobre a decisão",
+          "Verificar documentos necessários",
+          "Criar prazo no calendário para 13 dias úteis",
+        ],
+        urgencia: publicacao.urgencia,
+        prazoEstimado: "15 dias úteis",
+        tipoManifestacao: "Manifestação sobre tutela antecipada",
+        riscosIdentificados: [],
+      };
+
+      if (publicacao.urgencia === "urgente") {
+        analise.riscosIdentificados.push("Prazo extremamente curto");
+      }
+
+      setAnaliseIA(analise);
+      toast.success("Análise de IA concluída!");
     } catch (error) {
-      toast.error("Erro ao gerar petição");
+      toast.error("Erro na análise de IA");
+    } finally {
+      setAnalisandoIA(false);
     }
   };
 
-  const handleCreateTask = async () => {
+  const handleSugerirPeticao = async () => {
     try {
-      const taskData = createTaskFromPublication(
-        publicacao,
-        analysis?.urgency || "MEDIA",
-      );
-      await executeAction({
-        type: "CREATE_TASK",
-        module: "AGENDA",
-        data: taskData,
-        source: "publicacao",
+      await startIAConversation({
+        context: "peticao_sugerida",
+        data: {
+          publicacao: publicacao.conteudo,
+          numeroProcesso: publicacao.numeroProcesso,
+          tipo: publicacao.tipo,
+          tribunal: publicacao.tribunal,
+        },
       });
+
+      toast.success("IA Jurídica iniciada para sugestão de petição");
+      setShowIAChat(true);
+    } catch (error) {
+      toast.error("Erro ao iniciar sugestão de petição");
+    }
+  };
+
+  const handleCalcularPrazo = async () => {
+    setCalculandoPrazo(true);
+    try {
+      const parametros = {
+        dataInicial: new Date(publicacao.dataPublicacao),
+        tipoProcesso: configuracao.tipoProcessoPadrao,
+        tipoAto: "contestacao", // Padrão, seria detectado pela IA
+        origem: publicacao.origem as any,
+        numeroProcesso: publicacao.numeroProcesso,
+      };
+
+      let resultado;
+      if (configuracao.integracaoIA) {
+        resultado = await calcularPrazoIA(parametros, publicacao.conteudo);
+      } else {
+        resultado = calcularPrazo(parametros);
+      }
+
+      setResultadoPrazo(resultado);
+      toast.success("Prazo calculado com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao calcular prazo");
+    } finally {
+      setCalculandoPrazo(false);
+    }
+  };
+
+  const handleCriarTarefa = async () => {
+    if (!resultadoPrazo) {
+      toast.error("Calcule o prazo primeiro");
+      return;
+    }
+
+    try {
+      await criarTarefaPrazo(resultadoPrazo, {
+        dataInicial: new Date(publicacao.dataPublicacao),
+        tipoProcesso: configuracao.tipoProcessoPadrao,
+        tipoAto: "contestacao",
+        origem: publicacao.origem as any,
+        numeroProcesso: publicacao.numeroProcesso,
+      });
+
+      await createCalendarTask({
+        title: `Prazo: ${publicacao.tipo}`,
+        description: `Processo: ${publicacao.numeroProcesso}`,
+        dueDate: resultadoPrazo.dataFinal,
+        processNumber: publicacao.numeroProcesso,
+        priority: publicacao.urgencia === "urgente" ? "high" : "medium",
+      });
+
+      toast.success("Tarefa criada no calendário!");
     } catch (error) {
       toast.error("Erro ao criar tarefa");
     }
   };
 
-  const handleOpenTicket = async () => {
-    try {
-      const ticketData = createTicketFromPublication(
-        publicacao,
-        "Cliente Exemplo",
-      );
-      await executeAction({
-        type: "OPEN_TICKET",
-        module: "ATENDIMENTO",
-        data: ticketData,
-        source: "publicacao",
-      });
-    } catch (error) {
-      toast.error("Erro ao abrir ticket");
-    }
+  const handleCompartilharWhatsApp = () => {
+    const resumo = analiseIA
+      ? `📋 *Resumo da Publicação*\n\n${analiseIA.resumo}\n\n📅 *Prazo:* ${analiseIA.prazoEstimado}\n\n📞 Entre em contato para mais detalhes.`
+      : `📋 *Nova Publicação Judicial*\n\nProcesso: ${publicacao.numeroProcesso}\nTribunal: ${publicacao.tribunal}\n\n📞 Entre em contato para mais detalhes.`;
+
+    const url = `https://wa.me/?text=${encodeURIComponent(resumo)}`;
+    window.open(url, "_blank");
   };
 
-  const handleStartAIChat = () => {
-    setAiAssistantOpen(true);
+  const handleBaixarPDF = () => {
+    // Simulação de geração de PDF
+    const elemento = document.createElement("a");
+    const conteudo = `
+      PUBLICAÇÃO JUDICIAL
+      
+      Processo: ${publicacao.numeroProcesso}
+      Tribunal: ${publicacao.tribunal}
+      Data: ${new Date(publicacao.dataPublicacao).toLocaleDateString("pt-BR")}
+      Tipo: ${publicacao.tipo}
+      
+      CONTEÚDO:
+      ${publicacao.conteudo}
+      
+      ${analiseIA ? `ANÁLISE IA:\n${analiseIA.resumo}` : ""}
+    `;
+
+    const arquivo = new Blob([conteudo], { type: "text/plain" });
+    elemento.href = URL.createObjectURL(arquivo);
+    elemento.download = `publicacao_${publicacao.numeroProcesso.replace(/\D/g, "")}.txt`;
+    elemento.click();
+
+    toast.success("Arquivo baixado!");
   };
 
-  const handleCopyText = () => {
+  const handleCopiarTexto = () => {
     navigator.clipboard.writeText(publicacao.conteudo);
-    toast.success("Texto copiado para a área de transferência");
+    toast.success("Texto copiado para a área de transferência!");
   };
 
-  const handleShare = (platform: string) => {
-    const url = window.location.href;
-    const text = `Nova publicação: ${publicacao.titulo}`;
+  const handleVincularProcesso = async () => {
+    if (!processoVinculado) {
+      toast.error("Informe o número do processo");
+      return;
+    }
 
-    switch (platform) {
-      case "whatsapp":
-        window.open(
-          `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`,
-        );
-        break;
-      case "telegram":
-        window.open(
-          `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
-        );
-        break;
-      case "email":
-        window.open(
-          `mailto:?subject=${encodeURIComponent(text)}&body=${encodeURIComponent(publicacao.conteudo)}`,
-        );
-        break;
-      default:
-        navigator.clipboard.writeText(url);
-        toast.success("Link copiado para a área de transferência");
+    try {
+      await linkToProcess(publicacao.id, processoVinculado);
+      if (onUpdate) {
+        onUpdate({ ...publicacao, processoVinculado });
+      }
+      toast.success("Publicação vinculada ao processo!");
+    } catch (error) {
+      toast.error("Erro ao vincular processo");
     }
   };
 
-  const handleDownload = (format: string) => {
-    const content = `${publicacao.titulo}\n\n${publicacao.conteudo}`;
-    let blob: Blob;
-    let filename: string;
+  const handleAdicionarTag = () => {
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      const novasTags = [...tags, newTag.trim()];
+      setTags(novasTags);
+      setNewTag("");
 
-    switch (format) {
-      case "pdf":
-        // Simular geração de PDF
-        toast.info("Gerando PDF... (funcionalidade em desenvolvimento)");
-        return;
-      case "txt":
-        blob = new Blob([content], { type: "text/plain" });
-        filename = `publicacao-${publicacao.id}.txt`;
-        break;
-      case "csv":
-        const csvContent = `"Título","Data","Tribunal","Tipo","Conteúdo"\n"${publicacao.titulo}","${publicacao.data}","${publicacao.tribunal}","${publicacao.tipo}","${publicacao.conteudo.replace(/"/g, '""')}"`;
-        blob = new Blob([csvContent], { type: "text/csv" });
-        filename = `publicacao-${publicacao.id}.csv`;
-        break;
-      default:
-        return;
-    }
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    toast.success(`Arquivo ${format.toUpperCase()} baixado com sucesso`);
-  };
-
-  const handleAccessTribunal = () => {
-    if (analysis?.tribunalLink) {
-      window.open(analysis.tribunalLink, "_blank");
-    } else {
-      toast.error("Link do tribunal não disponível");
+      if (onUpdate) {
+        onUpdate({ ...publicacao, tags: novasTags });
+      }
     }
   };
 
-  const handleSendWhatsApp = () => {
-    if (isVisibleToClient) {
-      window.open(`https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`);
-    } else {
-      toast.error("Publicação deve estar visível no Portal do Cliente");
+  const handleRemoverTag = (tagRemover: string) => {
+    const novasTags = tags.filter((tag) => tag !== tagRemover);
+    setTags(novasTags);
+
+    if (onUpdate) {
+      onUpdate({ ...publicacao, tags: novasTags });
     }
   };
 
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency) {
-      case "CRITICA":
-        return "bg-red-500";
-      case "ALTA":
-        return "bg-orange-500";
-      case "MEDIA":
-        return "bg-yellow-500";
-      default:
-        return "bg-green-500";
-    }
+  const urgenciaColors = {
+    baixa: "bg-green-100 text-green-800",
+    media: "bg-yellow-100 text-yellow-800",
+    alta: "bg-orange-100 text-orange-800",
+    urgente: "bg-red-100 text-red-800",
   };
 
-  const getUrgencyIcon = (urgency: string) => {
-    switch (urgency) {
-      case "CRITICA":
-        return <AlertTriangle className="h-4 w-4" />;
-      case "ALTA":
-        return <Clock className="h-4 w-4" />;
-      case "MEDIA":
-        return <Eye className="h-4 w-4" />;
-      default:
-        return <CheckCircle className="h-4 w-4" />;
-    }
+  const urgenciaIcons = {
+    baixa: CheckCircle,
+    media: Clock,
+    alta: AlertTriangle,
+    urgente: Zap,
   };
+
+  const UrgenciaIcon = urgenciaIcons[publicacao.urgencia];
 
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl max-h-[90vh] p-0">
-          <DialogHeader className="px-6 py-4 border-b">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
-                  <Building className="h-5 w-5 text-[rgb(var(--theme-primary))]" />
-                  <DialogTitle className="text-xl font-semibold">
-                    {publicacao.titulo}
-                  </DialogTitle>
-                </div>
-                {analysis && (
-                  <Badge
-                    variant="secondary"
-                    className={`${getUrgencyColor(analysis.urgency)} text-white`}
-                  >
-                    {getUrgencyIcon(analysis.urgency)}
-                    <span className="ml-1">{analysis.urgency}</span>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="border-b pb-4">
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <DialogTitle className="text-xl">
+                Publicação Judicial -{" "}
+                {publicacao.tipo.charAt(0).toUpperCase() +
+                  publicacao.tipo.slice(1)}
+              </DialogTitle>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge className={urgenciaColors[publicacao.urgencia]}>
+                  <UrgenciaIcon className="h-3 w-3 mr-1" />
+                  {publicacao.urgencia.charAt(0).toUpperCase() +
+                    publicacao.urgencia.slice(1)}
+                </Badge>
+                <Badge variant="outline">{publicacao.tribunal}</Badge>
+                <Badge variant="secondary">{publicacao.origem}</Badge>
+                {publicacao.metadados?.segredoJustica && (
+                  <Badge variant="destructive">
+                    <Shield className="h-3 w-3 mr-1" />
+                    Segredo de Justiça
+                  </Badge>
+                )}
+                {tribunalInfo && (
+                  <Badge variant="outline" className="bg-blue-50">
+                    <Building className="h-3 w-3 mr-1" />
+                    {tribunalInfo.sistema}
                   </Badge>
                 )}
               </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant={isRead ? "default" : "outline"}
-                  size="sm"
-                  onClick={handleMarkAsRead}
-                >
-                  {isRead ? (
-                    <EyeOff className="h-4 w-4 mr-2" />
-                  ) : (
-                    <Eye className="h-4 w-4 mr-2" />
-                  )}
-                  {isRead ? "Marcar como Não Lida" : "Marcar como Lida"}
-                </Button>
-                <Button variant="ghost" size="sm" onClick={onClose}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
             </div>
-          </DialogHeader>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </DialogHeader>
 
-          <div className="flex-1 overflow-hidden">
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="h-full"
-            >
-              <div className="border-b px-6">
-                <TabsList className="grid w-full grid-cols-5">
-                  <TabsTrigger value="content">Conteúdo</TabsTrigger>
-                  <TabsTrigger value="analysis">Análise IA</TabsTrigger>
-                  <TabsTrigger value="actions">Ações</TabsTrigger>
-                  <TabsTrigger value="integration">Integração</TabsTrigger>
-                  <TabsTrigger value="client">Portal Cliente</TabsTrigger>
-                </TabsList>
-              </div>
+        <div className="flex-1 overflow-hidden">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="h-full flex flex-col"
+          >
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="conteudo">Conteúdo</TabsTrigger>
+              <TabsTrigger value="analise">
+                Análise IA
+                {analiseIA && (
+                  <Badge className="ml-1 h-5 w-5 rounded-full bg-green-500" />
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="acoes">Ações</TabsTrigger>
+              <TabsTrigger value="integracao">Integração</TabsTrigger>
+              <TabsTrigger value="cliente">Portal Cliente</TabsTrigger>
+            </TabsList>
 
-              <div className="px-6 py-4 h-[calc(90vh-200px)]">
-                <TabsContent value="content" className="mt-0 h-full">
-                  <ScrollArea className="h-full">
-                    <div className="space-y-6">
-                      {/* Informações Principais */}
-                      <Card>
-                        <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg">
-                              Informações da Publicação
-                            </CardTitle>
-                            {analysis?.tribunal && (
+            <div className="flex-1 overflow-hidden">
+              <TabsContent value="conteudo" className="h-full overflow-hidden">
+                <div className="h-full flex flex-col gap-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Gavel className="h-4 w-4" />
+                          Dados do Processo
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">
+                            Número:
+                          </span>
+                          <span className="text-sm font-mono">
+                            {publicacao.numeroProcesso}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">
+                            Data:
+                          </span>
+                          <span className="text-sm">
+                            {new Date(
+                              publicacao.dataPublicacao,
+                            ).toLocaleDateString("pt-BR")}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">
+                            Classe:
+                          </span>
+                          <span className="text-sm">
+                            {publicacao.metadados?.classe || "N/A"}
+                          </span>
+                        </div>
+                        {tribunalInfo && (
+                          <div className="mt-3 pt-3 border-t">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-muted-foreground">
+                                Sistema:
+                              </span>
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={handleAccessTribunal}
-                                disabled={!analysis.tribunalLink}
+                                onClick={() =>
+                                  window.open(tribunalInfo.url, "_blank")
+                                }
                               >
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                Acessar {analysis.tribunal.sistema}
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                Abrir {tribunalInfo.sistema}
                               </Button>
-                            )}
+                            </div>
                           </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label className="text-sm font-medium text-muted-foreground">
-                                Tribunal
-                              </Label>
-                              <p className="font-medium">
-                                {publicacao.tribunal}
-                              </p>
-                            </div>
-                            <div>
-                              <Label className="text-sm font-medium text-muted-foreground">
-                                Data
-                              </Label>
-                              <p className="font-medium">
-                                {new Date(publicacao.data).toLocaleDateString(
-                                  "pt-BR",
-                                )}
-                              </p>
-                            </div>
-                            <div>
-                              <Label className="text-sm font-medium text-muted-foreground">
-                                Tipo
-                              </Label>
-                              <p className="font-medium">{publicacao.tipo}</p>
-                            </div>
-                            {publicacao.numeroProcesso && (
-                              <div>
-                                <Label className="text-sm font-medium text-muted-foreground">
-                                  Processo
-                                </Label>
-                                <p className="font-medium font-mono">
-                                  {publicacao.numeroProcesso}
-                                </p>
-                              </div>
-                            )}
-                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
 
-                          {analysis?.processNumbers &&
-                            analysis.processNumbers.length > 0 && (
-                              <div>
-                                <Label className="text-sm font-medium text-muted-foreground">
-                                  Processos Identificados
-                                </Label>
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                  {analysis.processNumbers.map(
-                                    (numero, index) => (
-                                      <Badge
-                                        key={index}
-                                        variant="outline"
-                                        className="font-mono"
-                                      >
-                                        {numero}
-                                      </Badge>
-                                    ),
-                                  )}
-                                </div>
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          Partes
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-1">
+                          {publicacao.partes.length > 0 ? (
+                            publicacao.partes.map((parte, index) => (
+                              <div key={index} className="text-sm">
+                                {parte}
                               </div>
-                            )}
-                        </CardContent>
-                      </Card>
+                            ))
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              Nenhuma parte identificada
+                            </span>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
 
-                      {/* Conteúdo Completo */}
+                  <Card className="flex-1 overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Conteúdo da Publicação
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-full overflow-hidden">
+                      <ScrollArea className="h-full">
+                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                          {publicacao.conteudo}
+                        </div>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="analise" className="h-full space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">
+                    Análise com Inteligência Artificial
+                  </h3>
+                  <Button onClick={handleGerarResumoIA} disabled={analisandoIA}>
+                    {analisandoIA ? (
+                      <>
+                        <Bot className="h-4 w-4 mr-2 animate-spin" />
+                        Analisando...
+                      </>
+                    ) : (
+                      <>
+                        <Bot className="h-4 w-4 mr-2" />
+                        Gerar Análise
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {analisandoIA && (
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Bot className="h-5 w-5 animate-pulse" />
+                          <span>Analisando publicação com IA Jurídica...</span>
+                        </div>
+                        <Progress value={65} className="w-full" />
+                        <p className="text-sm text-muted-foreground">
+                          Processando texto, identificando prazos e sugerindo
+                          ações...
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {analiseIA && (
+                  <div className="grid gap-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">
+                          Resumo Executivo
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm leading-relaxed">
+                          {analiseIA.resumo}
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <div className="grid md:grid-cols-2 gap-4">
                       <Card>
                         <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg">
-                              Conteúdo Completo
-                            </CardTitle>
-                            <div className="flex space-x-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleCopyText}
-                              >
-                                <Copy className="h-4 w-4 mr-2" />
-                                Copiar
-                              </Button>
-                              <Select onValueChange={handleDownload}>
-                                <SelectTrigger className="w-32">
-                                  <SelectValue placeholder="Baixar" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="pdf">PDF</SelectItem>
-                                  <SelectItem value="txt">TXT</SelectItem>
-                                  <SelectItem value="csv">CSV</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
+                          <CardTitle className="text-base">
+                            Ações Sugeridas
+                          </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="p-4 bg-muted rounded-lg">
-                            <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                              {publicacao.conteudo}
-                            </p>
+                          <ul className="space-y-2">
+                            {analiseIA.acoesSugeridas.map(
+                              (acao: string, index: number) => (
+                                <li
+                                  key={index}
+                                  className="flex items-start gap-2 text-sm"
+                                >
+                                  <Target className="h-4 w-4 mt-0.5 text-blue-500" />
+                                  {acao}
+                                </li>
+                              ),
+                            )}
+                          </ul>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">
+                            Informações Detectadas
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">
+                              Prazo Estimado:
+                            </span>
+                            <Badge variant="outline">
+                              {analiseIA.prazoEstimado}
+                            </Badge>
                           </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </ScrollArea>
-                </TabsContent>
-
-                <TabsContent value="analysis" className="mt-0 h-full">
-                  <ScrollArea className="h-full">
-                    <div className="space-y-6">
-                      {iaLoading ? (
-                        <Card>
-                          <CardContent className="flex items-center justify-center py-12">
-                            <div className="text-center">
-                              <Bot className="h-12 w-12 mx-auto mb-4 animate-pulse text-[rgb(var(--theme-primary))]" />
-                              <p className="text-lg font-medium">
-                                Analisando publicação...
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                IA processando informações
-                              </p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ) : analysis ? (
-                        <>
-                          {/* Resumo IA */}
-                          <Card>
-                            <CardHeader>
-                              <CardTitle className="flex items-center">
-                                <Bot className="h-5 w-5 mr-2 text-[rgb(var(--theme-primary))]" />
-                                Resumo Automático
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <div className="prose prose-sm max-w-none">
-                                <div className="whitespace-pre-wrap">
-                                  {analysis.aiSummary}
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-
-                          {/* Ações Sugeridas */}
-                          {analysis.suggestedActions.length > 0 && (
-                            <Card>
-                              <CardHeader>
-                                <CardTitle>Ações Recomendadas</CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="space-y-2">
-                                  {analysis.suggestedActions.map(
-                                    (action, index) => (
-                                      <div
-                                        key={index}
-                                        className="flex items-center space-x-2"
-                                      >
-                                        <CheckCircle className="h-4 w-4 text-green-500" />
-                                        <span className="text-sm">
-                                          {action}
-                                        </span>
-                                      </div>
-                                    ),
-                                  )}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          )}
-
-                          {/* Informações do Tribunal */}
-                          {analysis.tribunal && (
-                            <Card>
-                              <CardHeader>
-                                <CardTitle>
-                                  Sistema Processual Identificado
-                                </CardTitle>
-                              </CardHeader>
-                              <CardContent className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <Label className="text-sm font-medium text-muted-foreground">
-                                      Tribunal
-                                    </Label>
-                                    <p className="font-medium">
-                                      {analysis.tribunal.nome}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="text-sm font-medium text-muted-foreground">
-                                      Sistema
-                                    </Label>
-                                    <p className="font-medium">
-                                      {analysis.tribunal.sistema}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="text-sm font-medium text-muted-foreground">
-                                      Tipo
-                                    </Label>
-                                    <p className="font-medium">
-                                      {analysis.tribunal.tipo}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="text-sm font-medium text-muted-foreground">
-                                      Código
-                                    </Label>
-                                    <p className="font-medium">
-                                      {analysis.tribunal.codigo}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                {analysis.tribunalLink && (
-                                  <Button
-                                    onClick={handleAccessTribunal}
-                                    className="w-full"
-                                  >
-                                    <ExternalLink className="h-4 w-4 mr-2" />
-                                    Acessar Processo no{" "}
-                                    {analysis.tribunal.sistema}
-                                  </Button>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">
+                              Manifestação:
+                            </span>
+                            <span className="text-sm">
+                              {analiseIA.tipoManifestacao}
+                            </span>
+                          </div>
+                          {analiseIA.riscosIdentificados.length > 0 && (
+                            <div>
+                              <span className="text-sm text-muted-foreground">
+                                Riscos:
+                              </span>
+                              <div className="mt-1 space-y-1">
+                                {analiseIA.riscosIdentificados.map(
+                                  (risco: string, index: number) => (
+                                    <Alert key={index}>
+                                      <AlertTriangle className="h-4 w-4" />
+                                      <AlertDescription className="text-sm">
+                                        {risco}
+                                      </AlertDescription>
+                                    </Alert>
+                                  ),
                                 )}
-                              </CardContent>
-                            </Card>
-                          )}
-                        </>
-                      ) : (
-                        <Card>
-                          <CardContent className="flex items-center justify-center py-12">
-                            <div className="text-center">
-                              <Bot className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                              <p className="text-lg font-medium">
-                                Análise não disponível
-                              </p>
-                              <Button
-                                onClick={handleGenerateAISummary}
-                                className="mt-4"
-                              >
-                                <Bot className="h-4 w-4 mr-2" />
-                                Gerar Análise
-                              </Button>
+                              </div>
                             </div>
-                          </CardContent>
-                        </Card>
-                      )}
+                          )}
+                        </CardContent>
+                      </Card>
                     </div>
-                  </ScrollArea>
-                </TabsContent>
+                  </div>
+                )}
+              </TabsContent>
 
-                <TabsContent value="actions" className="mt-0 h-full">
-                  <ScrollArea className="h-full">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Ações da IA */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <Bot className="h-5 w-5 mr-2 text-[rgb(var(--theme-primary))]" />
-                            Inteligência Artificial
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          <Button
-                            onClick={handleGenerateAISummary}
-                            className="w-full justify-start"
-                            variant="outline"
-                            disabled={iaLoading}
-                          >
-                            <FileText className="h-4 w-4 mr-2" />
-                            Gerar Resumo com IA
-                          </Button>
-                          <Button
-                            onClick={handleGeneratePetition}
-                            className="w-full justify-start"
-                            variant="outline"
-                            disabled={iaLoading}
-                          >
-                            <Gavel className="h-4 w-4 mr-2" />
-                            Sugerir Petição
-                          </Button>
-                          <Button
-                            onClick={handleStartAIChat}
-                            className="w-full justify-start"
-                            variant="outline"
-                          >
-                            <MessageCircle className="h-4 w-4 mr-2" />
-                            Conversar com IA
-                          </Button>
-                        </CardContent>
-                      </Card>
+              <TabsContent value="acoes" className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm">Ações Básicas</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Marcar como Processada
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={handleCopiarTexto}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copiar Texto Integral
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={handleBaixarPDF}
+                      >
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Baixar (TXT/PDF)
+                      </Button>
+                    </CardContent>
+                  </Card>
 
-                      {/* Ações de Organização */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <Calendar className="h-5 w-5 mr-2 text-[rgb(var(--theme-primary))]" />
-                            Organização
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          <Button
-                            onClick={handleCreateTask}
-                            className="w-full justify-start"
-                            variant="outline"
-                            disabled={moduleLoading}
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Criar Tarefa
-                          </Button>
-                          <Button
-                            onClick={handleOpenTicket}
-                            className="w-full justify-start"
-                            variant="outline"
-                            disabled={moduleLoading}
-                          >
-                            <MessageSquare className="h-4 w-4 mr-2" />
-                            Abrir Atendimento
-                          </Button>
-                          <Button
-                            onClick={() =>
-                              toast.info("Funcionalidade em desenvolvimento")
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm">IA Jurídica</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={handleSugerirPeticao}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Sugerir Petição
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={() => setShowIAChat(true)}
+                      >
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Conversa com IA
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={handleGerarResumoIA}
+                      >
+                        <Bot className="h-4 w-4 mr-2" />
+                        Gerar Resumo
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm">Prazos & Agenda</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={handleCalcularPrazo}
+                        disabled={calculandoPrazo}
+                      >
+                        <Calculator className="h-4 w-4 mr-2" />
+                        {calculandoPrazo ? "Calculando..." : "Calcular Prazo"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={handleCriarTarefa}
+                        disabled={!resultadoPrazo}
+                      >
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Criar Tarefa
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                      >
+                        <Clock className="h-4 w-4 mr-2" />
+                        Configurar Lembrete
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm">
+                        Compartilhamento
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={handleCompartilharWhatsApp}
+                      >
+                        <Smartphone className="h-4 w-4 mr-2" />
+                        WhatsApp
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                      >
+                        <Mail className="h-4 w-4 mr-2" />
+                        E-mail
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Telegram
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm">Intermodular</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Criar Ticket
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                      >
+                        <Archive className="h-4 w-4 mr-2" />
+                        Arquivar no GED
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                      >
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        Estudo de Caso IA
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm">Organização</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                      >
+                        <Star className="h-4 w-4 mr-2" />
+                        Favoritar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                      >
+                        <Flag className="h-4 w-4 mr-2" />
+                        Marcar Follow-up
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Excluir
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {resultadoPrazo && (
+                  <Card className="border-blue-200 bg-blue-50">
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Calculator className="h-5 w-5" />
+                        Resultado do Cálculo de Prazo
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <div>
+                          <Label className="text-sm text-muted-foreground">
+                            Data Final
+                          </Label>
+                          <p className="font-semibold">
+                            {resultadoPrazo.dataFinal.toLocaleDateString(
+                              "pt-BR",
+                            )}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm text-muted-foreground">
+                            Dias Corridos
+                          </Label>
+                          <p className="font-semibold">
+                            {resultadoPrazo.diasCorridos} dias
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm text-muted-foreground">
+                            Regra Aplicada
+                          </Label>
+                          <p className="font-semibold">
+                            {resultadoPrazo.regra}
+                          </p>
+                        </div>
+                      </div>
+                      {resultadoPrazo.observacoes.length > 0 && (
+                        <div>
+                          <Label className="text-sm text-muted-foreground">
+                            Observações
+                          </Label>
+                          <ul className="text-sm space-y-1 mt-1">
+                            {resultadoPrazo.observacoes.map(
+                              (obs: string, index: number) => (
+                                <li
+                                  key={index}
+                                  className="flex items-start gap-1"
+                                >
+                                  <span className="text-blue-500">•</span>
+                                  {obs}
+                                </li>
+                              ),
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              <TabsContent value="integracao" className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">
+                        Vinculação de Processo
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="processo-vinculado">
+                          Número do Processo
+                        </Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="processo-vinculado"
+                            placeholder="0000000-00.0000.0.00.0000"
+                            value={processoVinculado}
+                            onChange={(e) =>
+                              setProcessoVinculado(e.target.value)
                             }
-                            className="w-full justify-start"
-                            variant="outline"
-                          >
-                            <Link className="h-4 w-4 mr-2" />
-                            Vincular a Processo
+                          />
+                          <Button onClick={handleVincularProcesso}>
+                            <Link className="h-4 w-4" />
                           </Button>
-                        </CardContent>
-                      </Card>
+                        </div>
+                      </div>
 
-                      {/* Ações de Compartilhamento */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <Share2 className="h-5 w-5 mr-2 text-[rgb(var(--theme-primary))]" />
-                            Compartilhamento
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
+                      {publicacao.processoVinculado && (
+                        <Alert>
+                          <CheckCircle className="h-4 w-4" />
+                          <AlertDescription>
+                            Vinculado ao processo:{" "}
+                            <strong>{publicacao.processoVinculado}</strong>
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">
+                        Cliente Relacionado
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="cliente-vinculado">Cliente</Label>
+                        <Select
+                          value={clienteVinculado}
+                          onValueChange={setClienteVinculado}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecionar cliente" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cliente1">João Silva</SelectItem>
+                            <SelectItem value="cliente2">
+                              Maria Santos
+                            </SelectItem>
+                            <SelectItem value="cliente3">
+                              Empresa ABC Ltda
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">
+                        Tags e Organização
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Tags</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Nova tag"
+                            value={newTag}
+                            onChange={(e) => setNewTag(e.target.value)}
+                            onKeyPress={(e) =>
+                              e.key === "Enter" && handleAdicionarTag()
+                            }
+                          />
+                          <Button size="sm" onClick={handleAdicionarTag}>
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {tags.map((tag) => (
+                            <Badge
+                              key={tag}
+                              variant="secondary"
+                              className="cursor-pointer"
+                            >
+                              {tag}
+                              <X
+                                className="h-3 w-3 ml-1"
+                                onClick={() => handleRemoverTag(tag)}
+                              />
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Observações</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Textarea
+                        placeholder="Adicione observações sobre esta publicação..."
+                        value={observacoes}
+                        onChange={(e) => setObservacoes(e.target.value)}
+                        rows={4}
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="cliente" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      Visibilidade para Cliente
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="visivel-cliente">
+                          Tornar visível para o cliente
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          O cliente poderá visualizar esta publicação no portal
+                        </p>
+                      </div>
+                      <Switch
+                        id="visivel-cliente"
+                        checked={visivelCliente}
+                        onCheckedChange={setVisivelCliente}
+                      />
+                    </div>
+
+                    {visivelCliente && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="space-y-4 border-t pt-4"
+                      >
+                        <Alert>
+                          <Globe className="h-4 w-4" />
+                          <AlertDescription>
+                            Esta publicação será exibida no portal do cliente
+                            com acesso controlado.
+                          </AlertDescription>
+                        </Alert>
+
+                        <div className="space-y-3">
+                          <h4 className="font-medium">Opções de Notificação</h4>
+
                           <Button
-                            onClick={() => handleShare("whatsapp")}
-                            className="w-full justify-start"
                             variant="outline"
+                            className="w-full justify-start"
+                            onClick={handleCompartilharWhatsApp}
                           >
                             <Smartphone className="h-4 w-4 mr-2" />
-                            WhatsApp
+                            Enviar por WhatsApp
                           </Button>
+
                           <Button
-                            onClick={() => handleShare("telegram")}
-                            className="w-full justify-start"
                             variant="outline"
-                          >
-                            <MessageCircle className="h-4 w-4 mr-2" />
-                            Telegram
-                          </Button>
-                          <Button
-                            onClick={() => handleShare("email")}
                             className="w-full justify-start"
-                            variant="outline"
                           >
                             <Mail className="h-4 w-4 mr-2" />
-                            E-mail
+                            Enviar por E-mail
                           </Button>
-                        </CardContent>
-                      </Card>
 
-                      {/* Ações de Download */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <Download className="h-5 w-5 mr-2 text-[rgb(var(--theme-primary))]" />
-                            Download
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
                           <Button
-                            onClick={() => handleDownload("pdf")}
-                            className="w-full justify-start"
                             variant="outline"
-                          >
-                            <FileDown className="h-4 w-4 mr-2" />
-                            Baixar PDF
-                          </Button>
-                          <Button
-                            onClick={() => handleDownload("txt")}
                             className="w-full justify-start"
-                            variant="outline"
                           >
-                            <FileText className="h-4 w-4 mr-2" />
-                            Baixar TXT
+                            <Send className="h-4 w-4 mr-2" />
+                            Gerar Link de Compartilhamento
                           </Button>
-                          <Button
-                            onClick={() => handleDownload("csv")}
-                            className="w-full justify-start"
-                            variant="outline"
-                          >
-                            <FileDown className="h-4 w-4 mr-2" />
-                            Baixar CSV
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </ScrollArea>
-                </TabsContent>
+                        </div>
 
-                <TabsContent value="integration" className="mt-0 h-full">
-                  <ScrollArea className="h-full">
-                    <div className="space-y-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Vinculação a Processo</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div>
-                            <Label htmlFor="process-select">
-                              Processo Existente
-                            </Label>
-                            <Select
-                              value={selectedProcess}
-                              onValueChange={setSelectedProcess}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecionar processo existente..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="new">
-                                  + Criar novo processo
-                                </SelectItem>
-                                <SelectItem value="proc1">
-                                  0001234-56.2024.8.26.0001
-                                </SelectItem>
-                                <SelectItem value="proc2">
-                                  0007890-12.2024.8.26.0002
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+                        <div className="p-3 bg-muted rounded-lg">
+                          <h5 className="font-medium text-sm mb-2">
+                            Prévia da Mensagem:
+                          </h5>
+                          <p className="text-sm text-muted-foreground">
+                            "📋 Prezado cliente, há uma nova publicação
+                            disponível referente ao processo{" "}
+                            {publicacao.numeroProcesso}.
+                            {analiseIA &&
+                              ` ${analiseIA.resumo.substring(0, 100)}...`}
+                            Acesse o portal para mais detalhes."
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
 
-                          <div className="flex space-x-2">
-                            <Button
-                              onClick={() =>
-                                toast.info("Processo vinculado com sucesso")
-                              }
-                              disabled={!selectedProcess}
-                              className="flex-1"
-                            >
-                              <Link className="h-4 w-4 mr-2" />
-                              Vincular Processo
-                            </Button>
-                            <Button
-                              variant="outline"
-                              onClick={() =>
-                                toast.info("Funcionalidade em desenvolvimento")
-                              }
-                            >
-                              <Plus className="h-4 w-4 mr-2" />
-                              Novo Processo
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Inclusão em Estudos de Caso</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <p className="text-sm text-muted-foreground">
-                              Esta publicação pode ser incluída nos estudos de
-                              caso da IA Jurídica para melhorar as análises
-                              futuras.
-                            </p>
-                            <Button
-                              onClick={() =>
-                                toast.success(
-                                  "Publicação incluída nos estudos de caso",
-                                )
-                              }
-                              variant="outline"
-                              className="w-full"
-                            >
-                              <Bot className="h-4 w-4 mr-2" />
-                              Incluir na IA Jurídica
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </ScrollArea>
-                </TabsContent>
-
-                <TabsContent value="client" className="mt-0 h-full">
-                  <ScrollArea className="h-full">
-                    <div className="space-y-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <Globe className="h-5 w-5 mr-2 text-[rgb(var(--theme-primary))]" />
-                            Portal do Cliente
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <Label
-                                htmlFor="client-visibility"
-                                className="text-base font-medium"
-                              >
-                                Visível no Portal do Cliente
-                              </Label>
-                              <p className="text-sm text-muted-foreground">
-                                Esta publicação será exibida para o cliente no
-                                portal
-                              </p>
-                            </div>
-                            <Switch
-                              id="client-visibility"
-                              checked={isVisibleToClient}
-                              onCheckedChange={handleVisibilityToggle}
-                            />
-                          </div>
-
-                          <Separator />
-
-                          {isVisibleToClient ? (
-                            <div className="space-y-4">
-                              <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                                <div className="flex items-center space-x-2 mb-2">
-                                  <CheckCircle className="h-5 w-5 text-green-600" />
-                                  <h4 className="font-medium text-green-800 dark:text-green-200">
-                                    Visível para o Cliente
-                                  </h4>
-                                </div>
-                                <p className="text-sm text-green-700 dark:text-green-300">
-                                  Esta publicação será exibida no portal do
-                                  cliente e ele receberá uma notificação
-                                  automática.
-                                </p>
-                              </div>
-
-                              <div>
-                                <Label htmlFor="whatsapp-message">
-                                  Mensagem para WhatsApp
-                                </Label>
-                                <Textarea
-                                  id="whatsapp-message"
-                                  value={whatsappMessage}
-                                  onChange={(e) =>
-                                    setWhatsappMessage(e.target.value)
-                                  }
-                                  rows={8}
-                                  className="mt-2"
-                                />
-                              </div>
-
-                              <Button
-                                onClick={handleSendWhatsApp}
-                                className="w-full"
-                              >
-                                <Smartphone className="h-4 w-4 mr-2" />
-                                Enviar via WhatsApp
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="space-y-4">
-                              <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                                <div className="flex items-center space-x-2 mb-2">
-                                  <Shield className="h-5 w-5 text-yellow-600" />
-                                  <h4 className="font-medium text-yellow-800 dark:text-yellow-200">
-                                    Uso Interno
-                                  </h4>
-                                </div>
-                                <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                                  Esta publicação está marcada para uso interno
-                                  e não será visível no portal do cliente.
-                                </p>
-                              </div>
-
-                              <div className="text-center">
-                                <p className="text-sm text-muted-foreground mb-4">
-                                  Ative a visibilidade para permitir que o
-                                  cliente veja esta publicação
-                                </p>
-                                <Button
-                                  onClick={handleVisibilityToggle}
-                                  variant="outline"
-                                >
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  Tornar Visível
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Histórico de Visualizações</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between text-sm">
-                              <span>
-                                Advogado Silva - Primeira visualização
-                              </span>
-                              <span className="text-muted-foreground">
-                                Hoje, 14:30
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                              <span>Sistema - Publicação recebida</span>
-                              <span className="text-muted-foreground">
-                                Hoje, 09:15
-                              </span>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </ScrollArea>
-                </TabsContent>
-              </div>
-            </Tabs>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <IAAssistant
-        isOpen={aiAssistantOpen}
-        onClose={() => setAiAssistantOpen(false)}
-        context={{
-          type: "PUBLICACAO_ANALYSIS",
-          entityId: publicacao.id,
-          entityData: { ...publicacao, urgency: analysis?.urgency },
-        }}
-        initialMessage={
-          createAIContextFromPublication(publicacao).initialMessage
-        }
-      />
-    </>
+        {/* Chat IA Modal */}
+        <AnimatePresence>
+          {showIAChat && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+              onClick={() => setShowIAChat(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.95 }}
+                className="bg-background rounded-lg shadow-lg max-w-4xl w-full max-h-[80vh] overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="border-b p-4 flex justify-between items-center">
+                  <h3 className="font-semibold">
+                    IA Jurídica - Análise da Publicação
+                  </h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowIAChat(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="h-96">
+                  <IAAssistant
+                    initialContext={{
+                      type: "publicacao_analysis",
+                      data: {
+                        numeroProcesso: publicacao.numeroProcesso,
+                        conteudo: publicacao.conteudo,
+                        tipo: publicacao.tipo,
+                        tribunal: publicacao.tribunal,
+                      },
+                    }}
+                  />
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </DialogContent>
+    </Dialog>
   );
 }
