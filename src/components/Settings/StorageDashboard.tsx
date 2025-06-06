@@ -740,16 +740,28 @@ export function StorageDashboard() {
                   <SelectTrigger className="w-40">
                     <SelectValue placeholder="Módulo" />
                   </SelectTrigger>
-                  <Select
-                    value={filterType}
-                    onValueChange={setFilterType}
-                  >
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Filtrar por tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="CRM">CRM</SelectItem>
+                    <SelectItem value="PROCESSOS">Processos</SelectItem>
+                    <SelectItem value="ATENDIMENTO">Atendimento</SelectItem>
+                    <SelectItem value="IA">IA</SelectItem>
+                    <SelectItem value="AGENDA">Agenda</SelectItem>
+                    <SelectItem value="CONTRATOS">Contratos</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="PDF">PDF</SelectItem>
+                    <SelectItem value="DOCX">DOCX</SelectItem>
+                    <SelectItem value="XLSX">XLSX</SelectItem>
                     <SelectItem value="PNG">PNG</SelectItem>
+                    <SelectItem value="JPG">JPG</SelectItem>
                     <SelectItem value="JSON">JSON</SelectItem>
                   </SelectContent>
                 </Select>
