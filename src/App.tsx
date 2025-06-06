@@ -15,6 +15,7 @@ import Settings from "./pages/Settings";
 import ClienteDetalhesTest from "./pages/ClienteDetalhesTest";
 import TesteConfiguracaoStorage from "./pages/TesteConfiguracaoStorage";
 import ConfiguracaoArmazenamento from "./pages/ConfiguracaoArmazenamento";
+import PublicacoesExample from "./pages/PublicacoesExample";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
