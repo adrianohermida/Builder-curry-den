@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import {
   HardDrive,
   Settings,
@@ -11,6 +11,11 @@ import {
   Upload,
   Download,
   Shield,
+  FileText,
+  Users,
+  MessageSquare,
+  Brain,
+  Calendar,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,11 +36,13 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 
 export default function ConfiguracaoArmazenamento() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("configuracao");
   const [storageConfig, setStorageConfig] = useState(null);
   const [hasTestData, setHasTestData] = useState(false);
 
-  // Load storage configuration on mount
+  // Carregar configuração de armazenamento no mount
   useEffect(() => {
     try {
       const savedConfig = localStorage.getItem("lawdesk-storage-config");
@@ -43,47 +50,192 @@ export default function ConfiguracaoArmazenamento() {
         setStorageConfig(JSON.parse(savedConfig));
       }
     } catch (error) {
-      console.error("Error loading storage config:", error);
+      console.error("Erro ao carregar configuração:", error);
     }
   }, []);
 
-  const generateTestData = () => {
-    // Simulate generating test data
-    setHasTestData(true);
-    toast.success("Dados de teste gerados com sucesso!");
+  // Gerenciar tab ativa via URL
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && ["configuracao", "dashboard", "logs"].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    setSearchParams({ tab: newTab });
   };
 
-  const clearTestData = () => {
-    setHasTestData(false);
-    toast.info("Dados de teste removidos");
+  const toggleTestData = () => {
+    if (hasTestData) {
+      // Limpar dados de teste
+      localStorage.removeItem("lawdesk-storage-files");
+      localStorage.removeItem("lawdesk-audit-logs");
+      setHasTestData(false);
+      toast.success("🗑️ Dados de teste removidos");
+    } else {
+      // Simular dados de teste para todos os módulos
+      simulateTestData();
+      setHasTestData(true);
+      toast.success("🧪 Dados de teste simulados para demonstração");
+    }
   };
 
-  const navigateToTest = () => {
-    window.open("/teste-configuracao-storage", "_blank");
+  const simulateTestData = () => {
+    // Dados simulados para arquivos
+    const testFiles = [
+      {
+        id: "file_001",
+        name: "Contrato_Prestacao_Servicos_Silva.pdf",
+        size: 2048576,
+        type: "application/pdf",
+        extension: "PDF",
+        module: "CRM",
+        entityId: "cliente_001",
+        entityName: "João Silva & Associados",
+        uploadedBy: "Advogado Silva",
+        uploadedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+        lastAccessed: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+        downloadCount: 5,
+        path: "/clientes/cliente_001/documentos/Contrato_Prestacao_Servicos_Silva.pdf",
+        isPublic: false,
+      },
+      {
+        id: "file_002",
+        name: "Inicial_Acao_Indenizacao.docx",
+        size: 512000,
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        extension: "DOCX",
+        module: "PROCESSOS",
+        entityId: "proc_001",
+        entityName: "Processo 0001234-56.2024.8.26.0001",
+        uploadedBy: "Advogado Silva",
+        uploadedAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+        downloadCount: 8,
+        path: "/processos/0001234-56.2024.8.26.0001/anexos/Inicial_Acao_Indenizacao.docx",
+        isPublic: false,
+      },
+      {
+        id: "file_003",
+        name: "Ticket_Duvida_Cliente_Screenshot.png",
+        size: 1024000,
+        type: "image/png",
+        extension: "PNG",
+        module: "ATENDIMENTO",
+        entityId: "ticket_001",
+        entityName: "Ticket #001 - Dúvida sobre processo",
+        uploadedBy: "Cliente Portal",
+        uploadedAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
+        downloadCount: 1,
+        path: "/tickets/ticket_001/arquivos/Ticket_Duvida_Cliente_Screenshot.png",
+        isPublic: false,
+      },
+      {
+        id: "file_004",
+        name: "Analise_IA_Jurisprudencia.json",
+        size: 256000,
+        type: "application/json",
+        extension: "JSON",
+        module: "IA",
+        entityId: "analysis_001",
+        entityName: "Análise de Jurisprudência - Danos Morais",
+        uploadedBy: "Sistema IA",
+        uploadedAt: new Date(Date.now() - 1000 * 60 * 60 * 96).toISOString(),
+        downloadCount: 12,
+        path: "/ia-juridica/analysis_001/Analise_IA_Jurisprudencia.json",
+        isPublic: false,
+      },
+    ];
+
+    // Dados simulados para logs de auditoria
+    const testLogs = [
+      {
+        id: "log_001",
+        timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+        user: "Advogado Silva",
+        userType: "ADVOGADO",
+        ipAddress: "192.168.1.100",
+        userAgent:
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        deviceType: "DESKTOP",
+        action: "DOWNLOAD",
+        module: "CRM",
+        entityType: "DOCUMENTO_CLIENTE",
+        entityId: "doc_12345",
+        fileName: "Contrato_Silva.pdf",
+        fileSize: 2048576,
+        result: "SUCCESS",
+        details: "Download de contrato pelo advogado responsável",
+        riskLevel: "LOW",
+        location: "São Paulo, SP",
+      },
+      {
+        id: "log_002",
+        timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+        user: "Cliente João",
+        userType: "CLIENTE",
+        ipAddress: "189.123.45.67",
+        userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)",
+        deviceType: "MOBILE",
+        action: "VIEW",
+        module: "CRM",
+        entityType: "DOCUMENTO_CLIENTE",
+        entityId: "doc_12346",
+        fileName: "Procuracao.pdf",
+        result: "SUCCESS",
+        details: "Visualização de procuração via portal do cliente",
+        riskLevel: "MEDIUM",
+        location: "Rio de Janeiro, RJ",
+      },
+      {
+        id: "log_003",
+        timestamp: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+        user: "Usuário Externo",
+        userType: "CLIENTE",
+        ipAddress: "203.45.67.89",
+        userAgent: "Mozilla/5.0 (X11; Linux x86_64)",
+        deviceType: "DESKTOP",
+        action: "DOWNLOAD",
+        module: "CRM",
+        entityType: "DOCUMENTO_CLIENTE",
+        entityId: "doc_12347",
+        fileName: "Documento_Confidencial.pdf",
+        result: "FAILURE",
+        details: "Tentativa de download não autorizado bloqueada",
+        riskLevel: "CRITICAL",
+        location: "Localização desconhecida",
+      },
+    ];
+
+    localStorage.setItem("lawdesk-storage-files", JSON.stringify(testFiles));
+    localStorage.setItem("lawdesk-audit-logs", JSON.stringify(testLogs));
   };
+
+  // Verificar se há dados de teste ao carregar
+  useEffect(() => {
+    const filesData = localStorage.getItem("lawdesk-storage-files");
+    const logsData = localStorage.getItem("lawdesk-audit-logs");
+    setHasTestData(
+      (filesData && JSON.parse(filesData).length > 0) ||
+        (logsData && JSON.parse(logsData).length > 0),
+    );
+  }, []);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
-      {/* Breadcrumbs */}
+    <div className="space-y-6">
+      {/* Breadcrumb */}
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link to="/settings" className="flex items-center space-x-1">
-                <Settings className="h-4 w-4" />
-                <span>Configurações</span>
-              </Link>
+              <Link to="/settings">Configurações</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbPage className="flex items-center space-x-1">
-            <HardDrive className="h-4 w-4" />
-            <span>Armazenamento de Documentos</span>
-          </BreadcrumbPage>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Armazenamento de Documentos</BreadcrumbPage>
+          </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
@@ -94,181 +246,178 @@ export default function ConfiguracaoArmazenamento() {
             <HardDrive className="h-8 w-8 text-[rgb(var(--theme-primary))]" />
             <span>Armazenamento de Documentos</span>
           </h1>
-          <p className="text-muted-foreground mt-2">
-            Configure e gerencie onde os documentos jurídicos são armazenados na
-            plataforma
+          <p className="text-muted-foreground">
+            Configure provedores, monitore uploads e visualize logs de auditoria
           </p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={() => navigate("/settings")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar
+          </Button>
           <Button
             variant="outline"
-            onClick={navigateToTest}
-            className="flex items-center space-x-2"
+            onClick={() => navigate("/teste-configuracao-storage")}
           >
-            <TestTube className="h-4 w-4" />
-            <span>Ver Simulação</span>
-            <ExternalLink className="h-3 w-3" />
+            <TestTube className="h-4 w-4 mr-2" />
+            Teste Completo
           </Button>
-
-          {!hasTestData ? (
-            <Button
-              onClick={generateTestData}
-              className="bg-[rgb(var(--theme-primary))] hover:bg-[rgb(var(--theme-primary))]/90"
-            >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Simular Dados
-            </Button>
-          ) : (
-            <Button variant="outline" onClick={clearTestData}>
-              Limpar Dados de Teste
-            </Button>
-          )}
+          <Button
+            variant={hasTestData ? "destructive" : "default"}
+            onClick={toggleTestData}
+          >
+            {hasTestData ? (
+              <>
+                <Activity className="h-4 w-4 mr-2" />
+                Limpar Dados de Teste
+              </>
+            ) : (
+              <>
+                <Activity className="h-4 w-4 mr-2" />
+                Simular Dados
+              </>
+            )}
+          </Button>
         </div>
       </div>
 
-      {/* Quick Access Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Link to="/crm" className="block">
-          <Card className="rounded-2xl shadow-md hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-[rgb(var(--theme-primary))]/50">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    CRM Jurídico
-                  </p>
-                  <p className="text-lg font-bold">Upload de Documentos</p>
+      {/* Cards de Acesso Rápido */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0 }}
+        >
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate("/crm")}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                  <Users className="h-6 w-6 text-blue-600" />
                 </div>
-                <Upload className="h-8 w-8 text-[rgb(var(--theme-primary))]" />
+                <ExternalLink className="h-4 w-4 text-muted-foreground" />
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Configurar destino dos documentos de clientes
+              <h3 className="font-semibold mb-2">CRM Jurídico</h3>
+              <p className="text-sm text-muted-foreground">
+                Upload em clientes, processos e contratos
               </p>
             </CardContent>
           </Card>
-        </Link>
+        </motion.div>
 
-        <Link to="/tickets" className="block">
-          <Card className="rounded-2xl shadow-md hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-[rgb(var(--theme-primary))]/50">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Atendimento
-                  </p>
-                  <p className="text-lg font-bold">Anexos de Tickets</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate("/tickets")}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                  <MessageSquare className="h-6 w-6 text-green-600" />
                 </div>
-                <Download className="h-8 w-8 text-green-500" />
+                <ExternalLink className="h-4 w-4 text-muted-foreground" />
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Onde salvar anexos de atendimento
+              <h3 className="font-semibold mb-2">Atendimento</h3>
+              <p className="text-sm text-muted-foreground">
+                Anexos em tickets e solicitações
               </p>
             </CardContent>
           </Card>
-        </Link>
+        </motion.div>
 
-        <Link to="/ai" className="block">
-          <Card className="rounded-2xl shadow-md hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-[rgb(var(--theme-primary))]/50">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    IA Jurídica
-                  </p>
-                  <p className="text-lg font-bold">Documentos Gerados</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate("/agenda")}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                  <Calendar className="h-6 w-6 text-purple-600" />
                 </div>
-                <Shield className="h-8 w-8 text-purple-500" />
+                <ExternalLink className="h-4 w-4 text-muted-foreground" />
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Destino dos documentos criados por IA
+              <h3 className="font-semibold mb-2">Agenda Jurídica</h3>
+              <p className="text-sm text-muted-foreground">
+                Documentos de audiências e prazos
               </p>
             </CardContent>
           </Card>
-        </Link>
+        </motion.div>
 
-        <Link to="/agenda" className="block">
-          <Card className="rounded-2xl shadow-md hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-[rgb(var(--theme-primary))]/50">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Agenda Jurídica
-                  </p>
-                  <p className="text-lg font-bold">Arquivos de Eventos</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate("/ai")}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
+                  <Brain className="h-6 w-6 text-orange-600" />
                 </div>
-                <Activity className="h-8 w-8 text-orange-500" />
+                <ExternalLink className="h-4 w-4 text-muted-foreground" />
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Anexos de audiências e compromissos
+              <h3 className="font-semibold mb-2">IA Jurídica</h3>
+              <p className="text-sm text-muted-foreground">
+                Upload para análise e petições
               </p>
             </CardContent>
           </Card>
-        </Link>
+        </motion.div>
       </div>
 
-      {/* Current Configuration Status */}
+      {/* Status do Provedor Atual */}
       {storageConfig && (
-        <Card className="rounded-2xl shadow-md border-l-4 border-l-[rgb(var(--theme-primary))]">
-          <CardContent className="p-6">
+        <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">
-                  Configuração Atual
-                </h3>
-                <div className="flex items-center space-x-4">
-                  <Badge
-                    variant="default"
-                    className="bg-[rgb(var(--theme-primary))]"
-                  >
-                    Provedor:{" "}
-                    {storageConfig.provider === "lawdesk-cloud"
-                      ? "Lawdesk Cloud"
-                      : storageConfig.provider === "supabase-external"
-                        ? "Supabase Externo"
-                        : storageConfig.provider === "google-drive"
-                          ? "Google Drive"
-                          : storageConfig.provider === "ftp-sftp"
-                            ? "Servidor Local"
-                            : storageConfig.provider === "api-custom"
-                              ? "API Customizada"
-                              : "Desconhecido"}
-                  </Badge>
-                  <Badge
-                    variant={
-                      storageConfig.connectionStatus === "connected"
-                        ? "default"
-                        : "destructive"
-                    }
-                  >
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                  <HardDrive className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-green-800 dark:text-green-200">
+                    Provedor Ativo: {storageConfig.provider || "Lawdesk Cloud"}
+                  </h4>
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    Status:{" "}
                     {storageConfig.connectionStatus === "connected"
-                      ? "✓ Conectado"
-                      : "✗ Desconectado"}
-                  </Badge>
-                  {storageConfig.encryption && (
-                    <Badge
-                      variant="outline"
-                      className="border-green-500 text-green-600"
-                    >
-                      🔒 Criptografia Ativa
-                    </Badge>
-                  )}
+                      ? "✅ Conectado"
+                      : "⚠️ Verificar conexão"}
+                    {storageConfig.encryption &&
+                      " • 🔒 Criptografia AES-256 ativa"}
+                  </p>
                 </div>
               </div>
-              <Button
-                onClick={() => setActiveTab("configuracao")}
+              <Badge
                 variant="outline"
+                className="border-green-300 text-green-700"
               >
-                <Settings className="h-4 w-4 mr-2" />
-                Alterar Configuração
-              </Button>
+                Configurado
+              </Badge>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Main Content Tabs */}
+      {/* Tabs Principais */}
       <Tabs
         value={activeTab}
-        onValueChange={setActiveTab}
+        onValueChange={handleTabChange}
         className="space-y-6"
       >
         <TabsList className="grid w-full grid-cols-3">
@@ -284,57 +433,28 @@ export default function ConfiguracaoArmazenamento() {
             className="flex items-center space-x-2"
           >
             <BarChart3 className="h-4 w-4" />
-            <span>Painel de Controle</span>
+            <span>Dashboard</span>
           </TabsTrigger>
-          <TabsTrigger
-            value="auditoria"
-            className="flex items-center space-x-2"
-          >
-            <Activity className="h-4 w-4" />
+          <TabsTrigger value="logs" className="flex items-center space-x-2">
+            <Shield className="h-4 w-4" />
             <span>Logs de Auditoria</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="configuracao" className="space-y-6">
-          <ConfigStorageProvider />
+          <ConfigStorageProvider
+            onConfigChange={(config) => setStorageConfig(config)}
+          />
         </TabsContent>
 
         <TabsContent value="dashboard" className="space-y-6">
-          {!hasTestData ? (
-            <Card className="rounded-2xl shadow-md">
-              <CardContent className="p-12 text-center">
-                <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold">
-                  Painel de Controle de Armazenamento
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  Para visualizar estatísticas e métricas, gere dados de teste
-                  ou comece a usar o sistema.
-                </p>
-                <div className="flex justify-center space-x-4">
-                  <Button
-                    onClick={generateTestData}
-                    className="bg-[rgb(var(--theme-primary))] hover:bg-[rgb(var(--theme-primary))]/90"
-                  >
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    Simular Dados de Teste
-                  </Button>
-                  <Button variant="outline" onClick={navigateToTest}>
-                    <TestTube className="h-4 w-4 mr-2" />
-                    Ver Página de Testes
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <StorageDashboard />
-          )}
+          <StorageDashboard />
         </TabsContent>
 
-        <TabsContent value="auditoria" className="space-y-6">
+        <TabsContent value="logs" className="space-y-6">
           <StorageAuditLogs />
         </TabsContent>
       </Tabs>
-    </motion.div>
+    </div>
   );
 }
