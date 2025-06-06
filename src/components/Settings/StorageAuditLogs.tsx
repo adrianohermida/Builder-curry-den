@@ -105,10 +105,9 @@ export function StorageAuditLogs() {
   const [stats, setStats] = useState<AuditStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterAction, setFilterAction] = useState("");
-  const [filterModule, setFilterModule] = useState("");
-  const [filterResult, setFilterResult] = useState("");
-  const [filterRisk, setFilterRisk] = useState("");
+  const [filterAction, setFilterAction] = useState("all");
+  const [filterUser, setFilterUser] = useState("all");
+  const [filterRisk, setFilterRisk] = useState("all");
   const [filterUser, setFilterUser] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -209,7 +208,7 @@ export function StorageAuditLogs() {
       {
         id: "log_004",
         timestamp: new Date(Date.now() - 1000 * 60 * 75).toISOString(),
-        user: "Estagiário Jo��o",
+        user: "Estagiário João",
         userType: "ESTAGIARIO",
         ipAddress: "192.168.1.101",
         userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
@@ -733,7 +732,7 @@ export function StorageAuditLogs() {
                   <SelectValue placeholder="Todas as ações" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   <SelectItem value="UPLOAD">Upload</SelectItem>
                   <SelectItem value="DOWNLOAD">Download</SelectItem>
                   <SelectItem value="VIEW">Visualização</SelectItem>
@@ -751,7 +750,7 @@ export function StorageAuditLogs() {
                   <SelectValue placeholder="Todos os módulos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="CRM">CRM</SelectItem>
                   <SelectItem value="PROCESSOS">Processos</SelectItem>
                   <SelectItem value="ATENDIMENTO">Atendimento</SelectItem>
