@@ -89,8 +89,8 @@ export function StorageDashboard() {
   const [stats, setStats] = useState<StorageStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterModule, setFilterModule] = useState("");
-  const [filterType, setFilterType] = useState("");
+  const [filterModule, setFilterModule] = useState("all");
+  const [filterType, setFilterType] = useState("all");
   const [sortBy, setSortBy] = useState<"name" | "size" | "date" | "downloads">(
     "date",
   );
@@ -740,25 +740,15 @@ export function StorageDashboard() {
                   <SelectTrigger className="w-40">
                     <SelectValue placeholder="Módulo" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Todos</SelectItem>
-                    <SelectItem value="CRM">CRM</SelectItem>
-                    <SelectItem value="PROCESSOS">Processos</SelectItem>
-                    <SelectItem value="ATENDIMENTO">Atendimento</SelectItem>
-                    <SelectItem value="IA">IA Jurídica</SelectItem>
-                    <SelectItem value="AGENDA">Agenda</SelectItem>
-                    <SelectItem value="CONTRATOS">Contratos</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Todos</SelectItem>
-                    <SelectItem value="PDF">PDF</SelectItem>
-                    <SelectItem value="DOCX">DOCX</SelectItem>
-                    <SelectItem value="XLSX">XLSX</SelectItem>
+                  <Select
+                    value={filterType}
+                    onValueChange={setFilterType}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Filtrar por tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
                     <SelectItem value="PNG">PNG</SelectItem>
                     <SelectItem value="JSON">JSON</SelectItem>
                   </SelectContent>
