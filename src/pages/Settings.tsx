@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Settings as SettingsIcon,
   User,
@@ -14,6 +15,9 @@ import {
   Building,
   Mail,
   Phone,
+  HardDrive,
+  ExternalLink,
+  ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -99,11 +103,12 @@ export default function Settings() {
         onValueChange={setActiveTab}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="profile">Perfil</TabsTrigger>
           <TabsTrigger value="notifications">Notificações</TabsTrigger>
           <TabsTrigger value="security">Segurança</TabsTrigger>
           <TabsTrigger value="appearance">Aparência</TabsTrigger>
+          <TabsTrigger value="storage">Armazenamento</TabsTrigger>
           <TabsTrigger value="billing">Assinatura</TabsTrigger>
         </TabsList>
 
@@ -449,6 +454,82 @@ export default function Settings() {
                   O sistema está configurado para uso exclusivo em português
                   brasileiro.
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="storage" className="space-y-6">
+          <Card className="rounded-2xl shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <HardDrive className="h-5 w-5 text-[rgb(var(--theme-primary))]" />
+                <span>Configuração de Armazenamento</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <p className="text-muted-foreground">
+                  Configure onde e como os documentos jurídicos são armazenados
+                  na plataforma.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium mb-2">Provedor Atual</h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Configure o destino dos documentos, contratos e anexos.
+                    </p>
+                    <Link to="/configuracoes/armazenamento">
+                      <Button className="w-full bg-[rgb(var(--theme-primary))] hover:bg-[rgb(var(--theme-primary))]/90">
+                        <Settings className="h-4 w-4 mr-2" />
+                        Configurar Armazenamento
+                        <ExternalLink className="h-3 w-3 ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
+
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium mb-2">Monitoramento</h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Visualize estatísticas e logs de atividade.
+                    </p>
+                    <Link to="/configuracoes/armazenamento?tab=dashboard">
+                      <Button variant="outline" className="w-full">
+                        <BarChart3 className="h-4 w-4 mr-2" />
+                        Ver Dashboard
+                        <ChevronRight className="h-3 w-3 ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-start space-x-3">
+                    <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-blue-800 dark:text-blue-200">
+                        Conformidade LGPD
+                      </h4>
+                      <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                        Mantenha seus documentos seguros e em conformidade com a
+                        Lei Geral de Proteção de Dados.
+                      </p>
+                      <Link
+                        to="/configuracoes/armazenamento?tab=configuracao"
+                        className="inline-block mt-2"
+                      >
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                        >
+                          Revisar Configurações
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

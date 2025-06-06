@@ -19,6 +19,8 @@ import {
   Globe,
   Server,
   Folder,
+  Upload,
+  AlertCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -143,16 +145,16 @@ const storageProviders: StorageProviderOption[] = [
   },
   {
     id: "api-custom",
-    name: "API Customizada",
+    name: "API Personalizada",
     description: "Integre com sua API REST ou GraphQL personalizada",
     icon: Link,
     color: "bg-indigo-500",
     features: [
       "Endpoint REST/GraphQL",
-      "Headers personalizados",
+      "Cabeçalhos personalizados",
       "Autenticação flexível",
       "Webhook de notificações",
-      "Estrutura de dados customizada",
+      "Estrutura de dados personalizada",
     ],
     compliance: { lgpd: false, backup: false, encryption: false },
   },
@@ -171,12 +173,12 @@ export function ConfigStorageProvider() {
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [testResult, setTestResult] = useState<string>("");
 
   // Load existing configuration
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        // Simulate loading from localStorage or API
         const savedConfig = localStorage.getItem("lawdesk-storage-config");
         if (savedConfig) {
           const config = JSON.parse(savedConfig);
@@ -184,7 +186,8 @@ export function ConfigStorageProvider() {
           setSelectedProvider(config.provider);
         }
       } catch (error) {
-        console.error("Error loading storage config:", error);
+        console.error("Erro ao carregar configuração de armazenamento:", error);
+        toast.error("Erro ao carregar configuração salva");
       }
     };
 
@@ -199,6 +202,7 @@ export function ConfigStorageProvider() {
       config: {},
       connectionStatus: "untested",
     }));
+    setTestResult("");
   };
 
   const handleConfigChange = (key: string, value: any) => {
@@ -213,12 +217,23 @@ export function ConfigStorageProvider() {
 
   const testConnection = async () => {
     setIsTestingConnection(true);
+    setTestResult("");
+
     try {
+      toast.loading("Testando conexão...", { id: "test-connection" });
+
       // Simulate connection test
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
+      // Validate required fields based on provider
+      const isConfigValid = validateConfiguration();
+
+      if (!isConfigValid) {
+        throw new Error("Configuração incompleta");
+      }
+
       // Simulate random success/failure for demo
-      const isSuccess = Math.random() > 0.3;
+      const isSuccess = Math.random() > 0.2; // 80% success rate
 
       if (isSuccess) {
         setStorageConfig((prev) => ({
@@ -226,30 +241,71 @@ export function ConfigStorageProvider() {
           connectionStatus: "connected",
           lastTested: new Date(),
         }));
-        toast.success("Conexão testada com sucesso!");
+        setTestResult(
+          "Conexão estabelecida com sucesso! Todas as funcionalidades estão operacionais.",
+        );
+        toast.success("Conexão testada com sucesso!", {
+          id: "test-connection",
+        });
       } else {
         setStorageConfig((prev) => ({
           ...prev,
           connectionStatus: "error",
           lastTested: new Date(),
         }));
-        toast.error("Falha na conexão. Verifique as credenciais.");
+        setTestResult(
+          "Falha na conexão. Verifique as credenciais e configurações de rede.",
+        );
+        toast.error("Falha na conexão. Verifique as credenciais.", {
+          id: "test-connection",
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
       setStorageConfig((prev) => ({
         ...prev,
         connectionStatus: "error",
         lastTested: new Date(),
       }));
-      toast.error("Erro ao testar conexão");
+      setTestResult(`Erro: ${error.message}`);
+      toast.error("Erro ao testar conexão: " + error.message, {
+        id: "test-connection",
+      });
     } finally {
       setIsTestingConnection(false);
+    }
+  };
+
+  const validateConfiguration = (): boolean => {
+    switch (selectedProvider) {
+      case "lawdesk-cloud":
+        return true; // Always valid for Lawdesk Cloud
+      case "supabase-external":
+        return !!(storageConfig.config.url && storageConfig.config.anonKey);
+      case "google-drive":
+        return !!(
+          storageConfig.config.clientId && storageConfig.config.clientSecret
+        );
+      case "ftp-sftp":
+        return !!(
+          storageConfig.config.host &&
+          storageConfig.config.username &&
+          storageConfig.config.password
+        );
+      case "api-custom":
+        return !!storageConfig.config.baseUrl;
+      default:
+        return false;
     }
   };
 
   const saveConfiguration = async () => {
     setIsSaving(true);
     try {
+      if (!validateConfiguration()) {
+        toast.error("Preencha todos os campos obrigatórios antes de salvar");
+        return;
+      }
+
       // Simulate API save
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -259,9 +315,15 @@ export function ConfigStorageProvider() {
         JSON.stringify(storageConfig),
       );
 
+      // Update global config
+      window.dispatchEvent(
+        new CustomEvent("storage-config-updated", { detail: storageConfig }),
+      );
+
       toast.success("Configuração salva com sucesso!");
     } catch (error) {
       toast.error("Erro ao salvar configuração");
+      console.error("Erro ao salvar:", error);
     } finally {
       setIsSaving(false);
     }
@@ -277,6 +339,19 @@ export function ConfigStorageProvider() {
         return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
       default:
         return <TestTube className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  const getConnectionStatusText = () => {
+    switch (storageConfig.connectionStatus) {
+      case "connected":
+        return "Conectado";
+      case "error":
+        return "Erro na Conexão";
+      case "pending":
+        return "Testando...";
+      default:
+        return "Não Testado";
     }
   };
 
@@ -301,7 +376,10 @@ export function ConfigStorageProvider() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Região do Servidor</Label>
-                <Select defaultValue="sa-east-1">
+                <Select
+                  defaultValue="sa-east-1"
+                  onValueChange={(value) => handleConfigChange("region", value)}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -320,7 +398,12 @@ export function ConfigStorageProvider() {
               </div>
               <div>
                 <Label>Classe de Armazenamento</Label>
-                <Select defaultValue="standard">
+                <Select
+                  defaultValue="standard"
+                  onValueChange={(value) =>
+                    handleConfigChange("storageClass", value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -366,7 +449,7 @@ export function ConfigStorageProvider() {
 
             <div>
               <Label htmlFor="service-role-key">
-                Service Role Key (opcional)
+                Chave de Serviço (opcional)
               </Label>
               <Input
                 id="service-role-key"
@@ -380,11 +463,11 @@ export function ConfigStorageProvider() {
             </div>
 
             <div>
-              <Label htmlFor="bucket-name">Nome do Bucket</Label>
+              <Label htmlFor="bucket-name">Nome do Destino</Label>
               <Input
                 id="bucket-name"
-                placeholder="lawdesk-documents"
-                value={storageConfig.config.bucket || "lawdesk-documents"}
+                placeholder="lawdesk-documentos"
+                value={storageConfig.config.bucket || "lawdesk-documentos"}
                 onChange={(e) => handleConfigChange("bucket", e.target.value)}
               />
             </div>
@@ -405,7 +488,7 @@ export function ConfigStorageProvider() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="client-id">Client ID do Google *</Label>
+                <Label htmlFor="client-id">ID do Cliente Google *</Label>
                 <Input
                   id="client-id"
                   placeholder="123456789-xyz.apps.googleusercontent.com"
@@ -416,7 +499,9 @@ export function ConfigStorageProvider() {
                 />
               </div>
               <div>
-                <Label htmlFor="client-secret">Client Secret *</Label>
+                <Label htmlFor="client-secret">
+                  Chave Secreta do Cliente *
+                </Label>
                 <Input
                   id="client-secret"
                   type="password"
@@ -504,7 +589,7 @@ export function ConfigStorageProvider() {
             </div>
 
             <div>
-              <Label htmlFor="ftp-path">Caminho Remoto</Label>
+              <Label htmlFor="ftp-path">Caminho de Armazenamento</Label>
               <Input
                 id="ftp-path"
                 placeholder="/public_html/lawdesk/"
@@ -549,7 +634,7 @@ export function ConfigStorageProvider() {
                 <Input
                   id="api-token"
                   type="password"
-                  placeholder="Bearer token ou API key"
+                  placeholder="Bearer token ou chave da API"
                   value={storageConfig.config.token || ""}
                   onChange={(e) => handleConfigChange("token", e.target.value)}
                 />
@@ -575,7 +660,7 @@ export function ConfigStorageProvider() {
 
             <div>
               <Label htmlFor="custom-headers">
-                Headers Personalizados (JSON)
+                Cabeçalhos Personalizados (JSON)
               </Label>
               <Textarea
                 id="custom-headers"
@@ -594,7 +679,7 @@ export function ConfigStorageProvider() {
               </Label>
               <Input
                 id="webhook-url"
-                placeholder="https://seuescritorio.com.br/webhook/storage"
+                placeholder="https://seuescritorio.com.br/webhook/armazenamento"
                 value={storageConfig.config.webhookUrl || ""}
                 onChange={(e) =>
                   handleConfigChange("webhookUrl", e.target.value)
@@ -717,18 +802,32 @@ export function ConfigStorageProvider() {
                     <div className="flex items-center space-x-2">
                       {getConnectionStatusIcon()}
                       <span className="text-sm text-muted-foreground">
-                        {storageConfig.connectionStatus === "connected" &&
-                          "Conectado"}
-                        {storageConfig.connectionStatus === "error" &&
-                          "Erro na Conexão"}
-                        {storageConfig.connectionStatus === "untested" &&
-                          "Não Testado"}
+                        {getConnectionStatusText()}
                       </span>
                     </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {renderProviderConfig()}
+
+                  {/* Test Result Display */}
+                  {testResult && (
+                    <Alert
+                      className={
+                        storageConfig.connectionStatus === "connected"
+                          ? "border-green-200 bg-green-50 dark:bg-green-950/20"
+                          : "border-red-200 bg-red-50 dark:bg-red-950/20"
+                      }
+                    >
+                      {storageConfig.connectionStatus === "connected" ? (
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <AlertCircle className="h-4 w-4 text-red-600" />
+                      )}
+                      <AlertTitle>Resultado do Teste de Conexão</AlertTitle>
+                      <AlertDescription>{testResult}</AlertDescription>
+                    </Alert>
+                  )}
 
                   <Separator />
 
@@ -741,9 +840,10 @@ export function ConfigStorageProvider() {
 
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">
-                        <Label>Criptografia de Arquivos</Label>
+                        <Label>Criptografia de Arquivos (AES-256)</Label>
                         <p className="text-sm text-muted-foreground">
-                          Criptografar arquivos antes do upload (AES-256)
+                          Criptografar arquivos antes do upload para maior
+                          segurança
                         </p>
                       </div>
                       <Switch
@@ -780,7 +880,7 @@ export function ConfigStorageProvider() {
                         >
                           <div>
                             <Label htmlFor="max-file-size">
-                              Tamanho Máximo de Arquivo (MB)
+                              Tamanho Máximo por Arquivo (MB)
                             </Label>
                             <Input
                               id="max-file-size"
@@ -841,38 +941,46 @@ export function ConfigStorageProvider() {
                   {/* LGPD Compliance Warning */}
                   {selectedProvider !== "lawdesk-cloud" && (
                     <Alert className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
-                      <AlertTriangle className="h-4 w-4 text-orange-600" />
-                      <AlertTitle className="text-orange-800 dark:text-orange-200">
-                        Responsabilidade sobre Conformidade
-                      </AlertTitle>
-                      <AlertDescription className="text-orange-700 dark:text-orange-300">
-                        <div className="space-y-2">
-                          <p>
-                            Ao usar provedores externos, você assume a
-                            responsabilidade pela:
-                          </p>
-                          <ul className="list-disc list-inside space-y-1 text-sm">
-                            <li>
-                              Conformidade com a LGPD (Lei Geral de Proteção de
-                              Dados)
-                            </li>
-                            <li>Segurança e backup dos dados armazenados</li>
-                            <li>Controle de acesso e permissões</li>
-                            <li>Política de retenção e exclusão de dados</li>
-                          </ul>
-                          <div className="flex items-center space-x-2 mt-3">
-                            <ExternalLink className="h-4 w-4" />
-                            <a
-                              href="https://lawdesk.com.br/politica-privacidade"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm underline hover:no-underline"
-                            >
-                              Consulte nossa Política de Privacidade
-                            </a>
-                          </div>
+                      <div className="flex items-start space-x-2">
+                        <div className="text-2xl">⚖️</div>
+                        <div>
+                          <AlertTitle className="text-orange-800 dark:text-orange-200">
+                            Responsabilidade sobre Conformidade LGPD
+                          </AlertTitle>
+                          <AlertDescription className="text-orange-700 dark:text-orange-300">
+                            <div className="space-y-2">
+                              <p>
+                                Ao usar provedores externos, você assume a
+                                responsabilidade pela:
+                              </p>
+                              <ul className="list-disc list-inside space-y-1 text-sm">
+                                <li>
+                                  Conformidade com a LGPD (Lei Geral de Proteção
+                                  de Dados)
+                                </li>
+                                <li>
+                                  Segurança e backup dos dados armazenados
+                                </li>
+                                <li>Controle de acesso e permissões</li>
+                                <li>
+                                  Política de retenção e exclusão de dados
+                                </li>
+                              </ul>
+                              <div className="flex items-center space-x-2 mt-3">
+                                <ExternalLink className="h-4 w-4" />
+                                <a
+                                  href="https://lawdesk.com.br/politica-privacidade"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm underline hover:no-underline"
+                                >
+                                  Consulte nossa Política de Privacidade
+                                </a>
+                              </div>
+                            </div>
+                          </AlertDescription>
                         </div>
-                      </AlertDescription>
+                      </div>
                     </Alert>
                   )}
 

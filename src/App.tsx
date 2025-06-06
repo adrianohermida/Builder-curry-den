@@ -13,6 +13,7 @@ import AI from "./pages/AI";
 import Settings from "./pages/Settings";
 import ClienteDetalhesTest from "./pages/ClienteDetalhesTest";
 import TesteConfiguracaoStorage from "./pages/TesteConfiguracaoStorage";
+import ConfiguracaoArmazenamento from "./pages/ConfiguracaoArmazenamento";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,12 @@ const App = () => (
               <Route path="agenda" element={<Calendar />} />
               <Route path="ai" element={<AI />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="configuracoes">
+                <Route
+                  path="armazenamento"
+                  element={<ConfiguracaoArmazenamento />}
+                />
+              </Route>
               <Route
                 path="cliente-detalhes-test"
                 element={<ClienteDetalhesTest />}
