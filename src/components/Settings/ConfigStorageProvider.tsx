@@ -21,6 +21,11 @@ import {
   Folder,
   Upload,
   AlertCircle,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  FileText,
+  BarChart3,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,8 +49,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 export type StorageProvider =
   | "lawdesk-cloud"
@@ -61,6 +76,11 @@ export interface StorageConfig {
   config: Record<string, any>;
   connectionStatus: "connected" | "error" | "pending" | "untested";
   lastTested?: Date;
+  errorDetails?: {
+    message: string;
+    statusCode?: number;
+    timestamp: Date;
+  };
 }
 
 interface StorageProviderOption {
@@ -98,957 +118,1079 @@ const storageProviders: StorageProviderOption[] = [
   },
   {
     id: "supabase-external",
-    name: "Supabase Próprio",
+    name: "Supabase Externo",
     description:
-      "Use sua própria instância do Supabase com controle total sobre os dados",
+      "Banco de dados PostgreSQL com armazenamento de objetos integrado",
     icon: Database,
     color: "bg-green-500",
     features: [
-      "Controle total dos dados",
-      "APIs REST e GraphQL",
-      "Row Level Security (RLS)",
-      "Backup configurável",
-      "Integração com PostgreSQL",
+      "PostgreSQL em tempo real",
+      "API REST automática",
+      "Autenticação integrada",
+      "Buckets configuráveis",
+      "Transformação de imagens",
     ],
-    compliance: { lgpd: false, backup: false, encryption: true },
+    compliance: { lgpd: false, backup: true, encryption: true },
   },
   {
     id: "google-drive",
-    name: "Google Drive API",
+    name: "Google Drive",
     description:
-      "Integração com Google Drive usando OAuth2, organizando por cliente e processo",
-    icon: Globe,
+      "Integração com Google Workspace para sincronização empresarial",
+    icon: HardDrive,
     color: "bg-yellow-500",
     features: [
-      "Autenticação OAuth2 segura",
-      "Organização automática em pastas",
-      "Compartilhamento controlado",
-      "Versionamento de arquivos",
-      "Acesso via Google Workspace",
+      "Sincronização automática",
+      "Controle de versões",
+      "Compartilhamento granular",
+      "Busca avançada",
+      "Apps Script automação",
     ],
-    compliance: { lgpd: false, backup: false, encryption: false },
+    compliance: { lgpd: false, backup: true, encryption: true },
   },
   {
     id: "ftp-sftp",
-    name: "Servidor Local",
-    description: "Conecte com seu servidor FTP/SFTP local ou dedicado",
+    name: "FTP/SFTP",
+    description: "Servidor de arquivos próprio com protocolo seguro",
     icon: Server,
     color: "bg-purple-500",
     features: [
       "Controle total do servidor",
-      "Acesso via FTP/SFTP",
-      "Configuração personalizada",
-      "Sem limitações de espaço",
-      "Integração com infraestrutura existente",
+      "SFTP criptografado",
+      "Estrutura personalizada",
+      "Backup próprio",
+      "Acesso direto via terminal",
     ],
-    compliance: { lgpd: false, backup: false, encryption: false },
+    compliance: { lgpd: true, backup: false, encryption: true },
   },
   {
     id: "api-custom",
     name: "API Personalizada",
-    description: "Integre com sua API REST ou GraphQL personalizada",
+    description: "Integração com sistema proprietário via REST/GraphQL",
     icon: Link,
-    color: "bg-indigo-500",
+    color: "bg-red-500",
     features: [
-      "Endpoint REST/GraphQL",
-      "Cabeçalhos personalizados",
-      "Autenticação flexível",
-      "Webhook de notificações",
-      "Estrutura de dados personalizada",
+      "Endpoints customizados",
+      "Autenticação Bearer",
+      "Webhooks bidirecionais",
+      "Transformações personalizadas",
+      "Log de auditoria completo",
     ],
     compliance: { lgpd: false, backup: false, encryption: false },
   },
 ];
 
-export function ConfigStorageProvider() {
+interface ConfigStorageProviderProps {
+  onConfigChange?: (config: StorageConfig) => void;
+}
+
+export function ConfigStorageProvider({
+  onConfigChange,
+}: ConfigStorageProviderProps) {
+  const navigate = useNavigate();
   const [selectedProvider, setSelectedProvider] =
     useState<StorageProvider>("lawdesk-cloud");
-  const [storageConfig, setStorageConfig] = useState<StorageConfig>({
+  const [config, setConfig] = useState<StorageConfig>({
     provider: "lawdesk-cloud",
-    isActive: true,
+    isActive: false,
     encryption: true,
     config: {},
-    connectionStatus: "connected",
+    connectionStatus: "untested",
   });
-  const [isTestingConnection, setIsTestingConnection] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [testResult, setTestResult] = useState<string>("");
 
-  // Load existing configuration
+  const [providerConfigs, setProviderConfigs] = useState<Record<string, any>>({
+    "lawdesk-cloud": {
+      region: "sa-east-1",
+      storageClass: "standard",
+      autoBackup: true,
+    },
+    "supabase-external": {
+      url: "",
+      anonKey: "",
+      serviceKey: "",
+      bucket: "lawdesk-documents",
+    },
+    "google-drive": {
+      clientId: "",
+      clientSecret: "",
+      rootFolder: "Lawdesk CRM",
+      sharedDrive: false,
+    },
+    "ftp-sftp": {
+      host: "",
+      port: 22,
+      username: "",
+      password: "",
+      useSFTP: true,
+      basePath: "/lawdesk/",
+    },
+    "api-custom": {
+      baseUrl: "",
+      token: "",
+      apiType: "rest",
+      endpoints: {
+        upload: "/upload",
+        download: "/download/{id}",
+        delete: "/delete/{id}",
+      },
+    },
+  });
+
+  const [testing, setTesting] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
+  const [testProgress, setTestProgress] = useState(0);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [uploadTest, setUploadTest] = useState(false);
+
+  // Carregar configuração salva
   useEffect(() => {
-    const loadConfig = async () => {
+    const savedConfig = localStorage.getItem("lawdesk-storage-config");
+    if (savedConfig) {
       try {
-        const savedConfig = localStorage.getItem("lawdesk-storage-config");
-        if (savedConfig) {
-          const config = JSON.parse(savedConfig);
-          setStorageConfig(config);
-          setSelectedProvider(config.provider);
+        const parsed = JSON.parse(savedConfig);
+        setConfig(parsed);
+        setSelectedProvider(parsed.provider);
+
+        // Carregar configurações específicas do provedor
+        const savedProviderConfigs = localStorage.getItem(
+          "lawdesk-provider-configs",
+        );
+        if (savedProviderConfigs) {
+          setProviderConfigs(JSON.parse(savedProviderConfigs));
         }
       } catch (error) {
-        console.error("Erro ao carregar configuração de armazenamento:", error);
+        console.error("Erro ao carregar configuração:", error);
         toast.error("Erro ao carregar configuração salva");
       }
-    };
-
-    loadConfig();
+    }
   }, []);
 
-  const handleProviderSelect = (providerId: StorageProvider) => {
-    setSelectedProvider(providerId);
-    setStorageConfig((prev) => ({
+  const handleProviderChange = (newProvider: StorageProvider) => {
+    setSelectedProvider(newProvider);
+    setConfig((prev) => ({
       ...prev,
-      provider: providerId,
-      config: {},
+      provider: newProvider,
       connectionStatus: "untested",
     }));
-    setTestResult("");
   };
 
   const handleConfigChange = (key: string, value: any) => {
-    setStorageConfig((prev) => ({
+    setProviderConfigs((prev) => ({
       ...prev,
-      config: {
-        ...prev.config,
+      [selectedProvider]: {
+        ...prev[selectedProvider],
         [key]: value,
       },
     }));
   };
 
   const testConnection = async () => {
-    setIsTestingConnection(true);
-    setTestResult("");
+    setTesting(true);
+    setTestProgress(0);
 
     try {
-      toast.loading("Testando conexão...", { id: "test-connection" });
+      const provider = storageProviders.find((p) => p.id === selectedProvider);
+      const currentConfig = providerConfigs[selectedProvider];
 
-      // Simulate connection test
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Simular teste de conexão com progresso
+      const steps = [
+        { name: "Validando configuração", delay: 500 },
+        { name: "Conectando ao provedor", delay: 1000 },
+        { name: "Testando permissões", delay: 800 },
+        { name: "Verificando estrutura", delay: 600 },
+        { name: "Finalizando teste", delay: 400 },
+      ];
 
-      // Validate required fields based on provider
-      const isConfigValid = validateConfiguration();
+      for (let i = 0; i < steps.length; i++) {
+        setTestProgress((i / steps.length) * 100);
+        await new Promise((resolve) => setTimeout(resolve, steps[i].delay));
 
-      if (!isConfigValid) {
-        throw new Error("Configuração incompleta");
+        // Simular falha baseada na configuração
+        if (selectedProvider === "supabase-external" && !currentConfig.url) {
+          throw new Error("URL do Supabase é obrigatória");
+        }
+        if (selectedProvider === "google-drive" && !currentConfig.clientId) {
+          throw new Error("Client ID do Google é obrigatório");
+        }
+        if (selectedProvider === "ftp-sftp" && !currentConfig.host) {
+          throw new Error("Host do servidor é obrigatório");
+        }
+        if (selectedProvider === "api-custom" && !currentConfig.baseUrl) {
+          throw new Error("URL base da API é obrigatória");
+        }
       }
 
-      // Simulate random success/failure for demo
-      const isSuccess = Math.random() > 0.2; // 80% success rate
+      setTestProgress(100);
 
-      if (isSuccess) {
-        setStorageConfig((prev) => ({
-          ...prev,
-          connectionStatus: "connected",
-          lastTested: new Date(),
-        }));
-        setTestResult(
-          "Conexão estabelecida com sucesso! Todas as funcionalidades estão operacionais.",
-        );
-        toast.success("Conexão testada com sucesso!", {
-          id: "test-connection",
-        });
-      } else {
-        setStorageConfig((prev) => ({
-          ...prev,
-          connectionStatus: "error",
-          lastTested: new Date(),
-        }));
-        setTestResult(
-          "Falha na conexão. Verifique as credenciais e configurações de rede.",
-        );
-        toast.error("Falha na conexão. Verifique as credenciais.", {
-          id: "test-connection",
-        });
-      }
+      // Sucesso
+      setConfig((prev) => ({
+        ...prev,
+        connectionStatus: "connected",
+        lastTested: new Date(),
+        errorDetails: undefined,
+      }));
+
+      toast.success(
+        `✅ Conexão com ${provider?.name} estabelecida com sucesso!`,
+        {
+          description: "Todas as verificações foram aprovadas",
+        },
+      );
     } catch (error: any) {
-      setStorageConfig((prev) => ({
+      setConfig((prev) => ({
         ...prev,
         connectionStatus: "error",
         lastTested: new Date(),
+        errorDetails: {
+          message: error.message,
+          statusCode: error.status || 500,
+          timestamp: new Date(),
+        },
       }));
-      setTestResult(`Erro: ${error.message}`);
-      toast.error("Erro ao testar conexão: " + error.message, {
-        id: "test-connection",
+
+      toast.error(`❌ Falha na conexão: ${error.message}`, {
+        description: "Verifique as configurações e tente novamente",
+        action: {
+          label: "Reportar Erro",
+          onClick: () => setShowErrorDialog(true),
+        },
       });
     } finally {
-      setIsTestingConnection(false);
-    }
-  };
-
-  const validateConfiguration = (): boolean => {
-    switch (selectedProvider) {
-      case "lawdesk-cloud":
-        return true; // Always valid for Lawdesk Cloud
-      case "supabase-external":
-        return !!(storageConfig.config.url && storageConfig.config.anonKey);
-      case "google-drive":
-        return !!(
-          storageConfig.config.clientId && storageConfig.config.clientSecret
-        );
-      case "ftp-sftp":
-        return !!(
-          storageConfig.config.host &&
-          storageConfig.config.username &&
-          storageConfig.config.password
-        );
-      case "api-custom":
-        return !!storageConfig.config.baseUrl;
-      default:
-        return false;
+      setTesting(false);
+      setTimeout(() => setTestProgress(0), 2000);
     }
   };
 
   const saveConfiguration = async () => {
-    setIsSaving(true);
-    try {
-      if (!validateConfiguration()) {
-        toast.error("Preencha todos os campos obrigatórios antes de salvar");
-        return;
-      }
+    setSaving(true);
 
-      // Simulate API save
+    try {
+      const newConfig: StorageConfig = {
+        ...config,
+        provider: selectedProvider,
+        config: providerConfigs[selectedProvider],
+        isActive: true,
+      };
+
+      // Salvar no localStorage
+      localStorage.setItem("lawdesk-storage-config", JSON.stringify(newConfig));
+      localStorage.setItem(
+        "lawdesk-provider-configs",
+        JSON.stringify(providerConfigs),
+      );
+
+      setConfig(newConfig);
+      onConfigChange?.(newConfig);
+
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Save to localStorage for demo
-      localStorage.setItem(
-        "lawdesk-storage-config",
-        JSON.stringify(storageConfig),
-      );
-
-      // Update global config
-      window.dispatchEvent(
-        new CustomEvent("storage-config-updated", { detail: storageConfig }),
-      );
-
-      toast.success("Configuração salva com sucesso!");
+      toast.success("✅ Configuração salva com sucesso!", {
+        description: `Provedor ${storageProviders.find((p) => p.id === selectedProvider)?.name} ativado`,
+      });
     } catch (error) {
-      toast.error("Erro ao salvar configuração");
-      console.error("Erro ao salvar:", error);
+      toast.error("❌ Erro ao salvar configuração");
     } finally {
-      setIsSaving(false);
+      setSaving(false);
     }
   };
 
-  const getConnectionStatusIcon = () => {
-    switch (storageConfig.connectionStatus) {
-      case "connected":
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case "error":
-        return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      case "pending":
-        return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
-      default:
-        return <TestTube className="h-4 w-4 text-gray-500" />;
+  const testUpload = async () => {
+    setUploadTest(true);
+
+    try {
+      // Simular upload de teste
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      toast.success("📤 Upload de teste realizado com sucesso!", {
+        description: "Arquivo simulado enviado para o destino configurado",
+      });
+    } catch (error) {
+      toast.error("❌ Falha no upload de teste");
+    } finally {
+      setUploadTest(false);
     }
   };
 
-  const getConnectionStatusText = () => {
-    switch (storageConfig.connectionStatus) {
-      case "connected":
-        return "Conectado";
-      case "error":
-        return "Erro na Conexão";
-      case "pending":
-        return "Testando...";
-      default:
-        return "Não Testado";
-    }
+  const generateErrorReport = () => {
+    const report = {
+      usuarioId: "user_12345",
+      providerSelecionado: selectedProvider,
+      ultimoErro: config.errorDetails,
+      configuracao: providerConfigs[selectedProvider],
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+    };
+
+    const blob = new Blob([JSON.stringify(report, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `erro-armazenamento-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast.success("📋 Relatório de erro gerado e baixado");
   };
 
-  const selectedProviderData = storageProviders.find(
+  const currentProvider = storageProviders.find(
     (p) => p.id === selectedProvider,
   );
-
-  const renderProviderConfig = () => {
-    switch (selectedProvider) {
-      case "lawdesk-cloud":
-        return (
-          <div className="space-y-4">
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertTitle>Configuração Automática</AlertTitle>
-              <AlertDescription>
-                O Lawdesk Cloud está configurado automaticamente. Não são
-                necessárias credenciais adicionais.
-              </AlertDescription>
-            </Alert>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>Região do Servidor</Label>
-                <Select
-                  defaultValue="sa-east-1"
-                  onValueChange={(value) => handleConfigChange("region", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sa-east-1">
-                      São Paulo (sa-east-1)
-                    </SelectItem>
-                    <SelectItem value="us-east-1">
-                      Virgínia (us-east-1)
-                    </SelectItem>
-                    <SelectItem value="eu-west-1">
-                      Irlanda (eu-west-1)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Classe de Armazenamento</Label>
-                <Select
-                  defaultValue="standard"
-                  onValueChange={(value) =>
-                    handleConfigChange("storageClass", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="standard">
-                      Padrão (acesso frequente)
-                    </SelectItem>
-                    <SelectItem value="ia">Acesso Infrequente</SelectItem>
-                    <SelectItem value="archive">Arquivo (backup)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        );
-
-      case "supabase-external":
-        return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="supabase-url">URL do Projeto Supabase *</Label>
-                <Input
-                  id="supabase-url"
-                  placeholder="https://xyz.supabase.co"
-                  value={storageConfig.config.url || ""}
-                  onChange={(e) => handleConfigChange("url", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="supabase-key">Chave Pública (anon key) *</Label>
-                <Input
-                  id="supabase-key"
-                  type="password"
-                  placeholder="eyJ0eXAiOiJKV1QiLCJhbGc..."
-                  value={storageConfig.config.anonKey || ""}
-                  onChange={(e) =>
-                    handleConfigChange("anonKey", e.target.value)
-                  }
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="service-role-key">
-                Chave de Serviço (opcional)
-              </Label>
-              <Input
-                id="service-role-key"
-                type="password"
-                placeholder="Para operações administrativas"
-                value={storageConfig.config.serviceRoleKey || ""}
-                onChange={(e) =>
-                  handleConfigChange("serviceRoleKey", e.target.value)
-                }
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="bucket-name">Nome do Destino</Label>
-              <Input
-                id="bucket-name"
-                placeholder="lawdesk-documentos"
-                value={storageConfig.config.bucket || "lawdesk-documentos"}
-                onChange={(e) => handleConfigChange("bucket", e.target.value)}
-              />
-            </div>
-          </div>
-        );
-
-      case "google-drive":
-        return (
-          <div className="space-y-4">
-            <Alert>
-              <Shield className="h-4 w-4" />
-              <AlertTitle>Autenticação OAuth2</AlertTitle>
-              <AlertDescription>
-                A autenticação será realizada via OAuth2 do Google. Suas
-                credenciais ficam seguras.
-              </AlertDescription>
-            </Alert>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="client-id">ID do Cliente Google *</Label>
-                <Input
-                  id="client-id"
-                  placeholder="123456789-xyz.apps.googleusercontent.com"
-                  value={storageConfig.config.clientId || ""}
-                  onChange={(e) =>
-                    handleConfigChange("clientId", e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="client-secret">
-                  Chave Secreta do Cliente *
-                </Label>
-                <Input
-                  id="client-secret"
-                  type="password"
-                  placeholder="GOCSPX-..."
-                  value={storageConfig.config.clientSecret || ""}
-                  onChange={(e) =>
-                    handleConfigChange("clientSecret", e.target.value)
-                  }
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="root-folder">Pasta Raiz (opcional)</Label>
-              <Input
-                id="root-folder"
-                placeholder="Lawdesk CRM - Documentos"
-                value={storageConfig.config.rootFolder || ""}
-                onChange={(e) =>
-                  handleConfigChange("rootFolder", e.target.value)
-                }
-              />
-            </div>
-
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => toast.info("OAuth2 seria iniciado aqui")}
-            >
-              <Globe className="h-4 w-4 mr-2" />
-              Autorizar via Google OAuth2
-            </Button>
-          </div>
-        );
-
-      case "ftp-sftp":
-        return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="ftp-host">Servidor (Host) *</Label>
-                <Input
-                  id="ftp-host"
-                  placeholder="ftp.seuescritorio.com.br"
-                  value={storageConfig.config.host || ""}
-                  onChange={(e) => handleConfigChange("host", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="ftp-port">Porta</Label>
-                <Input
-                  id="ftp-port"
-                  type="number"
-                  placeholder="21 (FTP) ou 22 (SFTP)"
-                  value={storageConfig.config.port || ""}
-                  onChange={(e) => handleConfigChange("port", e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="ftp-user">Usuário *</Label>
-                <Input
-                  id="ftp-user"
-                  placeholder="usuario_lawdesk"
-                  value={storageConfig.config.username || ""}
-                  onChange={(e) =>
-                    handleConfigChange("username", e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="ftp-password">Senha *</Label>
-                <Input
-                  id="ftp-password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={storageConfig.config.password || ""}
-                  onChange={(e) =>
-                    handleConfigChange("password", e.target.value)
-                  }
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="ftp-path">Caminho de Armazenamento</Label>
-              <Input
-                id="ftp-path"
-                placeholder="/public_html/lawdesk/"
-                value={storageConfig.config.remotePath || ""}
-                onChange={(e) =>
-                  handleConfigChange("remotePath", e.target.value)
-                }
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="use-sftp"
-                checked={storageConfig.config.useSFTP || false}
-                onCheckedChange={(checked) =>
-                  handleConfigChange("useSFTP", checked)
-                }
-              />
-              <Label htmlFor="use-sftp">
-                Usar SFTP (recomendado para segurança)
-              </Label>
-            </div>
-          </div>
-        );
-
-      case "api-custom":
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="api-base-url">URL Base da API *</Label>
-              <Input
-                id="api-base-url"
-                placeholder="https://api.seuescritorio.com.br/v1"
-                value={storageConfig.config.baseUrl || ""}
-                onChange={(e) => handleConfigChange("baseUrl", e.target.value)}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="api-token">Token de Autenticação</Label>
-                <Input
-                  id="api-token"
-                  type="password"
-                  placeholder="Bearer token ou chave da API"
-                  value={storageConfig.config.token || ""}
-                  onChange={(e) => handleConfigChange("token", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="api-type">Tipo de API</Label>
-                <Select
-                  value={storageConfig.config.apiType || "rest"}
-                  onValueChange={(value) =>
-                    handleConfigChange("apiType", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="rest">REST</SelectItem>
-                    <SelectItem value="graphql">GraphQL</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="custom-headers">
-                Cabeçalhos Personalizados (JSON)
-              </Label>
-              <Textarea
-                id="custom-headers"
-                placeholder='{"X-Custom-Header": "valor", "Content-Type": "application/json"}'
-                value={storageConfig.config.customHeaders || ""}
-                onChange={(e) =>
-                  handleConfigChange("customHeaders", e.target.value)
-                }
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="webhook-url">
-                Webhook para Notificações (opcional)
-              </Label>
-              <Input
-                id="webhook-url"
-                placeholder="https://seuescritorio.com.br/webhook/armazenamento"
-                value={storageConfig.config.webhookUrl || ""}
-                onChange={(e) =>
-                  handleConfigChange("webhookUrl", e.target.value)
-                }
-              />
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
+  const currentConfig = providerConfigs[selectedProvider] || {};
 
   return (
-    <TooltipProvider>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-6"
-      >
+    <div className="space-y-6">
+      {/* Header com navegação */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Configuração de Armazenamento</h1>
+          <h2 className="text-2xl font-bold">Configuração de Armazenamento</h2>
           <p className="text-muted-foreground">
-            Configure onde e como os documentos e arquivos serão armazenados na
+            Configure onde e como os documentos jurídicos são armazenados na
             plataforma
           </p>
         </div>
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/teste-configuracao-storage")}
+          >
+            <TestTube className="h-4 w-4 mr-2" />
+            Ver Simulação
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() =>
+              navigate("/configuracoes/armazenamento?tab=dashboard")
+            }
+          >
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Dashboard
+          </Button>
+        </div>
+      </div>
 
-        {/* Provider Selection */}
-        <Card className="rounded-2xl shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Folder className="h-5 w-5" />
-              <span>Selecionar Provedor de Armazenamento</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {storageProviders.map((provider) => (
+      {/* Seleção de Provedor */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Folder className="h-5 w-5 mr-2" />
+            Escolha do Provedor de Armazenamento
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            {storageProviders.map((provider) => {
+              const Icon = provider.icon;
+              const isSelected = selectedProvider === provider.id;
+
+              return (
                 <motion.div
                   key={provider.id}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`
-                    relative p-4 border-2 rounded-xl cursor-pointer transition-all
-                    ${
-                      selectedProvider === provider.id
-                        ? "border-[rgb(var(--theme-primary))] bg-[rgb(var(--theme-primary))]/5"
-                        : "border-border hover:border-[rgb(var(--theme-primary))]/50"
-                    }
-                  `}
-                  onClick={() => handleProviderSelect(provider.id)}
                 >
-                  {provider.recommended && (
-                    <Badge className="absolute -top-2 -right-2 bg-orange-500">
-                      Recomendado
-                    </Badge>
-                  )}
+                  <Card
+                    className={`cursor-pointer transition-all ${
+                      isSelected
+                        ? "ring-2 ring-[rgb(var(--theme-primary))] bg-[rgb(var(--theme-primary))]/5"
+                        : "hover:shadow-md"
+                    }`}
+                    onClick={() => handleProviderChange(provider.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div
+                          className={`p-2 rounded-lg ${provider.color} text-white`}
+                        >
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        {provider.recommended && (
+                          <Badge variant="default" className="text-xs">
+                            Recomendado
+                          </Badge>
+                        )}
+                      </div>
 
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`w-10 h-10 rounded-lg ${provider.color} flex items-center justify-center`}
+                      <h3 className="font-semibold mb-1">{provider.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                        {provider.description}
+                      </p>
+
+                      <div className="flex items-center space-x-2 mb-3">
+                        {provider.compliance.lgpd && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Badge variant="outline" className="text-xs">
+                                  <Shield className="h-3 w-3 mr-1" />
+                                  LGPD
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Conformidade com LGPD</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                        {provider.compliance.encryption && (
+                          <Badge variant="outline" className="text-xs">
+                            <Lock className="h-3 w-3 mr-1" />
+                            AES-256
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="text-xs text-muted-foreground">
+                        {provider.features.slice(0, 2).map((feature, index) => (
+                          <div key={index} className="flex items-center">
+                            <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
+                            {feature}
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Status de Conexão */}
+          {config.connectionStatus !== "untested" && (
+            <Alert
+              className={
+                config.connectionStatus === "connected"
+                  ? "border-green-200 bg-green-50 dark:bg-green-950/20"
+                  : "border-red-200 bg-red-50 dark:bg-red-950/20"
+              }
+            >
+              {config.connectionStatus === "connected" ? (
+                <CheckCircle className="h-4 w-4 text-green-600" />
+              ) : (
+                <AlertTriangle className="h-4 w-4 text-red-600" />
+              )}
+              <AlertTitle
+                className={
+                  config.connectionStatus === "connected"
+                    ? "text-green-800"
+                    : "text-red-800"
+                }
+              >
+                {config.connectionStatus === "connected"
+                  ? "✅ Conexão Estabelecida"
+                  : "❌ Erro de Conexão"}
+              </AlertTitle>
+              <AlertDescription
+                className={
+                  config.connectionStatus === "connected"
+                    ? "text-green-700"
+                    : "text-red-700"
+                }
+              >
+                {config.connectionStatus === "connected"
+                  ? `Conectado ao ${currentProvider?.name} com sucesso. Última verificação: ${config.lastTested?.toLocaleString("pt-BR")}`
+                  : config.errorDetails?.message ||
+                    "Falha na conexão com o provedor"}
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Configuração Específica do Provedor */}
+      {currentProvider && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Settings className="h-5 w-5 mr-2" />
+              Configuração - {currentProvider.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Lawdesk Cloud */}
+            {selectedProvider === "lawdesk-cloud" && (
+              <div className="space-y-4">
+                <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                  <Info className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-800 dark:text-blue-200">
+                    O Lawdesk Cloud é configurado automaticamente. Não são
+                    necessárias configurações adicionais.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Região</Label>
+                    <Select defaultValue={currentConfig.region} disabled>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sa-east-1">
+                          São Paulo (sa-east-1)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Classe de Armazenamento</Label>
+                    <Select defaultValue={currentConfig.storageClass} disabled>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="standard">Padrão</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Supabase */}
+            {selectedProvider === "supabase-external" && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="supabase-url">
+                    URL do Projeto Supabase *
+                  </Label>
+                  <Input
+                    id="supabase-url"
+                    placeholder="https://xyz.supabase.co"
+                    value={currentConfig.url || ""}
+                    onChange={(e) => handleConfigChange("url", e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="supabase-anon-key">
+                    Chave Anônima (anon key) *
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="supabase-anon-key"
+                      type={showPassword.anonKey ? "text" : "password"}
+                      placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      value={currentConfig.anonKey || ""}
+                      onChange={(e) =>
+                        handleConfigChange("anonKey", e.target.value)
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                      onClick={() =>
+                        setShowPassword((prev) => ({
+                          ...prev,
+                          anonKey: !prev.anonKey,
+                        }))
+                      }
+                    >
+                      {showPassword.anonKey ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="supabase-service-key">
+                    Chave de Serviço (service key)
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="supabase-service-key"
+                      type={showPassword.serviceKey ? "text" : "password"}
+                      placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      value={currentConfig.serviceKey || ""}
+                      onChange={(e) =>
+                        handleConfigChange("serviceKey", e.target.value)
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                      onClick={() =>
+                        setShowPassword((prev) => ({
+                          ...prev,
+                          serviceKey: !prev.serviceKey,
+                        }))
+                      }
+                    >
+                      {showPassword.serviceKey ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="supabase-bucket">Nome do Destino</Label>
+                  <Input
+                    id="supabase-bucket"
+                    placeholder="lawdesk-documents"
+                    value={currentConfig.bucket || ""}
+                    onChange={(e) =>
+                      handleConfigChange("bucket", e.target.value)
+                    }
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Google Drive */}
+            {selectedProvider === "google-drive" && (
+              <div className="space-y-4">
+                <Alert className="border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                  <AlertDescription className="text-yellow-800 dark:text-yellow-200">
+                    É necessário configurar um projeto no Google Cloud Console e
+                    ativar a API do Google Drive.
+                  </AlertDescription>
+                </Alert>
+
+                <div>
+                  <Label htmlFor="google-client-id">Client ID *</Label>
+                  <Input
+                    id="google-client-id"
+                    placeholder="123456789-abc.apps.googleusercontent.com"
+                    value={currentConfig.clientId || ""}
+                    onChange={(e) =>
+                      handleConfigChange("clientId", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="google-client-secret">Client Secret *</Label>
+                  <div className="relative">
+                    <Input
+                      id="google-client-secret"
+                      type={showPassword.clientSecret ? "text" : "password"}
+                      placeholder="GOCSPX-..."
+                      value={currentConfig.clientSecret || ""}
+                      onChange={(e) =>
+                        handleConfigChange("clientSecret", e.target.value)
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                      onClick={() =>
+                        setShowPassword((prev) => ({
+                          ...prev,
+                          clientSecret: !prev.clientSecret,
+                        }))
+                      }
+                    >
+                      {showPassword.clientSecret ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="google-root-folder">Pasta Raiz</Label>
+                  <Input
+                    id="google-root-folder"
+                    placeholder="Lawdesk CRM"
+                    value={currentConfig.rootFolder || ""}
+                    onChange={(e) =>
+                      handleConfigChange("rootFolder", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="google-shared-drive"
+                    checked={currentConfig.sharedDrive || false}
+                    onCheckedChange={(checked) =>
+                      handleConfigChange("sharedDrive", checked)
+                    }
+                  />
+                  <Label htmlFor="google-shared-drive">
+                    Usar Drive Compartilhado
+                  </Label>
+                </div>
+              </div>
+            )}
+
+            {/* FTP/SFTP */}
+            {selectedProvider === "ftp-sftp" && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="ftp-host">Servidor (Host) *</Label>
+                    <Input
+                      id="ftp-host"
+                      placeholder="ftp.seudominio.com"
+                      value={currentConfig.host || ""}
+                      onChange={(e) =>
+                        handleConfigChange("host", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="ftp-port">Porta</Label>
+                    <Input
+                      id="ftp-port"
+                      type="number"
+                      placeholder="22"
+                      value={currentConfig.port || ""}
+                      onChange={(e) =>
+                        handleConfigChange("port", parseInt(e.target.value))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="ftp-username">Usuário *</Label>
+                    <Input
+                      id="ftp-username"
+                      placeholder="usuario"
+                      value={currentConfig.username || ""}
+                      onChange={(e) =>
+                        handleConfigChange("username", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="ftp-password">Senha *</Label>
+                    <div className="relative">
+                      <Input
+                        id="ftp-password"
+                        type={showPassword.password ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={currentConfig.password || ""}
+                        onChange={(e) =>
+                          handleConfigChange("password", e.target.value)
+                        }
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                        onClick={() =>
+                          setShowPassword((prev) => ({
+                            ...prev,
+                            password: !prev.password,
+                          }))
+                        }
                       >
-                        <provider.icon className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">{provider.name}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          {provider.description}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2 text-xs">
-                        <div
-                          className={`w-2 h-2 rounded-full ${provider.compliance.lgpd ? "bg-green-500" : "bg-gray-400"}`}
-                        />
-                        <span>LGPD Nativa</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-xs">
-                        <div
-                          className={`w-2 h-2 rounded-full ${provider.compliance.backup ? "bg-green-500" : "bg-gray-400"}`}
-                        />
-                        <span>Backup Automático</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-xs">
-                        <div
-                          className={`w-2 h-2 rounded-full ${provider.compliance.encryption ? "bg-green-500" : "bg-gray-400"}`}
-                        />
-                        <span>Criptografia</span>
-                      </div>
+                        {showPassword.password ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
                   </div>
-                </motion.div>
-              ))}
+                </div>
+
+                <div>
+                  <Label htmlFor="ftp-base-path">
+                    Caminho de Armazenamento
+                  </Label>
+                  <Input
+                    id="ftp-base-path"
+                    placeholder="/lawdesk/"
+                    value={currentConfig.basePath || ""}
+                    onChange={(e) =>
+                      handleConfigChange("basePath", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="ftp-use-sftp"
+                    checked={currentConfig.useSFTP !== false}
+                    onCheckedChange={(checked) =>
+                      handleConfigChange("useSFTP", checked)
+                    }
+                  />
+                  <Label htmlFor="ftp-use-sftp">Usar SFTP (Recomendado)</Label>
+                </div>
+              </div>
+            )}
+
+            {/* API Custom */}
+            {selectedProvider === "api-custom" && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="api-base-url">URL Base da API *</Label>
+                  <Input
+                    id="api-base-url"
+                    placeholder="https://api.seudominio.com/v1"
+                    value={currentConfig.baseUrl || ""}
+                    onChange={(e) =>
+                      handleConfigChange("baseUrl", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="api-token">Token de Autenticação *</Label>
+                  <div className="relative">
+                    <Input
+                      id="api-token"
+                      type={showPassword.token ? "text" : "password"}
+                      placeholder="Bearer token ou API key"
+                      value={currentConfig.token || ""}
+                      onChange={(e) =>
+                        handleConfigChange("token", e.target.value)
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                      onClick={() =>
+                        setShowPassword((prev) => ({
+                          ...prev,
+                          token: !prev.token,
+                        }))
+                      }
+                    >
+                      {showPassword.token ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Tipo de API</Label>
+                  <Select
+                    value={currentConfig.apiType || "rest"}
+                    onValueChange={(value) =>
+                      handleConfigChange("apiType", value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="rest">REST API</SelectItem>
+                      <SelectItem value="graphql">GraphQL</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Endpoints Personalizados</Label>
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="Upload: /upload"
+                      value={currentConfig.endpoints?.upload || ""}
+                      onChange={(e) =>
+                        handleConfigChange("endpoints", {
+                          ...currentConfig.endpoints,
+                          upload: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      placeholder="Download: /download/{id}"
+                      value={currentConfig.endpoints?.download || ""}
+                      onChange={(e) =>
+                        handleConfigChange("endpoints", {
+                          ...currentConfig.endpoints,
+                          download: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      placeholder="Exclusão: /delete/{id}"
+                      value={currentConfig.endpoints?.delete || ""}
+                      onChange={(e) =>
+                        handleConfigChange("endpoints", {
+                          ...currentConfig.endpoints,
+                          delete: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Configurações de Segurança */}
+            <Separator />
+
+            <div className="space-y-4">
+              <h4 className="font-semibold flex items-center">
+                <Shield className="h-4 w-4 mr-2" />
+                Configurações de Segurança
+              </h4>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="encryption">Criptografia AES-256</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Criptografar documentos antes do envio
+                  </p>
+                </div>
+                <Switch
+                  id="encryption"
+                  checked={config.encryption}
+                  onCheckedChange={(checked) =>
+                    setConfig((prev) => ({ ...prev, encryption: checked }))
+                  }
+                />
+              </div>
+            </div>
+
+            {/* Progresso do Teste */}
+            {testing && testProgress > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>Testando conexão...</span>
+                  <span>{Math.round(testProgress)}%</span>
+                </div>
+                <Progress value={testProgress} className="h-2" />
+              </div>
+            )}
+
+            {/* Ações */}
+            <div className="flex space-x-3">
+              <Button
+                onClick={testConnection}
+                disabled={testing}
+                variant="outline"
+                className="flex-1"
+              >
+                {testing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                )}
+                Testar Conexão
+              </Button>
+
+              <Button
+                onClick={testUpload}
+                disabled={config.connectionStatus !== "connected" || uploadTest}
+                variant="outline"
+              >
+                {uploadTest ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4 mr-2" />
+                )}
+                Upload de Teste
+              </Button>
+
+              <Button
+                onClick={saveConfiguration}
+                disabled={saving || config.connectionStatus !== "connected"}
+                className="flex-1"
+              >
+                {saving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                Salvar Configuração
+              </Button>
             </div>
           </CardContent>
         </Card>
+      )}
 
-        {/* Provider Configuration */}
-        <AnimatePresence mode="wait">
-          {selectedProviderData && (
-            <motion.div
-              key={selectedProvider}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
+      {/* Aviso LGPD */}
+      {currentProvider && !currentProvider.compliance.lgpd && (
+        <Alert className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+          <Shield className="h-4 w-4 text-orange-600" />
+          <AlertTitle className="text-orange-800 dark:text-orange-200">
+            Atenção - Conformidade LGPD
+          </AlertTitle>
+          <AlertDescription className="text-orange-700 dark:text-orange-300">
+            Este provedor pode não atender todos os requisitos da LGPD.
+            Certifique-se de que o tratamento de dados pessoais está em
+            conformidade com a legislação brasileira.{" "}
+            <RouterLink
+              to="/configuracoes/lgpd"
+              className="underline font-medium hover:no-underline"
             >
-              <Card className="rounded-2xl shadow-md">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <selectedProviderData.icon className="h-5 w-5" />
-                      <span>Configurar {selectedProviderData.name}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {getConnectionStatusIcon()}
-                      <span className="text-sm text-muted-foreground">
-                        {getConnectionStatusText()}
-                      </span>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {renderProviderConfig()}
+              Saiba mais sobre LGPD
+            </RouterLink>
+          </AlertDescription>
+        </Alert>
+      )}
 
-                  {/* Test Result Display */}
-                  {testResult && (
-                    <Alert
-                      className={
-                        storageConfig.connectionStatus === "connected"
-                          ? "border-green-200 bg-green-50 dark:bg-green-950/20"
-                          : "border-red-200 bg-red-50 dark:bg-red-950/20"
-                      }
-                    >
-                      {storageConfig.connectionStatus === "connected" ? (
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <AlertCircle className="h-4 w-4 text-red-600" />
-                      )}
-                      <AlertTitle>Resultado do Teste de Conexão</AlertTitle>
-                      <AlertDescription>{testResult}</AlertDescription>
-                    </Alert>
-                  )}
+      {/* Modal de Erro */}
+      <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reportar Erro de Conexão</DialogTitle>
+            <DialogDescription>
+              As informações abaixo serão incluídas no relatório de erro:
+            </DialogDescription>
+          </DialogHeader>
 
-                  <Separator />
+          <div className="space-y-4">
+            <div className="p-3 bg-muted rounded-lg text-sm font-mono">
+              <div>
+                <strong>Usuário:</strong> user_12345
+              </div>
+              <div>
+                <strong>Provedor:</strong> {selectedProvider}
+              </div>
+              <div>
+                <strong>Erro:</strong> {config.errorDetails?.message}
+              </div>
+              <div>
+                <strong>Código:</strong> {config.errorDetails?.statusCode}
+              </div>
+              <div>
+                <strong>Timestamp:</strong>{" "}
+                {config.errorDetails?.timestamp?.toLocaleString("pt-BR")}
+              </div>
+            </div>
+          </div>
 
-                  {/* Security Settings */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center space-x-2">
-                      <Shield className="h-5 w-5" />
-                      <span>Configurações de Segurança</span>
-                    </h3>
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <Label>Criptografia de Arquivos (AES-256)</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Criptografar arquivos antes do upload para maior
-                          segurança
-                        </p>
-                      </div>
-                      <Switch
-                        checked={storageConfig.encryption}
-                        onCheckedChange={(checked) =>
-                          setStorageConfig((prev) => ({
-                            ...prev,
-                            encryption: checked,
-                          }))
-                        }
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <Label>Configurações Avançadas</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Mostrar opções avançadas de configuração
-                        </p>
-                      </div>
-                      <Switch
-                        checked={showAdvanced}
-                        onCheckedChange={setShowAdvanced}
-                      />
-                    </div>
-
-                    <AnimatePresence>
-                      {showAdvanced && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="space-y-4 border-l-2 border-[rgb(var(--theme-primary))] pl-4"
-                        >
-                          <div>
-                            <Label htmlFor="max-file-size">
-                              Tamanho Máximo por Arquivo (MB)
-                            </Label>
-                            <Input
-                              id="max-file-size"
-                              type="number"
-                              placeholder="50"
-                              value={storageConfig.config.maxFileSize || "50"}
-                              onChange={(e) =>
-                                handleConfigChange(
-                                  "maxFileSize",
-                                  e.target.value,
-                                )
-                              }
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="allowed-types">
-                              Tipos de Arquivo Permitidos
-                            </Label>
-                            <Input
-                              id="allowed-types"
-                              placeholder="pdf,doc,docx,jpg,png"
-                              value={
-                                storageConfig.config.allowedTypes ||
-                                "pdf,doc,docx,jpg,png"
-                              }
-                              onChange={(e) =>
-                                handleConfigChange(
-                                  "allowedTypes",
-                                  e.target.value,
-                                )
-                              }
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="retention-days">
-                              Retenção de Backups (dias)
-                            </Label>
-                            <Input
-                              id="retention-days"
-                              type="number"
-                              placeholder="30"
-                              value={storageConfig.config.retentionDays || "30"}
-                              onChange={(e) =>
-                                handleConfigChange(
-                                  "retentionDays",
-                                  e.target.value,
-                                )
-                              }
-                            />
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* LGPD Compliance Warning */}
-                  {selectedProvider !== "lawdesk-cloud" && (
-                    <Alert className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
-                      <div className="flex items-start space-x-2">
-                        <div className="text-2xl">⚖️</div>
-                        <div>
-                          <AlertTitle className="text-orange-800 dark:text-orange-200">
-                            Responsabilidade sobre Conformidade LGPD
-                          </AlertTitle>
-                          <AlertDescription className="text-orange-700 dark:text-orange-300">
-                            <div className="space-y-2">
-                              <p>
-                                Ao usar provedores externos, você assume a
-                                responsabilidade pela:
-                              </p>
-                              <ul className="list-disc list-inside space-y-1 text-sm">
-                                <li>
-                                  Conformidade com a LGPD (Lei Geral de Proteção
-                                  de Dados)
-                                </li>
-                                <li>
-                                  Segurança e backup dos dados armazenados
-                                </li>
-                                <li>Controle de acesso e permissões</li>
-                                <li>
-                                  Política de retenção e exclusão de dados
-                                </li>
-                              </ul>
-                              <div className="flex items-center space-x-2 mt-3">
-                                <ExternalLink className="h-4 w-4" />
-                                <a
-                                  href="https://lawdesk.com.br/politica-privacidade"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-sm underline hover:no-underline"
-                                >
-                                  Consulte nossa Política de Privacidade
-                                </a>
-                              </div>
-                            </div>
-                          </AlertDescription>
-                        </div>
-                      </div>
-                    </Alert>
-                  )}
-
-                  {/* Data Loss Warning */}
-                  {storageConfig.provider !== selectedProvider && (
-                    <Alert className="border-red-200 bg-red-50 dark:bg-red-950/20">
-                      <AlertTriangle className="h-4 w-4 text-red-600" />
-                      <AlertTitle className="text-red-800 dark:text-red-200">
-                        Aviso de Mudança de Provedor
-                      </AlertTitle>
-                      <AlertDescription className="text-red-700 dark:text-red-300">
-                        Alterar o provedor de armazenamento pode resultar em:
-                        <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-                          <li>Perda de acesso aos arquivos existentes</li>
-                          <li>Necessidade de migração manual dos dados</li>
-                          <li>Interrupção temporária do serviço</li>
-                        </ul>
-                        <p className="mt-2 text-sm font-medium">
-                          Certifique-se de fazer backup antes de alterar.
-                        </p>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="flex items-center space-x-4 pt-6">
-                    <Button
-                      onClick={testConnection}
-                      disabled={isTestingConnection}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      {isTestingConnection ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <TestTube className="h-4 w-4 mr-2" />
-                      )}
-                      Testar Conexão
-                    </Button>
-
-                    <Button
-                      onClick={saveConfiguration}
-                      disabled={
-                        isSaving || storageConfig.connectionStatus === "error"
-                      }
-                      className="flex-1 bg-[rgb(var(--theme-primary))] hover:bg-[rgb(var(--theme-primary))]/90"
-                    >
-                      {isSaving ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Save className="h-4 w-4 mr-2" />
-                      )}
-                      Salvar Configuração
-                    </Button>
-                  </div>
-
-                  {storageConfig.lastTested && (
-                    <p className="text-xs text-muted-foreground text-center">
-                      Última conexão testada em:{" "}
-                      {storageConfig.lastTested.toLocaleString("pt-BR")}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    </TooltipProvider>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowErrorDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                generateErrorReport();
+                setShowErrorDialog(false);
+              }}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Gerar Relatório
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
