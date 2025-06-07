@@ -267,7 +267,13 @@ export default function GEDJuridico() {
 
     try {
       // Ensure type is one of the valid values
-      const validType = ["folder", "client", "process", "contract", "template"].includes(type)
+      const validType = [
+        "folder",
+        "client",
+        "process",
+        "contract",
+        "template",
+      ].includes(type)
         ? type
         : "folder";
 
@@ -312,17 +318,21 @@ export default function GEDJuridico() {
       return [];
     }
 
-    return currentFiles.filter(file => {
+    return currentFiles.filter((file) => {
       if (!file) return false;
 
       // Search filter
-      if (searchQuery && file.name && !file.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+      if (
+        searchQuery &&
+        file.name &&
+        !file.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ) {
         return false;
       }
 
       // Type filter
       if (filterOptions?.type && filterOptions.type !== "all") {
-        const fileExtension = file.name?.split('.').pop()?.toLowerCase();
+        const fileExtension = file.name?.split(".").pop()?.toLowerCase();
         if (filterOptions.type !== fileExtension) {
           return false;
         }
@@ -350,8 +360,8 @@ export default function GEDJuridico() {
     return {
       totalFiles: safeCurrentFiles.length,
       selectedCount: safeSelectedFiles.length,
-      clientVisible: safeCurrentFiles.filter(f => f?.clientVisible).length,
-      favorites: safeCurrentFiles.filter(f => f?.isFavorite).length,
+      clientVisible: safeCurrentFiles.filter((f) => f?.clientVisible).length,
+      favorites: safeCurrentFiles.filter((f) => f?.isFavorite).length,
       totalSize: safeCurrentFiles.reduce((sum, f) => sum + (f?.size || 0), 0),
     };
   }, [currentFiles, selectedFiles]);
@@ -448,11 +458,12 @@ export default function GEDJuridico() {
               <TabsContent value="ai" className="h-full m-0 p-4">
                 <div className="h-full overflow-auto">
                   <GEDAIIntegration
-                    selectedFiles={(selectedFiles || [])
-                      .map(id => currentFiles?.find(f => f?.id === id))
-                      .filter(Boolean) as any[]}
+                    selectedFiles={
+                      (selectedFiles || [])
+                        .map((id) => currentFiles?.find((f) => f?.id === id))
+                        .filter(Boolean) as any[]
+                    }
                     onStartChat={handleStartAIChat}
-                  />
                   />
                 </div>
               </TabsContent>
