@@ -1021,19 +1021,20 @@ export function PublicacaoDetalhada({
                           </Button>
                         </div>
                         <div className="flex flex-wrap gap-1">
-                          {tags.map((tag) => (
-                            <Badge
-                              key={tag}
-                              variant="secondary"
-                              className="cursor-pointer"
-                            >
-                              {tag}
-                              <X
-                                className="h-3 w-3 ml-1"
-                                onClick={() => handleRemoverTag(tag)}
-                              />
-                            </Badge>
-                          ))}
+                          {tags &&
+                            tags.map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="secondary"
+                                className="cursor-pointer"
+                              >
+                                {tag}
+                                <X
+                                  className="h-3 w-3 ml-1"
+                                  onClick={() => handleRemoverTag(tag)}
+                                />
+                              </Badge>
+                            ))}
                         </div>
                       </div>
                     </CardContent>
