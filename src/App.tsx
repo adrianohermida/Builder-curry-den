@@ -222,6 +222,22 @@ const App = () => (
                           </PageWrapper>
                         }
                       />
+                      <Route
+                        path="enhanced-action-plan"
+                        element={
+                          <PageWrapper>
+                            <EnhancedActionPlan />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="backlog-inteligente"
+                        element={
+                          <PageWrapper>
+                            <EnhancedActionPlan />
+                          </PageWrapper>
+                        }
+                      />
 
                       {/* GED Routes */}
                       <Route
