@@ -393,37 +393,28 @@ export default function DashboardExecutivo() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={revenueData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="name"
-                      type="category"
-                      allowDataOverflow={false}
-                      allowDecimals={true}
-                      allowDuplicatedCategory={true}
-                    />
-                    <YAxis
-                      type="number"
-                      allowDataOverflow={false}
-                      allowDecimals={true}
-                      allowDuplicatedCategory={true}
-                    />
-                    <Tooltip
-                      formatter={(value: number) => [
-                        formatCurrency(value),
-                        "Receita",
-                      ]}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#3B82F6"
-                      fill="#3B82F6"
-                      fillOpacity={0.1}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <ChartWrapper title="Evolução da Receita" height={300}>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={revenueData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip
+                        formatter={(value: number) => [
+                          formatCurrency(value),
+                          "Receita",
+                        ]}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#3B82F6"
+                        fill="#3B82F6"
+                        fillOpacity={0.1}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </ChartWrapper>
               </CardContent>
             </Card>
 
