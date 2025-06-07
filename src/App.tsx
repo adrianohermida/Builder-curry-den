@@ -23,6 +23,8 @@ const AI = lazy(() => import("./pages/AI"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Tarefas = lazy(() => import("./pages/Tarefas"));
 const Publicacoes = lazy(() => import("./pages/Publicacoes"));
+const Contratos = lazy(() => import("./pages/Contratos"));
+const Financeiro = lazy(() => import("./pages/Financeiro"));
 const GEDJuridico = lazy(() => import("./pages/GEDJuridico"));
 const GEDJuridicoV2 = lazy(() => import("./pages/GEDJuridicoV2"));
 const ConfiguracaoArmazenamento = lazy(
