@@ -19,6 +19,8 @@ import {
   CheckCircle,
   AlertTriangle,
   RefreshCw,
+  Rocket
+  RefreshCw,
   Kanban,
   BarChart3,
   Lightbulb,
@@ -55,6 +57,7 @@ import { ContinuousExecutor } from "@/components/ActionPlan/ContinuousExecutor";
 import { AutonomousExecutionDashboard } from "@/components/ActionPlan/AutonomousExecutionDashboard";
 import { PlanCleanupDashboard } from "@/components/ActionPlan/PlanCleanupDashboard";
 import { ExecutionTrigger } from "@/components/ActionPlan/ExecutionTrigger";
+import { ReleaseFrameworkDashboard } from "@/components/ActionPlan/ReleaseFrameworkDashboard";
 
 // Import services, types, and hooks
 import ActionPlanService from "@/services/actionPlanService";
@@ -64,7 +67,7 @@ import { BacklogState, BacklogItem } from "@/types/backlog";
 import { useIntelligentActionPlan } from "@/hooks/useIntelligentActionPlan";
 
 export default function EnhancedActionPlan() {
-  const [activeTab, setActiveTab] = useState("execute");
+  const [activeTab, setActiveTab] = useState("release");
   const [selectedModule, setSelectedModule] =
     useState<ModuleName>("CRM Jurídico");
   const [selectedBacklogItem, setSelectedBacklogItem] =
@@ -430,7 +433,15 @@ export default function EnhancedActionPlan() {
         onValueChange={setActiveTab}
         className="space-y-6"
       >
-        <TabsList className="grid grid-cols-12 w-full bg-muted p-1 rounded-lg">
+        <TabsList className="grid grid-cols-13 w-full bg-muted p-1 rounded-lg">
+          <TabsTrigger
+            value="release"
+            className="flex items-center gap-1 data-[state=active]:bg-background text-xs"
+          >
+            <Rocket className="h-4 w-4" />
+            <span className="hidden sm:inline">Release</span>
+          </TabsTrigger>
+
           <TabsTrigger
             value="execute"
             className="flex items-center gap-1 data-[state=active]:bg-background text-xs"
@@ -527,6 +538,11 @@ export default function EnhancedActionPlan() {
             <span className="hidden sm:inline">Versões</span>
           </TabsTrigger>
         </TabsList>
+
+        {/* Release Framework Tab - NEW */}
+        <TabsContent value="release" className="space-y-6">
+          <ReleaseFrameworkDashboard />
+        </TabsContent>
 
         {/* Execute Plan Tab - NEW */}
         <TabsContent value="execute" className="space-y-6">
