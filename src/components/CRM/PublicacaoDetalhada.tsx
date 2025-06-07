@@ -302,7 +302,7 @@ export function PublicacaoDetalhada({
       await createCalendarTask({
         title: `Prazo: ${publicacao.tipo}`,
         description: `Processo: ${publicacao.numeroProcesso}`,
-        dueDate: resultadoPrazo.dataFinal,
+        dueDate: resultadoPrazo?.dataFinal,
         processNumber: publicacao.numeroProcesso,
         priority: publicacao.urgencia === "urgente" ? "high" : "medium",
       });
