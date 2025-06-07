@@ -13,6 +13,8 @@ import {
   X,
   CheckSquare,
   FileText,
+  DollarSign,
+  FileSignature,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
