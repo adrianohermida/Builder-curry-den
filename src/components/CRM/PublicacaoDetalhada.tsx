@@ -349,7 +349,7 @@ export function PublicacaoDetalhada({
 
   const handleCopiarTexto = () => {
     navigator.clipboard.writeText(publicacao.conteudo);
-    toast.success("Texto copiado para a área de transferência!");
+    toast.success("Texto copiado para a ��rea de transferência!");
   };
 
   const handleVincularProcesso = async () => {
@@ -936,7 +936,7 @@ export function PublicacaoDetalhada({
                             Regra Aplicada
                           </Label>
                           <p className="font-semibold">
-                            {resultadoPrazo.regra}
+                            {resultadoPrazo?.regra || "Regra não identificada"}
                           </p>
                         </div>
                       </div>
