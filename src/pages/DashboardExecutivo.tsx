@@ -453,18 +453,13 @@ export default function DashboardExecutivo() {
                     <Tooltip />
                   </RechartsPieChart>
                 </ResponsiveContainer>
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  {processesData.map((item, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: item.color }}
-                      />
-                      <span className="text-sm">{item.name}</span>
-                      <Badge variant="secondary">{item.value}</Badge>
-                    </div>
-                  ))}
-                </div>
+                <ChartLegend
+                  data={processesData.map((item) => ({
+                    name: item.name,
+                    color: item.color,
+                    value: item.value,
+                  }))}
+                />
               </CardContent>
             </Card>
           </div>
