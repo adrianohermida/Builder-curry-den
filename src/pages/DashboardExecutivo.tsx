@@ -54,6 +54,7 @@ import {
   BarChart,
   Bar,
   PieChart as RechartsPieChart,
+  Pie,
   Cell,
   AreaChart,
   Area,
@@ -433,11 +434,19 @@ export default function DashboardExecutivo() {
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <RechartsPieChart>
+                    <Pie
+                      data={processesData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={false}
+                    >
+                      {processesData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
                     <Tooltip />
-                    <Cell fill="#3B82F6" />
-                    {processesData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
                   </RechartsPieChart>
                 </ResponsiveContainer>
                 <div className="grid grid-cols-2 gap-4 mt-4">
@@ -657,10 +666,19 @@ export default function DashboardExecutivo() {
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <RechartsPieChart>
+                    <Pie
+                      data={clientSatisfactionData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={false}
+                    >
+                      {clientSatisfactionData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
                     <Tooltip />
-                    {clientSatisfactionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
                   </RechartsPieChart>
                 </ResponsiveContainer>
               </CardContent>
