@@ -57,7 +57,7 @@ O(A) DOUTOR(A) JOÃO SILVA, MM. JUIZ(A) DE DIREITO DA 1ª VARA CÍVEL DO FORO CE
 
 FAZ SABER aos que o presente edital virem ou dele conhecimento tiverem que, nos autos da Ação de Cobrança, Processo nº 0001234-56.2024.8.26.0001, requerente BANCO EXEMPLO S/A, requerido JOÃO DOS SANTOS, foi determinada a INTIMAÇÃO do requerido para, no prazo de 15 (quinze) dias, apresentar contestação, sob pena de revelia e confissão ficta.
 
-O referido processo trata de cobrança de dívida no valor de R$ 50.000,00, decorrente de contrato de financiamento não quitado. 
+O referido processo trata de cobrança de dívida no valor de R$ 50.000,00, decorrente de contrato de financiamento não quitado.
 
 PRAZO: 15 dias corridos a partir desta publicação.
 
@@ -230,13 +230,16 @@ Juiz de Direito`,
       pub.tribunal.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesUrgency =
-      filterUrgency === "" || pub.urgencia === filterUrgency;
+      filterUrgency === "all" ||
+      filterUrgency === "" ||
+      pub.urgencia === filterUrgency;
     const matchesTribunal =
-      filterTribunal === "" || pub.tribunal.includes(filterTribunal);
+      filterTribunal === "all" ||
+      filterTribunal === "" ||
+      pub.tribunal.includes(filterTribunal);
 
     return matchesSearch && matchesUrgency && matchesTribunal;
   });
-
   const urgenciaColors = {
     baixa: "bg-green-100 text-green-800 border-green-200",
     media: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -380,7 +383,7 @@ Juiz de Direito`,
                     <SelectValue placeholder="Todas as urgências" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as urgências</SelectItem>
+                    <SelectItem value="all">Todas as urgências</SelectItem>
                     <SelectItem value="baixa">Baixa</SelectItem>
                     <SelectItem value="media">Média</SelectItem>
                     <SelectItem value="alta">Alta</SelectItem>
@@ -399,7 +402,7 @@ Juiz de Direito`,
                     <SelectValue placeholder="Todos os tribunais" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os tribunais</SelectItem>
+                    <SelectItem value="all">Todos os tribunais</SelectItem>
                     <SelectItem value="TJSP">TJSP</SelectItem>
                     <SelectItem value="TRT">TRT</SelectItem>
                     <SelectItem value="TRF">TRF</SelectItem>
