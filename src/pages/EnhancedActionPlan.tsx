@@ -33,8 +33,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 
 // Import enhanced action plan components
-import ActionPlanDashboard from "@/components/ActionPlan/ActionPlanDashboard";
-import ModuleManager from "@/components/ActionPlan/ModuleManager";
+import EnhancedActionPlanDashboard from "@/components/ActionPlan/EnhancedActionPlanDashboard";
+import EnhancedModuleManager from "@/components/ActionPlan/EnhancedModuleManager";
 import VersionControl from "@/components/ActionPlan/VersionControl";
 import AIAnalyzer from "@/components/ActionPlan/AIAnalyzer";
 import LogViewer from "@/components/ActionPlan/LogViewer";
@@ -42,6 +42,7 @@ import LogViewer from "@/components/ActionPlan/LogViewer";
 // Import new backlog components
 import BacklogKanban from "@/components/ActionPlan/BacklogKanban";
 import BacklogDashboard from "@/components/ActionPlan/BacklogDashboard";
+import IntegratedBacklog from "@/components/ActionPlan/IntegratedBacklog";
 
 // Import services and types
 import ActionPlanService from "@/services/actionPlanService";
