@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ThemeProvider as EnhancedThemeProvider } from "@/components/ui/theme-system";
 import { StorageProvider } from "@/hooks/useStorageConfig";
 import { RegrasProcessuaisProvider } from "@/contexts/RegrasProcessuaisContext";
 import { Layout } from "@/components/Layout/Layout";
