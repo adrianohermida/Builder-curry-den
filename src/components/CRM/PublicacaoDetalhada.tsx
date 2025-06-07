@@ -940,7 +940,7 @@ export function PublicacaoDetalhada({
                           </p>
                         </div>
                       </div>
-                      {resultadoPrazo.observacoes &&
+                      {resultadoPrazo?.observacoes &&
                         resultadoPrazo.observacoes.length > 0 && (
                           <div>
                             <Label className="text-sm text-muted-foreground">
