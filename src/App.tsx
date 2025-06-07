@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 // Lazy load all pages for better performance
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const CRM = lazy(() => import("./pages/CRM"));
+const CRMEnhanced = lazy(() => import("./pages/CRMEnhanced"));
 const Tickets = lazy(() => import("./pages/Tickets"));
 const Calendar = lazy(() => import("./pages/Calendar"));
 const AI = lazy(() => import("./pages/AI"));
