@@ -533,8 +533,9 @@ export function PublicacaoDetalhada({
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-1">
-                          {publicacao.partes && publicacao.partes.length > 0 ? (
-                            publicacao.partes.map((parte, index) => (
+                          {safePublicacao.partes &&
+                          safePublicacao.partes.length > 0 ? (
+                            safePublicacao.partes.map((parte, index) => (
                               <div key={index} className="text-sm">
                                 {parte}
                               </div>
