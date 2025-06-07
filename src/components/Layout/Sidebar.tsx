@@ -118,6 +118,15 @@ const adminMenuItems = [
     permission: { module: "dashboard", action: "manage" },
     adminOnly: true,
   },
+  {
+    title: "Plano de Ação IA",
+    href: "/plano-acao-ia",
+    icon: Brain,
+    description: "Análise e Planejamento Automático",
+    permission: { module: "dashboard", action: "manage" },
+    adminOnly: true,
+    badge: "AI",
+  },
 ];
 
 export function Sidebar({ open, onClose }: SidebarProps) {
