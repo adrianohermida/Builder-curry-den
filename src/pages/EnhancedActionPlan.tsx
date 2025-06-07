@@ -23,6 +23,10 @@ import {
   BarChart3,
   Lightbulb,
   Workflow,
+  Bot,
+  Monitor,
+  Play,
+  Clock,
 } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,14 +48,19 @@ import BacklogKanban from "@/components/ActionPlan/BacklogKanban";
 import BacklogDashboard from "@/components/ActionPlan/BacklogDashboard";
 import IntegratedBacklog from "@/components/ActionPlan/IntegratedBacklog";
 
-// Import services and types
+// Import intelligent system components
+import { IntelligentMonitor } from "@/components/ActionPlan/IntelligentMonitor";
+import { ContinuousExecutor } from "@/components/ActionPlan/ContinuousExecutor";
+
+// Import services, types, and hooks
 import ActionPlanService from "@/services/actionPlanService";
 import BacklogService from "@/services/backlogService";
 import { ActionPlanState, ModuleName } from "@/types/actionPlan";
 import { BacklogState, BacklogItem } from "@/types/backlog";
+import { useIntelligentActionPlan } from "@/hooks/useIntelligentActionPlan";
 
 export default function EnhancedActionPlan() {
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState("intelligent");
   const [selectedModule, setSelectedModule] =
     useState<ModuleName>("CRM Jurídico");
   const [selectedBacklogItem, setSelectedBacklogItem] =
@@ -65,6 +74,18 @@ export default function EnhancedActionPlan() {
 
   const actionPlanService = ActionPlanService.getInstance();
   const backlogService = BacklogService.getInstance();
+
+  // Intelligent Action Plan integration
+  const {
+    actionPlan: intelligentPlan,
+    isAnalyzing,
+    performAnalysis,
+    totalTasks,
+    pendingTasks,
+    executingTasks,
+    completedTasks,
+    latestReport,
+  } = useIntelligentActionPlan();
 
   useEffect(() => {
     // Subscribe to action plan changes
@@ -161,13 +182,15 @@ export default function EnhancedActionPlan() {
       Agenda: Calendar,
       Financeiro: DollarSign,
       Configurações: Settings,
+      "Design System": Monitor,
+      "Features Beta": Zap,
     };
     return iconMap[moduleName] || Target;
   };
 
-  // Global system health
+  // Global system health (enhanced with intelligent system)
   const systemHealth =
-    actionPlanState && backlogState
+    actionPlanState && backlogState && intelligentPlan
       ? {
           criticalModules: actionPlanState.modulos.filter(
             (m) => m.saude_geral === "critica",
@@ -196,6 +219,13 @@ export default function EnhancedActionPlan() {
             actionPlanState.analises_ia.length +
             backlogState.items.filter((i) => i.analise_ia).length,
           lastUpdate: actionPlanState.versao_atual.data_criacao,
+          // Intelligent system metrics
+          intelligentTasks: totalTasks,
+          intelligentPending: pendingTasks,
+          intelligentExecuting: executingTasks,
+          intelligentCompleted: completedTasks,
+          intelligentSuccessRate: intelligentPlan.métricas_globais.taxa_sucesso,
+          lastAnalysis: latestReport?.timestamp,
         }
       : null;
 
@@ -206,10 +236,10 @@ export default function EnhancedActionPlan() {
           <RefreshCw className="h-6 w-6 animate-spin text-primary" />
           <div>
             <h2 className="text-lg font-semibold">
-              Inicializando Sistema Híbrido
+              Inicializando Sistema Inteligente
             </h2>
             <p className="text-sm text-muted-foreground">
-              Carregando plano de ação e backlog inteligente...
+              Carregando plano de ação, backlog e sistema de IA automatizada...
             </p>
           </div>
         </div>
@@ -224,45 +254,54 @@ export default function EnhancedActionPlan() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              🚀 Sistema Híbrido de Governança
+              🧠 Sistema Inteligente Lawdesk 2025
             </h1>
             <p className="text-muted-foreground">
-              Plano de ação técnico + Backlog estratégico com IA integrada - v
+              Plano de ação contínuo + IA automatizada + Backlog estratégico - v
               {actionPlanState.versao_atual.versao}
             </p>
           </div>
 
           {/* System Health Indicator */}
           {systemHealth && (
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-3 h-3 rounded-full ${
-                  systemHealth.criticalModules === 0 &&
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-3 h-3 rounded-full ${
+                    systemHealth.criticalModules === 0 &&
+                    systemHealth.criticalBacklogItems === 0
+                      ? "bg-green-500"
+                      : systemHealth.criticalModules <= 2 &&
+                          systemHealth.criticalBacklogItems <= 3
+                        ? "bg-yellow-500"
+                        : "bg-red-500"
+                  } animate-pulse`}
+                />
+                <span className="text-sm text-muted-foreground">
+                  Sistema{" "}
+                  {systemHealth.criticalModules === 0 &&
                   systemHealth.criticalBacklogItems === 0
-                    ? "bg-green-500"
+                    ? "Saudável"
                     : systemHealth.criticalModules <= 2 &&
                         systemHealth.criticalBacklogItems <= 3
-                      ? "bg-yellow-500"
-                      : "bg-red-500"
-                } animate-pulse`}
-              />
-              <span className="text-sm text-muted-foreground">
-                Sistema{" "}
-                {systemHealth.criticalModules === 0 &&
-                systemHealth.criticalBacklogItems === 0
-                  ? "Saudável"
-                  : systemHealth.criticalModules <= 2 &&
-                      systemHealth.criticalBacklogItems <= 3
-                    ? "Atenção"
-                    : "Crítico"}
-              </span>
+                      ? "Atenção"
+                      : "Crítico"}
+                </span>
+              </div>
+
+              {isAnalyzing && (
+                <div className="flex items-center gap-2">
+                  <Bot className="h-4 w-4 animate-pulse text-blue-500" />
+                  <span className="text-sm text-blue-600">IA Analisando</span>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        {/* Quick Stats */}
+        {/* Enhanced Quick Stats */}
         {systemHealth && (
-          <div className="mt-4 grid grid-cols-2 md:grid-cols-6 gap-4">
+          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
             <div className="text-center">
               <div className="text-xl font-bold text-primary">
                 {systemHealth.totalTasks}
@@ -278,6 +317,14 @@ export default function EnhancedActionPlan() {
               <div className="text-xs text-muted-foreground">Itens Backlog</div>
             </div>
             <div className="text-center">
+              <div className="text-xl font-bold text-blue-600">
+                {systemHealth.intelligentTasks}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Tarefas IA 2025
+              </div>
+            </div>
+            <div className="text-center">
               <div className="text-xl font-bold text-success">
                 {Math.round(systemHealth.completionRate)}%
               </div>
@@ -291,6 +338,14 @@ export default function EnhancedActionPlan() {
               </div>
               <div className="text-xs text-muted-foreground">
                 Execução Backlog
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-indigo-600">
+                {Math.round(systemHealth.intelligentSuccessRate)}%
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Taxa Sucesso IA
               </div>
             </div>
             <div className="text-center">
@@ -324,19 +379,23 @@ export default function EnhancedActionPlan() {
                 `${systemHealth.criticalModules} módulo(s) técnico(s) crítico(s). `}
               {systemHealth.criticalBacklogItems > 0 &&
                 `${systemHealth.criticalBacklogItems} item(s) do backlog crítico(s). `}
+              {systemHealth.intelligentPending > 5 &&
+                `${systemHealth.intelligentPending} tarefa(s) IA pendente(s). `}
               Verifique os dashboards para ações recomendadas.
             </AlertDescription>
           </Alert>
         )}
 
       {/* AI Processing Status */}
-      {isProcessing && (
+      {(isProcessing || isAnalyzing) && (
         <Alert className="mb-6 border-primary bg-primary/5">
           <Brain className="h-4 w-4 animate-pulse" />
-          <AlertTitle>🤖 IA Processando Backlog</AlertTitle>
+          <AlertTitle>🤖 Sistema de IA Ativo</AlertTitle>
           <AlertDescription className="flex items-center gap-2">
-            Analisando itens do backlog e criando conexões com o plano de
-            ação...
+            {isAnalyzing &&
+              "Analisando sistema e gerando tarefas automáticas..."}
+            {isProcessing &&
+              "Processando backlog e criando conexões inteligentes..."}
             <RefreshCw className="h-3 w-3 animate-spin" />
           </AlertDescription>
         </Alert>
@@ -367,7 +426,23 @@ export default function EnhancedActionPlan() {
         onValueChange={setActiveTab}
         className="space-y-6"
       >
-        <TabsList className="grid grid-cols-7 w-full bg-muted p-1 rounded-lg">
+        <TabsList className="grid grid-cols-9 w-full bg-muted p-1 rounded-lg">
+          <TabsTrigger
+            value="intelligent"
+            className="flex items-center gap-1 data-[state=active]:bg-background text-xs"
+          >
+            <Bot className="h-4 w-4" />
+            <span className="hidden sm:inline">IA 2025</span>
+          </TabsTrigger>
+
+          <TabsTrigger
+            value="executor"
+            className="flex items-center gap-1 data-[state=active]:bg-background text-xs"
+          >
+            <Play className="h-4 w-4" />
+            <span className="hidden sm:inline">Executor</span>
+          </TabsTrigger>
+
           <TabsTrigger
             value="dashboard"
             className="flex items-center gap-1 data-[state=active]:bg-background text-xs"
@@ -425,6 +500,100 @@ export default function EnhancedActionPlan() {
           </TabsTrigger>
         </TabsList>
 
+        {/* Intelligent System Tab - NEW */}
+        <TabsContent value="intelligent" className="space-y-6">
+          <div className="space-y-4">
+            {/* Quick stats for intelligent system */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <Target className="h-4 w-4 text-muted-foreground mr-2" />
+                    <div>
+                      <p className="text-2xl font-bold">{totalTasks}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Total de Tarefas IA
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <Clock className="h-4 w-4 text-muted-foreground mr-2" />
+                    <div>
+                      <p className="text-2xl font-bold">{pendingTasks}</p>
+                      <p className="text-xs text-muted-foreground">Pendentes</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <Activity className="h-4 w-4 text-muted-foreground mr-2" />
+                    <div>
+                      <p className="text-2xl font-bold">{executingTasks}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Em Execução
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <TrendingUp className="h-4 w-4 text-muted-foreground mr-2" />
+                    <div>
+                      <p className="text-2xl font-bold">{completedTasks}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Concluídas
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <IntelligentMonitor
+              onTaskExecute={(taskId) =>
+                setNotifications((prev) => [
+                  `Tarefa ${taskId} executada com sucesso`,
+                  ...prev.slice(0, 4),
+                ])
+              }
+              onConfigChange={() =>
+                setNotifications((prev) => [
+                  "Configuração do sistema inteligente atualizada",
+                  ...prev.slice(0, 4),
+                ])
+              }
+            />
+          </div>
+        </TabsContent>
+
+        {/* Continuous Executor Tab - NEW */}
+        <TabsContent value="executor" className="space-y-6">
+          <ContinuousExecutor
+            onExecutionComplete={(taskId, success) =>
+              setNotifications((prev) => [
+                success
+                  ? `✅ Tarefa ${taskId} concluída com sucesso`
+                  : `❌ Falha na execução da tarefa ${taskId}`,
+                ...prev.slice(0, 4),
+              ])
+            }
+            onLogGenerated={(log) =>
+              console.log("Log de execução gerado:", log)
+            }
+          />
+        </TabsContent>
+
         {/* Dashboard Tab - Technical Action Plan */}
         <TabsContent value="dashboard" className="space-y-0">
           <div className="mb-4">
@@ -435,10 +604,11 @@ export default function EnhancedActionPlan() {
               Visão executiva das tarefas técnicas e melhorias do sistema
             </p>
           </div>
-          <ActionPlanDashboard
-            onNavigateToModule={handleNavigateToModule}
-            onNavigateToLogs={handleNavigateToLogs}
-            onNavigateToAnalysis={handleNavigateToAnalysis}
+          <EnhancedActionPlanDashboard
+            showHiddenModules={showHiddenModules}
+            onNotification={(message) =>
+              setNotifications((prev) => [message, ...prev.slice(0, 4)])
+            }
           />
         </TabsContent>
 
@@ -508,12 +678,19 @@ export default function EnhancedActionPlan() {
                       "Agenda",
                       "Financeiro",
                       "Configurações",
+                      ...(showHiddenModules
+                        ? ["Design System", "Features Beta"]
+                        : []),
                     ] as ModuleName[]
                   ).map((module) => {
                     const moduleData = actionPlanState.modulos.find(
                       (m) => m.modulo === module,
                     );
                     const IconComponent = getModuleIcon(module);
+                    const isHidden = [
+                      "Design System",
+                      "Features Beta",
+                    ].includes(module);
 
                     return (
                       <Button
@@ -522,12 +699,30 @@ export default function EnhancedActionPlan() {
                           selectedModule === module ? "default" : "outline"
                         }
                         onClick={() => setSelectedModule(module)}
-                        className="h-auto p-4 flex flex-col items-center gap-2"
+                        className={`h-auto p-4 flex flex-col items-center gap-2 ${
+                          isHidden
+                            ? "border-purple-200 bg-purple-50 hover:bg-purple-100"
+                            : ""
+                        }`}
                       >
-                        <IconComponent className="h-5 w-5" />
-                        <span className="text-xs font-medium text-center">
+                        <IconComponent
+                          className={`h-5 w-5 ${isHidden ? "text-purple-600" : ""}`}
+                        />
+                        <span
+                          className={`text-xs font-medium text-center ${
+                            isHidden ? "text-purple-700" : ""
+                          }`}
+                        >
                           {module}
                         </span>
+                        {isHidden && (
+                          <Badge
+                            variant="secondary"
+                            className="text-xs bg-purple-100 text-purple-800"
+                          >
+                            BETA
+                          </Badge>
+                        )}
                         {moduleData && (
                           <Badge
                             variant="secondary"
@@ -548,12 +743,25 @@ export default function EnhancedActionPlan() {
                     );
                   })}
                 </div>
+
+                <div className="mt-4 flex items-center gap-2">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={showHiddenModules}
+                      onChange={(e) => setShowHiddenModules(e.target.checked)}
+                      className="rounded"
+                    />
+                    Mostrar módulos ocultos (Design System, Features Beta)
+                  </label>
+                </div>
               </CardContent>
             </Card>
 
             {/* Module Manager */}
-            <ModuleManager
+            <EnhancedModuleManager
               selectedModule={selectedModule}
+              showHiddenModules={showHiddenModules}
               onModuleChange={setSelectedModule}
             />
           </div>
@@ -606,13 +814,13 @@ export default function EnhancedActionPlan() {
         </TabsContent>
       </Tabs>
 
-      {/* Integration Status */}
+      {/* Enhanced Integration Status */}
       {systemHealth && (
         <Card className="mt-8 card-enhanced border-primary/20">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Workflow className="h-5 w-5 text-primary" />
-              Status da Integração Híbrida
+              Status da Integração Inteligente - Lawdesk 2025
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -620,6 +828,13 @@ export default function EnhancedActionPlan() {
               <div>
                 <h4 className="font-medium mb-3">🔗 Conexões Ativas</h4>
                 <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Sistema IA 2025</span>
+                    <Badge className="bg-green-100 text-green-800">
+                      <Bot className="h-3 w-3 mr-1" />
+                      Operacional
+                    </Badge>
+                  </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Backlog → Plano Técnico</span>
                     <Badge className="bg-green-100 text-green-800">
@@ -635,6 +850,13 @@ export default function EnhancedActionPlan() {
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
+                    <span className="text-sm">Execução Contínua</span>
+                    <Badge className="bg-blue-100 text-blue-800">
+                      <Play className="h-3 w-3 mr-1" />
+                      Monitorando
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
                     <span className="text-sm">Logs Centralizados</span>
                     <Badge className="bg-blue-100 text-blue-800">
                       <FileText className="h-3 w-3 mr-1" />
@@ -645,7 +867,7 @@ export default function EnhancedActionPlan() {
               </div>
 
               <div>
-                <h4 className="font-medium mb-3">📊 Métricas Híbridas</h4>
+                <h4 className="font-medium mb-3">📊 Métricas Inteligentes</h4>
                 <div className="space-y-3">
                   <div>
                     <div className="flex justify-between text-sm mb-1">
@@ -653,8 +875,9 @@ export default function EnhancedActionPlan() {
                       <span>
                         {Math.round(
                           (systemHealth.completionRate +
-                            systemHealth.backlogExecutionRate) /
-                            2,
+                            systemHealth.backlogExecutionRate +
+                            systemHealth.intelligentSuccessRate) /
+                            3,
                         )}
                         %
                       </span>
@@ -662,8 +885,32 @@ export default function EnhancedActionPlan() {
                     <Progress
                       value={
                         (systemHealth.completionRate +
-                          systemHealth.backlogExecutionRate) /
-                        2
+                          systemHealth.backlogExecutionRate +
+                          systemHealth.intelligentSuccessRate) /
+                        3
+                      }
+                      className="h-2"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Automação IA</span>
+                      <span>
+                        {Math.round(
+                          (systemHealth.intelligentTasks /
+                            (systemHealth.totalTasks +
+                              systemHealth.intelligentTasks)) *
+                            100,
+                        )}
+                        %
+                      </span>
+                    </div>
+                    <Progress
+                      value={
+                        (systemHealth.intelligentTasks /
+                          (systemHealth.totalTasks +
+                            systemHealth.intelligentTasks)) *
+                        100
                       }
                       className="h-2"
                     />
@@ -675,7 +922,8 @@ export default function EnhancedActionPlan() {
                         {Math.round(
                           (systemHealth.aiAnalyses /
                             (systemHealth.totalTasks +
-                              systemHealth.totalBacklogItems)) *
+                              systemHealth.totalBacklogItems +
+                              systemHealth.intelligentTasks)) *
                             100,
                         )}
                         %
@@ -685,7 +933,8 @@ export default function EnhancedActionPlan() {
                       value={
                         (systemHealth.aiAnalyses /
                           (systemHealth.totalTasks +
-                            systemHealth.totalBacklogItems)) *
+                            systemHealth.totalBacklogItems +
+                            systemHealth.intelligentTasks)) *
                         100
                       }
                       className="h-2"
@@ -695,8 +944,17 @@ export default function EnhancedActionPlan() {
               </div>
 
               <div>
-                <h4 className="font-medium mb-3">🎯 Próximas Ações</h4>
+                <h4 className="font-medium mb-3">🎯 Próximas Ações IA</h4>
                 <div className="space-y-2 text-sm">
+                  {systemHealth.intelligentPending > 0 && (
+                    <div className="flex items-center gap-2">
+                      <Bot className="h-3 w-3 text-blue-600" />
+                      <span>
+                        Executar {systemHealth.intelligentPending} tarefas IA
+                        pendentes
+                      </span>
+                    </div>
+                  )}
                   {systemHealth.criticalBacklogItems > 0 && (
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="h-3 w-3 text-red-600" />
@@ -718,8 +976,21 @@ export default function EnhancedActionPlan() {
                   <div className="flex items-center gap-2">
                     <Brain className="h-3 w-3 text-blue-600" />
                     <span>
-                      Executar análise IA completa em{" "}
-                      {Math.max(0, 24 - systemHealth.aiAnalyses)} itens
+                      Próxima análise automática em{" "}
+                      {systemHealth.lastAnalysis
+                        ? Math.max(
+                            0,
+                            30 -
+                              Math.floor(
+                                (Date.now() -
+                                  new Date(
+                                    systemHealth.lastAnalysis,
+                                  ).getTime()) /
+                                  (1000 * 60),
+                              ),
+                          )
+                        : 0}{" "}
+                      min
                     </span>
                   </div>
                 </div>
@@ -729,58 +1000,59 @@ export default function EnhancedActionPlan() {
         </Card>
       )}
 
-      {/* Footer Information */}
+      {/* Enhanced Footer Information */}
       <div className="mt-12 border-t pt-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-muted-foreground">
           <div>
             <h4 className="font-medium text-foreground mb-2">
-              🚀 Sistema Híbrido
+              🧠 Sistema Inteligente 2025
             </h4>
             <ul className="space-y-1">
-              <li>• Backlog estratégico estilo Trello</li>
-              <li>• Plano de ação técnico detalhado</li>
-              <li>• IA unificada para análise e conexões</li>
-              <li>• Gestão de roadmap e execução</li>
-              <li>• Controle de versão incremental</li>
+              <li>• Execução contínua e automatizada</li>
+              <li>• Análise de sistema em tempo real</li>
+              <li>• Geração automática de tarefas</li>
+              <li>• Monitoramento inteligente 24/7</li>
+              <li>• Aprendizado contínuo e adaptação</li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-medium text-foreground mb-2">
-              🤖 Inteligência Integrada
+              🤖 IA Avançada Integrada
             </h4>
             <ul className="space-y-1">
-              <li>• Análise automática de viabilidade</li>
-              <li>• Detecção de sinergias entre itens</li>
-              <li>• Classificação e priorização IA</li>
-              <li>• Criação automática de tarefas</li>
-              <li>• Recomendações contextuais</li>
+              <li>• Análise preditiva de problemas</li>
+              <li>• Detecção automática de gargalos</li>
+              <li>• Otimização contínua de performance</li>
+              <li>• Classificação inteligente de prioridades</li>
+              <li>• Recomendações contextuais personalizadas</li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-medium text-foreground mb-2">
-              📊 Governança Avançada
+              📊 Governança Autônoma
             </h4>
             <ul className="space-y-1">
               <li>• Dashboard executivo em tempo real</li>
-              <li>• Métricas de ROI e viabilidade</li>
-              <li>• Análise de velocidade e throughput</li>
-              <li>• Auditoria completa de decisões</li>
-              <li>• Export/import para ferramentas externas</li>
+              <li>• Métricas de ROI e eficiência automatizadas</li>
+              <li>• Auditoria completa de todas as ações</li>
+              <li>• Controle de versão inteligente</li>
+              <li>• Relatórios executivos automáticos</li>
             </ul>
           </div>
         </div>
 
         <div className="mt-6 text-center text-xs text-muted-foreground">
           <p>
-            Lawdesk CRM - Sistema Híbrido de Governança v
+            Lawdesk CRM - Sistema Inteligente de Governança Autônoma v
             {actionPlanState.versao_atual.versao} • Última atualização:{" "}
             {new Date(
               actionPlanState.versao_atual.data_criacao,
             ).toLocaleString()}{" "}
-            • Sistema desenvolvido com IA para gestão autônoma de backlog
-            estratégico e plano de ação técnico
+            • Sistema desenvolvido com IA avançada para gestão autônoma
+            contínua, análise preditiva e otimização automática de processos
+            jurídicos
           </p>
         </div>
       </div>
