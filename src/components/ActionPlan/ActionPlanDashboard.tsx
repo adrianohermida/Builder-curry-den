@@ -85,17 +85,25 @@ export default function ActionPlanDashboard({
   const backlogService = useMemo(() => BacklogService.getInstance(), []);
 
   useEffect(() => {
-    const unsubscribe = service.subscribe((newState) => {
+    const unsubscribeActionPlan = service.subscribe((newState) => {
       setState(newState);
       setLoading(false);
     });
 
+    const unsubscribeBacklog = backlogService.subscribe((newState) => {
+      setBacklogState(newState);
+    });
+
     // Initial load
     setState(service.getState());
+    setBacklogState(backlogService.getState());
     setLoading(false);
 
-    return unsubscribe;
-  }, [service]);
+    return () => {
+      unsubscribeActionPlan();
+      unsubscribeBacklog();
+    };
+  }, [service, backlogService]);
 
   // Computed statistics
   const globalStats = useMemo(() => {
