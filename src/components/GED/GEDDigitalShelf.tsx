@@ -28,7 +28,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
-  BookMark,
   Bookmark,
   Volume2,
   VolumeX,
@@ -331,7 +330,7 @@ const FlipbookViewer = ({
                           className="text-white hover:bg-white/20"
                         >
                           {bookmarks.includes(currentPage) ? (
-                            <BookMark className="h-4 w-4 text-yellow-400 fill-current" />
+                            <Bookmark className="h-4 w-4 text-yellow-400 fill-current" />
                           ) : (
                             <Bookmark className="h-4 w-4" />
                           )}
