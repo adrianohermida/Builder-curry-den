@@ -4,8 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { ThemeProvider } from "@/contexts/ThemeContext";
-import { ThemeProvider as EnhancedThemeProvider } from "@/components/ui/theme-system";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 import { StorageProvider } from "@/hooks/useStorageConfig";
 import { RegrasProcessuaisProvider } from "@/contexts/RegrasProcessuaisContext";
 import { PermissionProvider } from "@/hooks/usePermissions";
@@ -13,6 +12,9 @@ import { Layout } from "@/components/Layout/Layout";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import NotFound from "./pages/NotFound";
+
+// Import the enhanced theme styles
+import "@/styles/themes.css";
 
 // Lazy load all pages for better performance
 const Dashboard = lazy(() => import("./pages/Dashboard"));
