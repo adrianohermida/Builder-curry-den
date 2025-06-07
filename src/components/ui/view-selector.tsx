@@ -98,7 +98,7 @@ const viewOptions: ViewOption[] = [
   {
     type: "timeline",
     label: "Timeline",
-    icon: Timeline,
+    icon: Clock,
     description: "Linha do tempo vertical com eventos",
     availableFor: ["publications", "tasks", "crm"],
     shortcut: "T",
