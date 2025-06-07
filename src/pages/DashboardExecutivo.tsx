@@ -391,8 +391,19 @@ export default function DashboardExecutivo() {
                 <ResponsiveContainer width="100%" height={300}>
                   <AreaChart data={revenueData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis
+                      dataKey="name"
+                      type="category"
+                      allowDataOverflow={false}
+                      allowDecimals={true}
+                      allowDuplicatedCategory={true}
+                    />
+                    <YAxis
+                      type="number"
+                      allowDataOverflow={false}
+                      allowDecimals={true}
+                      allowDuplicatedCategory={true}
+                    />
                     <Tooltip
                       formatter={(value: number) => [
                         `R$ ${value.toLocaleString("pt-BR")}`,
@@ -545,8 +556,19 @@ export default function DashboardExecutivo() {
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={revenueData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis
+                      dataKey="name"
+                      type="category"
+                      allowDataOverflow={false}
+                      allowDecimals={true}
+                      allowDuplicatedCategory={true}
+                    />
+                    <YAxis
+                      type="number"
+                      allowDataOverflow={false}
+                      allowDecimals={true}
+                      allowDuplicatedCategory={true}
+                    />
                     <Tooltip />
                     <Bar dataKey="value" fill="#3B82F6" />
                   </BarChart>
@@ -603,8 +625,19 @@ export default function DashboardExecutivo() {
                 <ResponsiveContainer width="100%" height={300}>
                   <RechartsLineChart data={productivityData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis
+                      dataKey="name"
+                      type="category"
+                      allowDataOverflow={false}
+                      allowDecimals={true}
+                      allowDuplicatedCategory={true}
+                    />
+                    <YAxis
+                      type="number"
+                      allowDataOverflow={false}
+                      allowDecimals={true}
+                      allowDuplicatedCategory={true}
+                    />
                     <Tooltip />
                     <Line
                       type="monotone"
