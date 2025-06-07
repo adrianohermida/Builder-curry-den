@@ -901,26 +901,27 @@ export function PublicacaoDetalhada({
                           </p>
                         </div>
                       </div>
-                      {resultadoPrazo.observacoes.length > 0 && (
-                        <div>
-                          <Label className="text-sm text-muted-foreground">
-                            Observações
-                          </Label>
-                          <ul className="text-sm space-y-1 mt-1">
-                            {resultadoPrazo.observacoes.map(
-                              (obs: string, index: number) => (
-                                <li
-                                  key={index}
-                                  className="flex items-start gap-1"
-                                >
-                                  <span className="text-blue-500">•</span>
-                                  {obs}
-                                </li>
-                              ),
-                            )}
-                          </ul>
-                        </div>
-                      )}
+                      {resultadoPrazo.observacoes &&
+                        resultadoPrazo.observacoes.length > 0 && (
+                          <div>
+                            <Label className="text-sm text-muted-foreground">
+                              Observações
+                            </Label>
+                            <ul className="text-sm space-y-1 mt-1">
+                              {resultadoPrazo.observacoes.map(
+                                (obs: string, index: number) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-start gap-1"
+                                  >
+                                    <span className="text-blue-500">•</span>
+                                    {obs}
+                                  </li>
+                                ),
+                              )}
+                            </ul>
+                          </div>
+                        )}
                     </CardContent>
                   </Card>
                 )}
