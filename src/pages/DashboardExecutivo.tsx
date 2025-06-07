@@ -411,7 +411,7 @@ export default function DashboardExecutivo() {
                     />
                     <Tooltip
                       formatter={(value: number) => [
-                        `R$ ${value.toLocaleString("pt-BR")}`,
+                        formatCurrency(value),
                         "Receita",
                       ]}
                     />
