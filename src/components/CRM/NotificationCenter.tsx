@@ -255,7 +255,7 @@ export function NotificationCenter() {
                               {notification.title}
                             </h4>
                             {!notification.isRead && (
-                              <div className="w-2 h-2 rounded-full bg-[rgb(var(--theme-primary))]" />
+                              <div className="w-2 h-2 rounded-full bg-primary" />
                             )}
                           </div>
                           <p className="text-sm text-muted-foreground">
