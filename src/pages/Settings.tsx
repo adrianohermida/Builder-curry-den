@@ -36,7 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useTheme, defaultPresets } from "@/contexts/ThemeContext";
+import { useTheme } from "@/providers/ThemeProvider";
 import { cn } from "@/lib/utils";
 
 export default function Settings() {
