@@ -84,214 +84,213 @@ const App = () => (
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
-                    <Routes>
+                  <Routes>
+                    <Route
+                      path="/"
+                      element={<Navigate to="/dashboard" replace />}
+                    />
+                    <Route path="/" element={<Layout />}>
+                      {/* Core Application Routes */}
                       <Route
-                        path="/"
-                        element={<Navigate to="/dashboard" replace />}
+                        path="dashboard"
+                        element={
+                          <PageWrapper>
+                            <Dashboard />
+                          </PageWrapper>
+                        }
                       />
-                      <Route path="/" element={<Layout />}>
-                        {/* Core Application Routes */}
-                        <Route
-                          path="dashboard"
-                          element={
-                            <PageWrapper>
-                              <Dashboard />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route
-                          path="dashboard-executivo"
-                          element={
-                            <PageWrapper>
-                              <DashboardExecutivo />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route
-                          path="crm"
-                          element={
-                            <PageWrapper>
-                              <CRMEnhanced />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route
-                          path="crm-legacy"
-                          element={
-                            <PageWrapper>
-                              <CRM />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route
-                          path="tarefas"
-                          element={
-                            <PageWrapper>
-                              <Tarefas />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route
-                          path="publicacoes"
-                          element={
-                            <PageWrapper>
-                              <Publicacoes />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route
-                          path="contratos"
-                          element={
-                            <PageWrapper>
-                              <Contratos />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route
-                          path="financeiro"
-                          element={
-                            <PageWrapper>
-                              <Financeiro />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route
-                          path="tickets"
-                          element={
-                            <PageWrapper>
-                              <Tickets />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route
-                          path="atendimento"
-                          element={
-                            <PageWrapper>
-                              <AtendimentoEnhanced />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route
-                          path="agenda"
-                          element={
-                            <PageWrapper>
-                              <Calendar />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route
-                          path="ai"
-                          element={
-                            <PageWrapper>
-                              <AI />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route
-                          path="ai-enhanced"
-                          element={
-                            <PageWrapper>
-                              <AIEnhanced />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route
-                          path="plano-acao-ia"
-                          element={
-                            <PageWrapper>
-                              <PlanoDeAcaoIA />
-                            </PageWrapper>
-                          }
-                        />
+                      <Route
+                        path="dashboard-executivo"
+                        element={
+                          <PageWrapper>
+                            <DashboardExecutivo />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="crm"
+                        element={
+                          <PageWrapper>
+                            <CRMEnhanced />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="crm-legacy"
+                        element={
+                          <PageWrapper>
+                            <CRM />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="tarefas"
+                        element={
+                          <PageWrapper>
+                            <Tarefas />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="publicacoes"
+                        element={
+                          <PageWrapper>
+                            <Publicacoes />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="contratos"
+                        element={
+                          <PageWrapper>
+                            <Contratos />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="financeiro"
+                        element={
+                          <PageWrapper>
+                            <Financeiro />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="tickets"
+                        element={
+                          <PageWrapper>
+                            <Tickets />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="atendimento"
+                        element={
+                          <PageWrapper>
+                            <AtendimentoEnhanced />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="agenda"
+                        element={
+                          <PageWrapper>
+                            <Calendar />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="ai"
+                        element={
+                          <PageWrapper>
+                            <AI />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="ai-enhanced"
+                        element={
+                          <PageWrapper>
+                            <AIEnhanced />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="plano-acao-ia"
+                        element={
+                          <PageWrapper>
+                            <PlanoDeAcaoIA />
+                          </PageWrapper>
+                        }
+                      />
 
-                        {/* GED Routes */}
-                        <Route
-                          path="ged"
-                          element={
-                            <PageWrapper>
-                              <GEDJuridicoV2 />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route
-                          path="ged-juridico"
-                          element={
-                            <PageWrapper>
-                              <GEDJuridicoV2 />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route
-                          path="ged-legacy"
-                          element={
-                            <PageWrapper>
-                              <GEDJuridico />
-                            </PageWrapper>
-                          }
-                        />
+                      {/* GED Routes */}
+                      <Route
+                        path="ged"
+                        element={
+                          <PageWrapper>
+                            <GEDJuridicoV2 />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="ged-juridico"
+                        element={
+                          <PageWrapper>
+                            <GEDJuridicoV2 />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="ged-legacy"
+                        element={
+                          <PageWrapper>
+                            <GEDJuridico />
+                          </PageWrapper>
+                        }
+                      />
 
-                        {/* Settings and Configuration Routes */}
+                      {/* Settings and Configuration Routes */}
+                      <Route
+                        path="settings"
+                        element={
+                          <PageWrapper>
+                            <Settings />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route path="configuracoes">
                         <Route
-                          path="settings"
+                          path="armazenamento"
                           element={
                             <PageWrapper>
-                              <Settings />
-                            </PageWrapper>
-                          }
-                        />
-                        <Route path="configuracoes">
-                          <Route
-                            path="armazenamento"
-                            element={
-                              <PageWrapper>
-                                <ConfiguracaoArmazenamento />
-                              </PageWrapper>
-                            }
-                          />
-                          <Route
-                            path="prazos"
-                            element={
-                              <PageWrapper>
-                                <ConfiguracoesPrazosPage />
-                              </PageWrapper>
-                            }
-                          />
-                        </Route>
-
-                        {/* Development/Test Routes */}
-                        <Route
-                          path="cliente-detalhes-test"
-                          element={
-                            <PageWrapper>
-                              <ClienteDetalhesTest />
+                              <ConfiguracaoArmazenamento />
                             </PageWrapper>
                           }
                         />
                         <Route
-                          path="teste-configuracao-storage"
+                          path="prazos"
                           element={
                             <PageWrapper>
-                              <TesteConfiguracaoStorage />
+                              <ConfiguracoesPrazosPage />
                             </PageWrapper>
                           }
-                        />
-
-                        {/* Legacy route for backward compatibility */}
-                        <Route
-                          path="publicacoes-example"
-                          element={<Navigate to="/publicacoes" replace />}
                         />
                       </Route>
 
-                      {/* Catch-all route for 404 */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </BrowserRouter>
-                </TooltipProvider>
-              </PermissionProvider>
-            </RegrasProcessuaisProvider>
-          </StorageProvider>
-        </EnhancedThemeProvider>
+                      {/* Development/Test Routes */}
+                      <Route
+                        path="cliente-detalhes-test"
+                        element={
+                          <PageWrapper>
+                            <ClienteDetalhesTest />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="teste-configuracao-storage"
+                        element={
+                          <PageWrapper>
+                            <TesteConfiguracaoStorage />
+                          </PageWrapper>
+                        }
+                      />
+
+                      {/* Legacy route for backward compatibility */}
+                      <Route
+                        path="publicacoes-example"
+                        element={<Navigate to="/publicacoes" replace />}
+                      />
+                    </Route>
+
+                    {/* Catch-all route for 404 */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
+              </TooltipProvider>
+            </PermissionProvider>
+          </RegrasProcessuaisProvider>
+        </StorageProvider>
       </ThemeProvider>
     </ErrorBoundary>
   </QueryClientProvider>
