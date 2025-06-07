@@ -46,19 +46,23 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   LineChart as RechartsLineChart,
   Line,
-  XAxis,
-  YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   BarChart,
   Bar,
   PieChart as RechartsPieChart,
-  Pie,
   Cell,
   AreaChart,
   Area,
 } from "recharts";
+import {
+  XAxis,
+  YAxis,
+  Pie,
+  formatCurrency,
+  ChartLegend,
+} from "@/components/ui/chart-components";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuditSystem } from "@/hooks/useAuditSystem";
 import { DateRange } from "react-day-picker";
