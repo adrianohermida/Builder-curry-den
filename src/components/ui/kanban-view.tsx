@@ -57,7 +57,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { useTheme } from "./theme-system";
+import { useTheme } from "@/providers/ThemeProvider";
 
 export interface KanbanItem {
   id: string;
