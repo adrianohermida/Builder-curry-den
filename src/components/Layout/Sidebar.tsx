@@ -146,14 +146,16 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     <div
       className={cn(
         "sidebar-layout",
+        "bg-sidebar text-sidebar-foreground border-r border-sidebar-border",
+        "transition-transform duration-300 ease-in-out",
         open ? "translate-x-0" : "-translate-x-full",
       )}
     >
-      <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
+      <div className="flex h-full flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
+        <div className="flex items-center justify-between p-4 border-b border-sidebar-border bg-sidebar">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
               <Scale className="h-5 w-5 text-primary-foreground" />
             </div>
             <div className="flex flex-col">
@@ -170,6 +172,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             size="sm"
             onClick={onClose}
             className="lg:hidden touch-target hover:bg-sidebar-accent text-sidebar-foreground"
+            aria-label="Fechar menu lateral"
           >
             <X className="h-5 w-5" />
           </Button>
@@ -177,9 +180,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
         {/* User Info */}
         {user && (
-          <div className="p-4 border-b border-sidebar-border">
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-sidebar-accent/50">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+          <div className="p-4 border-b border-sidebar-border bg-sidebar">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-sidebar-accent/50 transition-colors hover:bg-sidebar-accent/70">
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-sm">
                 <span className="text-primary-foreground font-medium text-sm">
                   {user.name
                     .split(" ")
@@ -238,11 +241,24 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                       to={item.href}
                       onClick={() => onClose()}
                       className={cn(
-                        "nav-item touch-target",
-                        isActive ? "nav-item-active" : "nav-item-inactive",
+                        "nav-item touch-target group",
+                        "flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium",
+                        "transition-all duration-200",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+                        isActive
+                          ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                          : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
                       )}
+                      aria-label={`Navegar para ${item.title}`}
                     >
-                      <Icon className="h-5 w-5 flex-shrink-0" />
+                      <Icon
+                        className={cn(
+                          "h-5 w-5 flex-shrink-0 transition-colors",
+                          isActive
+                            ? "text-sidebar-primary-foreground"
+                            : "text-sidebar-foreground group-hover:text-sidebar-accent-foreground",
+                        )}
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <span className="truncate">{item.title}</span>
@@ -250,7 +266,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                             <Badge
                               variant="secondary"
                               className={cn(
-                                "text-xs ml-2",
+                                "text-xs ml-2 transition-colors",
                                 isActive ? "bg-white/20 text-white" : "",
                               )}
                             >
@@ -261,9 +277,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                         {item.description && (
                           <div
                             className={cn(
-                              "text-xs mt-0.5 truncate",
+                              "text-xs mt-0.5 truncate transition-colors",
                               isActive
-                                ? "text-white/75"
+                                ? "text-sidebar-primary-foreground/75"
                                 : "text-sidebar-foreground/60",
                             )}
                           >
@@ -296,11 +312,24 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                           to={item.href}
                           onClick={() => onClose()}
                           className={cn(
-                            "nav-item touch-target",
-                            isActive ? "nav-item-active" : "nav-item-inactive",
+                            "nav-item touch-target group",
+                            "flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium",
+                            "transition-all duration-200",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+                            isActive
+                              ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                              : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
                           )}
+                          aria-label={`Navegar para ${item.title}`}
                         >
-                          <Icon className="h-5 w-5 flex-shrink-0" />
+                          <Icon
+                            className={cn(
+                              "h-5 w-5 flex-shrink-0 transition-colors",
+                              isActive
+                                ? "text-sidebar-primary-foreground"
+                                : "text-sidebar-foreground group-hover:text-sidebar-accent-foreground",
+                            )}
+                          />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
                               <span className="truncate">{item.title}</span>
@@ -308,7 +337,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                                 <Badge
                                   variant="secondary"
                                   className={cn(
-                                    "text-xs ml-2",
+                                    "text-xs ml-2 transition-colors",
                                     isActive ? "bg-white/20 text-white" : "",
                                   )}
                                 >
@@ -319,9 +348,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                             {item.description && (
                               <div
                                 className={cn(
-                                  "text-xs mt-0.5 truncate",
+                                  "text-xs mt-0.5 truncate transition-colors",
                                   isActive
-                                    ? "text-white/75"
+                                    ? "text-sidebar-primary-foreground/75"
                                     : "text-sidebar-foreground/60",
                                 )}
                               >
@@ -348,10 +377,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 to="/publicacoes-example"
                 onClick={() => onClose()}
                 className={cn(
-                  "nav-item touch-target",
+                  "nav-item touch-target group",
+                  "flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium",
+                  "transition-all duration-200",
                   location.pathname === "/publicacoes-example"
-                    ? "nav-item-active"
-                    : "nav-item-inactive",
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                    : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
                 )}
               >
                 <FileText className="h-5 w-5" />
@@ -362,10 +393,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 to="/configuracoes/armazenamento"
                 onClick={() => onClose()}
                 className={cn(
-                  "nav-item touch-target",
+                  "nav-item touch-target group",
+                  "flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium",
+                  "transition-all duration-200",
                   location.pathname === "/configuracoes/armazenamento"
-                    ? "nav-item-active"
-                    : "nav-item-inactive",
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                    : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
                 )}
               >
                 <Settings className="h-5 w-5" />
@@ -376,19 +409,25 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         </ScrollArea>
 
         {/* Footer */}
-        <div className="p-4 border-t border-sidebar-border space-y-3">
+        <div className="p-4 border-t border-sidebar-border bg-sidebar space-y-3">
           {/* Quick Search */}
           <Button
             variant="outline"
-            className="w-full justify-start text-sidebar-foreground h-10 touch-target border-sidebar-border hover:bg-sidebar-accent"
+            className={cn(
+              "w-full justify-start h-10 touch-target transition-colors",
+              "text-sidebar-foreground border-sidebar-border",
+              "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              "focus-visible:ring-sidebar-ring",
+            )}
             onClick={() => {
               document.dispatchEvent(new CustomEvent("open-global-search"));
               onClose();
             }}
+            aria-label="Abrir busca global"
           >
             <Search className="h-4 w-4 mr-2" />
             <span className="text-sm">Busca Global</span>
-            <kbd className="ml-auto pointer-events-none h-4 select-none items-center gap-1 rounded border bg-sidebar-accent px-1.5 font-mono text-xs font-medium text-sidebar-foreground opacity-100 hidden sm:inline-flex">
+            <kbd className="ml-auto pointer-events-none h-4 select-none items-center gap-1 rounded border border-sidebar-border bg-sidebar-accent px-1.5 font-mono text-xs font-medium text-sidebar-foreground opacity-100 hidden sm:inline-flex">
               <Command className="h-2 w-2" />K
             </kbd>
           </Button>
@@ -399,9 +438,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               <span>© 2024 Lawdesk CRM</span>
               <Badge
                 variant="outline"
-                className="text-xs border-sidebar-border"
+                className="text-xs border-sidebar-border text-sidebar-foreground"
               >
-                v3.0.0
+                v3.1.0
               </Badge>
             </div>
             <div className="text-sidebar-foreground/50">
