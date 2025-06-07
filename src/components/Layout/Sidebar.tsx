@@ -31,8 +31,8 @@ const menuItems = [
     icon: Users,
   },
   {
-    title: "GED Jurídico",
-    href: "/ged",
+    title: "📁 GED Jurídico",
+    href: "/ged-juridico",
     icon: FolderOpen,
     description: "Gestão Eletrônica de Documentos",
   },
@@ -93,7 +93,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             {menuItems.map((item) => {
               const isActive =
                 location.pathname === item.href ||
-                (item.href === "/ged" && location.pathname.startsWith("/ged"));
+                (item.href === "/ged-juridico" &&
+                  location.pathname.startsWith("/ged"));
               const Icon = item.icon;
 
               return (
