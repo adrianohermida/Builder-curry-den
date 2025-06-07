@@ -108,7 +108,6 @@ export function StorageAuditLogs() {
   const [filterAction, setFilterAction] = useState("all");
   const [filterUser, setFilterUser] = useState("all");
   const [filterRisk, setFilterRisk] = useState("all");
-  const [filterUser, setFilterUser] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
