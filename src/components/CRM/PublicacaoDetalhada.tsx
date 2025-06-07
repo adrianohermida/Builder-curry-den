@@ -918,9 +918,9 @@ export function PublicacaoDetalhada({
                             Data Final
                           </Label>
                           <p className="font-semibold">
-                            {resultadoPrazo.dataFinal.toLocaleDateString(
+                            {resultadoPrazo?.dataFinal?.toLocaleDateString?.(
                               "pt-BR",
-                            )}
+                            ) || "Data não disponível"}
                           </p>
                         </div>
                         <div>
