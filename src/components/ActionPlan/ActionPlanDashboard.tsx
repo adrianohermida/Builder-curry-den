@@ -70,14 +70,19 @@ export default function ActionPlanDashboard({
   onNavigateToModule,
   onNavigateToLogs,
   onNavigateToAnalysis,
+  onNavigateToBacklog,
 }: DashboardProps) {
   const [state, setState] = useState<ActionPlanState | null>(null);
+  const [backlogState, setBacklogState] = useState<BacklogState | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [autoAnalysisEnabled, setAutoAnalysisEnabled] = useState(true);
   const [filter, setFilter] = useState<ActionPlanFilter>({});
+  const [showBacklogPanel, setShowBacklogPanel] = useState(false);
+  const [notifications, setNotifications] = useState<string[]>([]);
 
   const service = useMemo(() => ActionPlanService.getInstance(), []);
+  const backlogService = useMemo(() => BacklogService.getInstance(), []);
 
   useEffect(() => {
     const unsubscribe = service.subscribe((newState) => {
