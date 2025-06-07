@@ -3,7 +3,7 @@ import {
   List,
   LayoutGrid,
   Kanban,
-  Timeline,
+  Clock,
   CalendarDays,
   BarChart3,
   Workflow,
