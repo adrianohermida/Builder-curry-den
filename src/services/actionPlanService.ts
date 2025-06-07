@@ -107,6 +107,8 @@ class ActionPlanService {
       "Agenda",
       "Financeiro",
       "Configurações",
+      "Design System",
+      "Features Beta",
     ];
 
     return modules.map((modulo) => ({
