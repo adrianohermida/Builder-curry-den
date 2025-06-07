@@ -799,7 +799,9 @@ export default function GEDJuridico() {
                 <Label>Tipo de Arquivo</Label>
                 <Select
                   value={filterOptions?.type || "all"}
-                  onValueChange={(value) => setFilterOptions({ ...(filterOptions || {}), type: value })}
+                  onValueChange={(value) =>
+                    setFilterOptions({ ...(filterOptions || {}), type: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -818,7 +820,12 @@ export default function GEDJuridico() {
                 <Label>Visibilidade</Label>
                 <Select
                   value={filterOptions?.visibility || "all"}
-                  onValueChange={(value) => setFilterOptions({ ...(filterOptions || {}), visibility: value })}
+                  onValueChange={(value) =>
+                    setFilterOptions({
+                      ...(filterOptions || {}),
+                      visibility: value,
+                    })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -836,7 +843,7 @@ export default function GEDJuridico() {
             <Button
               variant="outline"
               onClick={() => {
-                setFilterOptions?.({ type: "", visibility: "", dateRange: "", client: "", tags: [] });
+                setFilterOptions?.({
                   type: "",
                   visibility: "",
                   dateRange: "",
