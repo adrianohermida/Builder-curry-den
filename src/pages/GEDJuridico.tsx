@@ -266,7 +266,12 @@ export default function GEDJuridico() {
     }
 
     try {
-      await createFolder(currentNode.id, name, type as any);
+      // Ensure type is one of the valid values
+      const validType = ["folder", "client", "process", "contract", "template"].includes(type)
+        ? type
+        : "folder";
+
+      await createFolder(currentNode.id, name, validType as any);
       refreshData();
     } catch (error) {
       console.error("Erro ao criar pasta:", error);
@@ -303,25 +308,28 @@ export default function GEDJuridico() {
 
   // Filter helpers
   const filteredFiles = useMemo(() => {
-    return currentFiles.filter((file) => {
+    if (!currentFiles || !Array.isArray(currentFiles)) {
+      return [];
+    }
+
+    return currentFiles.filter(file => {
+      if (!file) return false;
+
       // Search filter
-      if (
-        searchQuery &&
-        !file.name.toLowerCase().includes(searchQuery.toLowerCase())
-      ) {
+      if (searchQuery && file.name && !file.name.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
       }
 
       // Type filter
-      if (filterOptions.type && filterOptions.type !== "all") {
-        const fileExtension = file.name.split(".").pop()?.toLowerCase();
+      if (filterOptions?.type && filterOptions.type !== "all") {
+        const fileExtension = file.name?.split('.').pop()?.toLowerCase();
         if (filterOptions.type !== fileExtension) {
           return false;
         }
       }
 
       // Visibility filter
-      if (filterOptions.visibility && filterOptions.visibility !== "all") {
+      if (filterOptions?.visibility && filterOptions.visibility !== "all") {
         if (filterOptions.visibility === "client" && !file.clientVisible) {
           return false;
         }
@@ -336,12 +344,15 @@ export default function GEDJuridico() {
 
   // Statistics
   const stats = useMemo(() => {
+    const safeCurrentFiles = currentFiles || [];
+    const safeSelectedFiles = selectedFiles || [];
+
     return {
-      totalFiles: currentFiles.length,
-      selectedCount: selectedFiles.length,
-      clientVisible: currentFiles.filter((f) => f.clientVisible).length,
-      favorites: currentFiles.filter((f) => f.isFavorite).length,
-      totalSize: currentFiles.reduce((sum, f) => sum + (f.size || 0), 0),
+      totalFiles: safeCurrentFiles.length,
+      selectedCount: safeSelectedFiles.length,
+      clientVisible: safeCurrentFiles.filter(f => f?.clientVisible).length,
+      favorites: safeCurrentFiles.filter(f => f?.isFavorite).length,
+      totalSize: safeCurrentFiles.reduce((sum, f) => sum + (f?.size || 0), 0),
     };
   }, [currentFiles, selectedFiles]);
 
@@ -437,10 +448,11 @@ export default function GEDJuridico() {
               <TabsContent value="ai" className="h-full m-0 p-4">
                 <div className="h-full overflow-auto">
                   <GEDAIIntegration
-                    selectedFiles={selectedFiles
-                      .map((id) => currentFiles.find((f) => f.id === id)!)
-                      .filter(Boolean)}
+                    selectedFiles={(selectedFiles || [])
+                      .map(id => currentFiles?.find(f => f?.id === id))
+                      .filter(Boolean) as any[]}
                     onStartChat={handleStartAIChat}
+                  />
                   />
                 </div>
               </TabsContent>
