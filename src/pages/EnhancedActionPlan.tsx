@@ -27,6 +27,8 @@ import {
   Monitor,
   Play,
   Clock,
+  RefreshCw
+  Clock,
 } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -52,6 +54,7 @@ import IntegratedBacklog from "@/components/ActionPlan/IntegratedBacklog";
 import { IntelligentMonitor } from "@/components/ActionPlan/IntelligentMonitor";
 import { ContinuousExecutor } from "@/components/ActionPlan/ContinuousExecutor";
 import { AutonomousExecutionDashboard } from "@/components/ActionPlan/AutonomousExecutionDashboard";
+import { PlanCleanupDashboard } from "@/components/ActionPlan/PlanCleanupDashboard";
 
 // Import services, types, and hooks
 import ActionPlanService from "@/services/actionPlanService";
@@ -61,7 +64,7 @@ import { BacklogState, BacklogItem } from "@/types/backlog";
 import { useIntelligentActionPlan } from "@/hooks/useIntelligentActionPlan";
 
 export default function EnhancedActionPlan() {
-  const [activeTab, setActiveTab] = useState("autonomous");
+  const [activeTab, setActiveTab] = useState("cleanup");
   const [selectedModule, setSelectedModule] =
     useState<ModuleName>("CRM Jurídico");
   const [selectedBacklogItem, setSelectedBacklogItem] =
@@ -427,7 +430,15 @@ export default function EnhancedActionPlan() {
         onValueChange={setActiveTab}
         className="space-y-6"
       >
-        <TabsList className="grid grid-cols-10 w-full bg-muted p-1 rounded-lg">
+        <TabsList className="grid grid-cols-11 w-full bg-muted p-1 rounded-lg">
+          <TabsTrigger
+            value="cleanup"
+            className="flex items-center gap-1 data-[state=active]:bg-background text-xs"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span className="hidden sm:inline">Limpeza</span>
+          </TabsTrigger>
+
           <TabsTrigger
             value="autonomous"
             className="flex items-center gap-1 data-[state=active]:bg-background text-xs"
@@ -508,6 +519,11 @@ export default function EnhancedActionPlan() {
             <span className="hidden sm:inline">Versões</span>
           </TabsTrigger>
         </TabsList>
+
+        {/* Cleanup and Update Tab - NEW */}
+        <TabsContent value="cleanup" className="space-y-6">
+          <PlanCleanupDashboard />
+        </TabsContent>
 
         {/* Autonomous Execution Tab - NEW */}
         <TabsContent value="autonomous" className="space-y-6">
