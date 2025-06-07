@@ -51,6 +51,7 @@ import IntegratedBacklog from "@/components/ActionPlan/IntegratedBacklog";
 // Import intelligent system components
 import { IntelligentMonitor } from "@/components/ActionPlan/IntelligentMonitor";
 import { ContinuousExecutor } from "@/components/ActionPlan/ContinuousExecutor";
+import { AutonomousExecutionDashboard } from "@/components/ActionPlan/AutonomousExecutionDashboard";
 
 // Import services, types, and hooks
 import ActionPlanService from "@/services/actionPlanService";
@@ -60,7 +61,7 @@ import { BacklogState, BacklogItem } from "@/types/backlog";
 import { useIntelligentActionPlan } from "@/hooks/useIntelligentActionPlan";
 
 export default function EnhancedActionPlan() {
-  const [activeTab, setActiveTab] = useState("intelligent");
+  const [activeTab, setActiveTab] = useState("autonomous");
   const [selectedModule, setSelectedModule] =
     useState<ModuleName>("CRM Jurídico");
   const [selectedBacklogItem, setSelectedBacklogItem] =
@@ -426,7 +427,15 @@ export default function EnhancedActionPlan() {
         onValueChange={setActiveTab}
         className="space-y-6"
       >
-        <TabsList className="grid grid-cols-9 w-full bg-muted p-1 rounded-lg">
+        <TabsList className="grid grid-cols-10 w-full bg-muted p-1 rounded-lg">
+          <TabsTrigger
+            value="autonomous"
+            className="flex items-center gap-1 data-[state=active]:bg-background text-xs"
+          >
+            <Zap className="h-4 w-4" />
+            <span className="hidden sm:inline">Autônomo</span>
+          </TabsTrigger>
+
           <TabsTrigger
             value="intelligent"
             className="flex items-center gap-1 data-[state=active]:bg-background text-xs"
@@ -499,6 +508,11 @@ export default function EnhancedActionPlan() {
             <span className="hidden sm:inline">Versões</span>
           </TabsTrigger>
         </TabsList>
+
+        {/* Autonomous Execution Tab - NEW */}
+        <TabsContent value="autonomous" className="space-y-6">
+          <AutonomousExecutionDashboard />
+        </TabsContent>
 
         {/* Intelligent System Tab - NEW */}
         <TabsContent value="intelligent" className="space-y-6">
@@ -662,7 +676,7 @@ export default function EnhancedActionPlan() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Target className="h-5 w-5 text-primary" />
-                  Gerenciamento de Módulos Técnicos
+                  Gerenciamento de M��dulos Técnicos
                 </CardTitle>
               </CardHeader>
               <CardContent>
