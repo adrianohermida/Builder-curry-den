@@ -83,11 +83,7 @@ import {
   KanbanItem,
   KanbanColumn,
 } from "@/components/ui/kanban-view";
-import {
-  useTheme,
-  themeClasses,
-  useThemeClasses,
-} from "@/components/ui/theme-system";
+import { useTheme, useThemeClasses } from "@/providers/ThemeProvider";
 import { useTarefaIntegration } from "@/hooks/useTarefaIntegration";
 import { TarefaCreateModal } from "@/components/Tarefas/TarefaCreateModal";
 import { toast } from "sonner";
