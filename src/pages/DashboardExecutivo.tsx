@@ -11,6 +11,7 @@ import {
   Target,
   AlertTriangle,
   CheckCircle,
+  CheckSquare,
   Calendar,
   Download,
   Filter,
