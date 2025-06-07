@@ -62,7 +62,7 @@ export interface TreeNode {
 
 interface TreeViewProps {
   data: TreeNode[];
-  selectedPath: string[];
+  selectedPath?: string[];
   onSelectPath: (path: string[], node: TreeNode) => void;
   onCreateFolder: (
     parentId: string,
