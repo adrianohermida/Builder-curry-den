@@ -205,6 +205,22 @@ const App = () => (
                           </PageWrapper>
                         }
                       />
+                      <Route
+                        path="action-plan"
+                        element={
+                          <PageWrapper>
+                            <ActionPlan />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="plano-acao"
+                        element={
+                          <PageWrapper>
+                            <ActionPlan />
+                          </PageWrapper>
+                        }
+                      />
 
                       {/* GED Routes */}
                       <Route
