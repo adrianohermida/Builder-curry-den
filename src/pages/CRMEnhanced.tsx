@@ -671,11 +671,13 @@ export default function CRMEnhanced() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <div className="space-y-1">
                       <div className="flex items-center gap-1 text-xs">
                         <Mail className="h-3 w-3" />
-                        {client.email}
+                        <span className="truncate max-w-[150px]">
+                          {client.email}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1 text-xs">
                         <Phone className="h-3 w-3" />
@@ -688,7 +690,7 @@ export default function CRMEnhanced() {
                       {client.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden lg:table-cell">
                     <Badge
                       variant="outline"
                       className={areaColors[client.area]}
@@ -696,7 +698,7 @@ export default function CRMEnhanced() {
                       {client.area}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden lg:table-cell">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
