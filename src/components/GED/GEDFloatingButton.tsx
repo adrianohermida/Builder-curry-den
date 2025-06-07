@@ -5,7 +5,7 @@ import {
   Upload,
   FolderPlus,
   FileText,
-  CloudSync,
+  Cloud,
   X,
   Sparkles,
   FileUp,
@@ -110,7 +110,7 @@ export function GEDFloatingButton({
       id: "sync",
       title: "Sincronizar",
       description: "Drive externo",
-      icon: CloudSync,
+      icon: Cloud,
       color: "text-orange-600",
       bgColor: "bg-orange-50 hover:bg-orange-100",
       action: () => {
@@ -352,7 +352,7 @@ export function GEDFloatingButton({
                   <SelectItem value="client">👤 Pasta de Cliente</SelectItem>
                   <SelectItem value="process">⚖️ Pasta de Processo</SelectItem>
                   <SelectItem value="contract">📝 Pasta de Contrato</SelectItem>
-                  <SelectItem value="template">📋 Pasta de Modelos</SelectItem>
+                  <SelectItem value="template">��� Pasta de Modelos</SelectItem>
                 </SelectContent>
               </Select>
             </div>
