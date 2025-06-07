@@ -20,6 +20,7 @@ import PublicacoesExample from "./pages/PublicacoesExample";
 import GEDJuridico from "./pages/GEDJuridico";
 import GEDJuridicoV2 from "./pages/GEDJuridicoV2";
 import ConfiguracoesPrazosPage from "./pages/ConfiguracoesPrazosPage";
+import Tarefas from "./pages/Tarefas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
