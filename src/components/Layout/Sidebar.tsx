@@ -7,10 +7,12 @@ import {
   Calendar,
   Brain,
   Settings,
-  X,
-  Scale,
-  FileText,
   FolderOpen,
+  Scale,
+  LogOut,
+  X,
+  CheckSquare,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
