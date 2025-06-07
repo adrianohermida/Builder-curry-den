@@ -133,7 +133,6 @@ const adminMenuItems = [
 export function Sidebar({ open, onClose }: SidebarProps) {
   const location = useLocation();
   const { hasPermission, isAdmin, user } = usePermissions();
-  const { isDark } = useTheme();
 
   // Filter menu items based on permissions
   const menuItems = [
