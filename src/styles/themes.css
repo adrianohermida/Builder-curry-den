@@ -315,7 +315,7 @@
 
   /* Navigation styles */
   .nav-item {
-    @apply flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group;
+    @apply flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200;
   }
 
   .nav-item-active {
