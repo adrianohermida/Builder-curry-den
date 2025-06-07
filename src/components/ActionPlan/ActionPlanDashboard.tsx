@@ -23,6 +23,11 @@ import {
   Settings,
   PlayCircle,
   PauseCircle,
+  Lightbulb,
+  GitBranch,
+  Palette,
+  FlaskConical,
+  Kanban,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
