@@ -19,8 +19,7 @@ import {
   CheckCircle,
   AlertTriangle,
   RefreshCw,
-  Rocket
-  RefreshCw,
+  Rocket,
   Kanban,
   BarChart3,
   Lightbulb,
