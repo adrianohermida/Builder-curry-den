@@ -18,6 +18,7 @@ import TesteConfiguracaoStorage from "./pages/TesteConfiguracaoStorage";
 import ConfiguracaoArmazenamento from "./pages/ConfiguracaoArmazenamento";
 import PublicacoesExample from "./pages/PublicacoesExample";
 import GEDJuridico from "./pages/GEDJuridico";
+import GEDJuridicoV2 from "./pages/GEDJuridicoV2";
 import ConfiguracoesPrazosPage from "./pages/ConfiguracoesPrazosPage";
 import NotFound from "./pages/NotFound";
 
@@ -40,8 +41,9 @@ const App = () => (
                 <Route path="/" element={<Layout />}>
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="crm" element={<CRM />} />
-                  <Route path="/ged" element={<GEDJuridico />} />
-                  <Route path="/ged-juridico" element={<GEDJuridico />} />
+                  <Route path="ged" element={<GEDJuridicoV2 />} />
+                  <Route path="ged-juridico" element={<GEDJuridicoV2 />} />
+                  <Route path="ged-legacy" element={<GEDJuridico />} />
                   <Route path="tickets" element={<Tickets />} />
                   <Route path="agenda" element={<Calendar />} />
                   <Route path="ai" element={<AI />} />
