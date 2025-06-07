@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/tooltip";
 import { GlobalSearch } from "@/components/ui/global-search";
 import { usePermissions } from "@/hooks/usePermissions";
-import { useTheme } from "@/contexts/ThemeContext";
+import { useTheme } from "@/providers/ThemeProvider";
 import {
   useAuditSystem,
   AUDIT_ACTIONS,
