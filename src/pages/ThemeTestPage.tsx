@@ -1,5 +1,11 @@
 import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -27,6 +33,11 @@ import {
   Heart,
   Star,
   Settings,
+  Eye,
+  Users,
+  FileText,
+  Calendar,
+  BarChart3,
 } from "lucide-react";
 
 export default function ThemeTestPage() {
@@ -38,21 +49,24 @@ export default function ThemeTestPage() {
     <div className="container-responsive space-y-8 py-8">
       {/* Header */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="heading-responsive font-bold">Sistema de Temas e Responsividade</h1>
+            <h1 className="heading-responsive font-bold text-foreground">
+              Sistema de Temas e Responsividade
+            </h1>
             <p className="text-responsive text-muted-foreground">
-              Teste abrangente do sistema de temas e design responsivo do Lawdesk CRM
+              Teste abrangente do sistema de temas e design responsivo do
+              Lawdesk CRM
             </p>
           </div>
           <ThemeToggle variant="full" showLabel />
         </div>
 
         {/* Theme Info */}
-        <Card>
+        <Card className="card-enhanced">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5" />
+              <Palette className="h-5 w-5 text-primary" />
               Informações do Tema Atual
             </CardTitle>
           </CardHeader>
@@ -62,12 +76,14 @@ export default function ThemeTestPage() {
                 <Label>Modo</Label>
                 <div className="flex items-center gap-2">
                   {effectiveMode === "dark" ? (
-                    <Moon className="h-4 w-4" />
+                    <Moon className="h-4 w-4 text-muted-foreground" />
                   ) : (
-                    <Sun className="h-4 w-4" />
+                    <Sun className="h-4 w-4 text-muted-foreground" />
                   )}
                   <Badge variant="secondary">
-                    {config.mode === "system" ? `Sistema (${effectiveMode})` : config.mode}
+                    {config.mode === "system"
+                      ? `Sistema (${effectiveMode})`
+                      : config.mode}
                   </Badge>
                 </div>
               </div>
@@ -79,13 +95,19 @@ export default function ThemeTestPage() {
                 <Label>Acessibilidade</Label>
                 <div className="flex flex-wrap gap-1">
                   {config.accessibility.highContrast && (
-                    <Badge variant="secondary" className="text-xs">Alto Contraste</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      Alto Contraste
+                    </Badge>
                   )}
                   {config.accessibility.largeText && (
-                    <Badge variant="secondary" className="text-xs">Texto Grande</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      Texto Grande
+                    </Badge>
                   )}
                   {config.accessibility.reducedMotion && (
-                    <Badge variant="secondary" className="text-xs">Movimento Reduzido</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      Movimento Reduzido
+                    </Badge>
                   )}
                 </div>
               </div>
@@ -95,10 +117,10 @@ export default function ThemeTestPage() {
       </div>
 
       {/* Responsive Test */}
-      <Card>
+      <Card className="card-enhanced">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Monitor className="h-5 w-5" />
+            <Monitor className="h-5 w-5 text-primary" />
             Teste de Responsividade
           </CardTitle>
           <CardDescription>
@@ -110,38 +132,58 @@ export default function ThemeTestPage() {
             {/* Breakpoint Indicators */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="block sm:hidden">
-                <Alert>
-                  <Smartphone className="h-4 w-4" />
-                  <AlertTitle>Mobile</AlertTitle>
-                  <AlertDescription>< 640px</AlertDescription>
+                <Alert className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950">
+                  <Smartphone className="h-4 w-4 text-blue-600" />
+                  <AlertTitle className="text-blue-900 dark:text-blue-100">
+                    Mobile
+                  </AlertTitle>
+                  <AlertDescription className="text-blue-700 dark:text-blue-200">
+                    &lt; 640px
+                  </AlertDescription>
                 </Alert>
               </div>
               <div className="hidden sm:block md:hidden">
-                <Alert>
-                  <Tablet className="h-4 w-4" />
-                  <AlertTitle>Small</AlertTitle>
-                  <AlertDescription>640px - 768px</AlertDescription>
+                <Alert className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
+                  <Tablet className="h-4 w-4 text-green-600" />
+                  <AlertTitle className="text-green-900 dark:text-green-100">
+                    Small
+                  </AlertTitle>
+                  <AlertDescription className="text-green-700 dark:text-green-200">
+                    640px - 768px
+                  </AlertDescription>
                 </Alert>
               </div>
               <div className="hidden md:block lg:hidden">
-                <Alert>
-                  <Tablet className="h-4 w-4" />
-                  <AlertTitle>Medium</AlertTitle>
-                  <AlertDescription>768px - 1024px</AlertDescription>
+                <Alert className="border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950">
+                  <Tablet className="h-4 w-4 text-yellow-600" />
+                  <AlertTitle className="text-yellow-900 dark:text-yellow-100">
+                    Medium
+                  </AlertTitle>
+                  <AlertDescription className="text-yellow-700 dark:text-yellow-200">
+                    768px - 1024px
+                  </AlertDescription>
                 </Alert>
               </div>
               <div className="hidden lg:block xl:hidden">
-                <Alert>
-                  <Desktop className="h-4 w-4" />
-                  <AlertTitle>Large</AlertTitle>
-                  <AlertDescription>1024px - 1280px</AlertDescription>
+                <Alert className="border-purple-200 bg-purple-50 dark:border-purple-900 dark:bg-purple-950">
+                  <Desktop className="h-4 w-4 text-purple-600" />
+                  <AlertTitle className="text-purple-900 dark:text-purple-100">
+                    Large
+                  </AlertTitle>
+                  <AlertDescription className="text-purple-700 dark:text-purple-200">
+                    1024px - 1280px
+                  </AlertDescription>
                 </Alert>
               </div>
               <div className="hidden xl:block">
-                <Alert>
-                  <Desktop className="h-4 w-4" />
-                  <AlertTitle>Extra Large</AlertTitle>
-                  <AlertDescription>≥ 1280px</AlertDescription>
+                <Alert className="border-indigo-200 bg-indigo-50 dark:border-indigo-900 dark:bg-indigo-950">
+                  <Desktop className="h-4 w-4 text-indigo-600" />
+                  <AlertTitle className="text-indigo-900 dark:text-indigo-100">
+                    Extra Large
+                  </AlertTitle>
+                  <AlertDescription className="text-indigo-700 dark:text-indigo-200">
+                    ≥ 1280px
+                  </AlertDescription>
                 </Alert>
               </div>
             </div>
@@ -150,7 +192,10 @@ export default function ThemeTestPage() {
             <div className="grid-responsive">
               <Card className="card-enhanced">
                 <CardHeader>
-                  <CardTitle className="text-sm">Card 1</CardTitle>
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-primary" />
+                    Dashboard
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
@@ -160,7 +205,10 @@ export default function ThemeTestPage() {
               </Card>
               <Card className="card-enhanced">
                 <CardHeader>
-                  <CardTitle className="text-sm">Card 2</CardTitle>
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    CRM
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
@@ -170,7 +218,10 @@ export default function ThemeTestPage() {
               </Card>
               <Card className="card-enhanced">
                 <CardHeader>
-                  <CardTitle className="text-sm">Card 3</CardTitle>
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    Agenda
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
@@ -186,7 +237,7 @@ export default function ThemeTestPage() {
       {/* Component Showcase */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Colors and States */}
-        <Card>
+        <Card className="card-enhanced">
           <CardHeader>
             <CardTitle>Cores e Estados</CardTitle>
             <CardDescription>
@@ -214,8 +265,12 @@ export default function ThemeTestPage() {
                 <Badge variant="secondary">Secondary</Badge>
                 <Badge variant="outline">Outline</Badge>
                 <Badge variant="destructive">Destructive</Badge>
-                <Badge className="badge-success">Success</Badge>
-                <Badge className="badge-warning">Warning</Badge>
+                <Badge className="bg-success text-success-foreground">
+                  Success
+                </Badge>
+                <Badge className="bg-warning text-warning-foreground">
+                  Warning
+                </Badge>
               </div>
             </div>
 
@@ -226,25 +281,33 @@ export default function ThemeTestPage() {
                 <Alert>
                   <Info className="h-4 w-4" />
                   <AlertTitle>Info</AlertTitle>
-                  <AlertDescription>Informação importante para o usuário.</AlertDescription>
-                </Alert>
-                
-                <Alert className="border-success text-success-foreground">
-                  <CheckCircle className="h-4 w-4" />
-                  <AlertTitle>Sucesso</AlertTitle>
-                  <AlertDescription>Operação realizada com sucesso!</AlertDescription>
+                  <AlertDescription>
+                    Informação importante para o usuário.
+                  </AlertDescription>
                 </Alert>
 
-                <Alert className="border-warning text-warning-foreground">
+                <Alert className="border-success/50 text-success bg-success/10 [&>svg]:text-success">
+                  <CheckCircle className="h-4 w-4" />
+                  <AlertTitle>Sucesso</AlertTitle>
+                  <AlertDescription>
+                    Operação realizada com sucesso!
+                  </AlertDescription>
+                </Alert>
+
+                <Alert className="border-warning/50 text-warning bg-warning/10 [&>svg]:text-warning">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertTitle>Atenção</AlertTitle>
-                  <AlertDescription>Verifique os dados antes de continuar.</AlertDescription>
+                  <AlertDescription>
+                    Verifique os dados antes de continuar.
+                  </AlertDescription>
                 </Alert>
 
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Erro</AlertTitle>
-                  <AlertDescription>Erro ao processar a solicitação.</AlertDescription>
+                  <AlertDescription>
+                    Erro ao processar a solicitação.
+                  </AlertDescription>
                 </Alert>
               </div>
             </div>
@@ -252,7 +315,7 @@ export default function ThemeTestPage() {
         </Card>
 
         {/* Form Components */}
-        <Card>
+        <Card className="card-enhanced">
           <CardHeader>
             <CardTitle>Componentes de Formulário</CardTitle>
             <CardDescription>
@@ -313,7 +376,7 @@ export default function ThemeTestPage() {
       </div>
 
       {/* Interactive Tabs */}
-      <Card>
+      <Card className="card-enhanced">
         <CardHeader>
           <CardTitle>Componentes Interativos</CardTitle>
           <CardDescription>
@@ -327,14 +390,14 @@ export default function ThemeTestPage() {
               <TabsTrigger value="responsive">Responsivo</TabsTrigger>
               <TabsTrigger value="accessibility">Acessibilidade</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="design" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <h4 className="font-medium">Consistência Visual</h4>
                   <p className="text-sm text-muted-foreground">
-                    Todos os componentes seguem o mesmo sistema de design, garantindo 
-                    uma experiência visual coesa em toda a aplicação.
+                    Todos os componentes seguem o mesmo sistema de design,
+                    garantindo uma experiência visual coesa em toda a aplicação.
                   </p>
                   <div className="flex gap-2">
                     <Heart className="h-4 w-4 text-red-500" />
@@ -355,14 +418,14 @@ export default function ThemeTestPage() {
                 </div>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="responsive" className="space-y-4">
               <div className="space-y-4">
                 <h4 className="font-medium">Design Mobile-First</h4>
                 <p className="text-sm text-muted-foreground">
-                  O layout é projetado primeiro para dispositivos móveis e depois 
-                  expandido para telas maiores, garantindo uma experiência otimizada 
-                  em todos os dispositivos.
+                  O layout é projetado primeiro para dispositivos móveis e
+                  depois expandido para telas maiores, garantindo uma
+                  experiência otimizada em todos os dispositivos.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                   <div className="text-xs text-center p-2 bg-muted rounded">
@@ -384,7 +447,7 @@ export default function ThemeTestPage() {
                 </div>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="accessibility" className="space-y-4">
               <div className="space-y-4">
                 <h4 className="font-medium">Recursos de Acessibilidade</h4>
@@ -392,7 +455,8 @@ export default function ThemeTestPage() {
                   <div className="space-y-2">
                     <h5 className="text-sm font-medium">Suporte a Teclado</h5>
                     <p className="text-xs text-muted-foreground">
-                      Navegação completa via teclado com indicadores de foco visíveis.
+                      Navegação completa via teclado com indicadores de foco
+                      visíveis.
                     </p>
                   </div>
                   <div className="space-y-2">
@@ -421,7 +485,7 @@ export default function ThemeTestPage() {
       </Card>
 
       {/* Footer */}
-      <Card>
+      <Card className="card-enhanced">
         <CardContent className="pt-6">
           <div className="text-center space-y-2">
             <p className="text-sm text-muted-foreground">
@@ -430,6 +494,9 @@ export default function ThemeTestPage() {
             <p className="text-xs text-muted-foreground">
               Desenvolvido com React, TypeScript, Tailwind CSS e Radix UI
             </p>
+            <Badge variant="outline" className="mt-2">
+              Versão 3.1.0 - Totalmente Responsivo
+            </Badge>
           </div>
         </CardContent>
       </Card>
