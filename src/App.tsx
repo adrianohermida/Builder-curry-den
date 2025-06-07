@@ -47,6 +47,8 @@ const App = () => (
                   <Route path="ged-legacy" element={<GEDJuridico />} />
                   <Route path="tickets" element={<Tickets />} />
                   <Route path="agenda" element={<Calendar />} />
+                  <Route path="tarefas" element={<Tarefas />} />
+                  <Route path="publicacoes" element={<PublicacoesExample />} />
                   <Route path="ai" element={<AI />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="configuracoes">
