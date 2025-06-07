@@ -1,5 +1,4 @@
-import { useState, useMemo } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   FolderOpen,
@@ -8,36 +7,35 @@ import {
   Search,
   Filter,
   Upload,
-  Star,
-  Trash2,
-  Users,
-  Gavel,
-  FileText,
   Plus,
-  BarChart3,
-  Settings,
-  Eye,
-  EyeOff,
-  Calendar,
-  Download,
-  MessageSquare,
-  Tag,
-  SortAsc,
-  SortDesc,
   RefreshCw,
+  Settings,
+  Star,
+  Eye,
+  Users,
+  Brain,
+  Menu,
+  X,
+  BarChart3,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  Archive,
+  FileText,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Dialog,
   DialogContent,
@@ -48,128 +46,186 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import {
-  useGEDDocuments,
-  DocumentFilter,
-  GEDDocument,
-} from "@/hooks/useGEDDocuments";
-import { GEDDocumentCard } from "@/components/GED/GEDDocumentCard";
-import { GEDDocumentList } from "@/components/GED/GEDDocumentList";
-import { GEDUploadDialog } from "@/components/GED/GEDUploadDialog";
-import { GEDSidebar } from "@/components/GED/GEDSidebar";
 
-type ViewMode = "grid" | "list";
-type SortBy = "name" | "date" | "size" | "type" | "downloads";
-type SortOrder = "asc" | "desc";
+// GED Components
+import { TreeView, TreeNode } from "@/components/GED/TreeView";
+import { DynamicBreadcrumb } from "@/components/GED/DynamicBreadcrumb";
+import { FileViewer } from "@/components/GED/FileViewer";
+import { DropzoneUpload } from "@/components/GED/DropzoneUpload";
+import { BulkActions, SelectedFile } from "@/components/GED/BulkActions";
+import { FileContextMenu, FileItem } from "@/components/GED/FileContextMenu";
+
+// Hook
+import { useGEDAdvanced } from "@/hooks/useGEDAdvanced";
+import { cn } from "@/lib/utils";
 
 export default function GEDJuridico() {
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  // Estados principais
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [sortBy, setSortBy] = useState<SortBy>("date");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [newFolderType, setNewFolderType] =
+    useState<TreeNode["type"]>("folder");
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Filtros
-  const [filters, setFilters] = useState<DocumentFilter>({
-    search: searchParams.get("search") || "",
-    isDeleted: false,
+  const {
+    // Tree Structure
+    treeData,
+    currentPath,
+    currentNode,
+
+    // Files
+    currentFiles,
+    selectedFiles,
+    viewMode,
+
+    // Navigation
+    breadcrumbs,
+    navigationHistory,
+    canGoBack,
+    canGoForward,
+
+    // Statistics
+    stats,
+
+    // Upload
+    uploadProgress,
+    isUploading,
+
+    // Loading States
+    loading,
+    error,
+
+    // Actions
+    navigateToPath,
+    goBack,
+    goForward,
+    setViewMode,
+
+    // File Operations
+    selectFile,
+    selectAllFiles,
+    clearSelection,
+    previewFile,
+    downloadFile,
+    editFile,
+    deleteFile,
+    deleteMultiple,
+    toggleFavorite,
+    shareFile,
+    sendToAI,
+    associateFile,
+
+    // Folder Operations
+    createFolder,
+    renameNode,
+    deleteNode,
+    duplicateNode,
+    moveNode,
+    moveFiles,
+
+    // Upload Operations
+    uploadFiles,
+
+    // Bulk Operations
+    toggleFileVisibility,
+
+    // Refresh
+    refreshData,
+  } = useGEDAdvanced();
+
+  // Responsive handling
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setSidebarOpen(false);
+      }
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Filter files based on search
+  const filteredFiles = currentFiles.filter((file) => {
+    if (!searchTerm) return true;
+    return (
+      file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      file.tags.some((tag) =>
+        tag.toLowerCase().includes(searchTerm.toLowerCase()),
+      ) ||
+      file.uploadedBy.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   });
 
-  // Hook do GED
-  const {
-    documents,
-    stats,
-    loading,
-    filterDocuments,
-    uploadDocument,
-    toggleFavorite,
-    moveToTrash,
-    restoreFromTrash,
-    deletePermanently,
-    refreshDocuments,
-  } = useGEDDocuments();
+  // Get selected file objects for bulk actions
+  const selectedFileObjects: SelectedFile[] = selectedFiles
+    .map((id) => {
+      const file = currentFiles.find((f) => f.id === id);
+      return file
+        ? {
+            id: file.id,
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            clientVisible: file.clientVisible,
+            folderId: currentPath[currentPath.length - 1] || "root",
+          }
+        : null;
+    })
+    .filter(Boolean) as SelectedFile[];
 
-  // Documentos filtrados e ordenados
-  const filteredAndSortedDocuments = useMemo(() => {
-    const filtered = filterDocuments(documents, filters);
+  // Available folders for moving files
+  const availableFolders = useMemo(() => {
+    const extractFolders = (
+      nodes: TreeNode[],
+      path: string[] = [],
+    ): Array<{ id: string; name: string; path: string }> => {
+      const folders: Array<{ id: string; name: string; path: string }> = [];
 
-    return filtered.sort((a, b) => {
-      let aValue: any, bValue: any;
+      for (const node of nodes) {
+        const currentPath = [...path, node.name];
+        folders.push({
+          id: node.id,
+          name: node.name,
+          path: currentPath.join(" > "),
+        });
 
-      switch (sortBy) {
-        case "name":
-          aValue = a.friendlyName || a.name;
-          bValue = b.friendlyName || b.name;
-          break;
-        case "date":
-          aValue = new Date(a.createdAt).getTime();
-          bValue = new Date(b.createdAt).getTime();
-          break;
-        case "size":
-          aValue = a.size;
-          bValue = b.size;
-          break;
-        case "type":
-          aValue = a.extension;
-          bValue = b.extension;
-          break;
-        case "downloads":
-          aValue = a.downloadCount;
-          bValue = b.downloadCount;
-          break;
-        default:
-          return 0;
+        if (node.children) {
+          folders.push(...extractFolders(node.children, currentPath));
+        }
       }
 
-      if (typeof aValue === "string") {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
+      return folders;
+    };
 
-      if (sortOrder === "asc") {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
-      }
-    });
-  }, [documents, filters, sortBy, sortOrder, filterDocuments]);
+    return extractFolders(treeData);
+  }, [treeData]);
 
-  // Atualizar URL com filtros
-  const updateFilters = (newFilters: Partial<DocumentFilter>) => {
-    const updatedFilters = { ...filters, ...newFilters };
-    setFilters(updatedFilters);
-
-    // Atualizar URL
-    const params = new URLSearchParams();
-    if (updatedFilters.search) params.set("search", updatedFilters.search);
-    if (updatedFilters.clientId) params.set("client", updatedFilters.clientId);
-    if (updatedFilters.processNumber)
-      params.set("process", updatedFilters.processNumber);
-
-    setSearchParams(params);
+  const handleCreateFolder = () => {
+    if (newFolderName.trim()) {
+      const parentId = currentPath[currentPath.length - 1] || "root";
+      createFolder(parentId, newFolderName.trim(), newFolderType);
+      setNewFolderName("");
+      setShowCreateFolderDialog(false);
+      toast.success("Pasta criada com sucesso!");
+    }
   };
 
-  const handleUpload = async (
-    files: File[],
-    metadata: Partial<GEDDocument>,
-  ) => {
-    try {
-      for (const file of files) {
-        await uploadDocument(file, metadata);
-      }
-      setShowUploadDialog(false);
-      refreshDocuments();
-    } catch (error) {
-      console.error("Erro no upload:", error);
-    }
+  const handleUploadComplete = (files: any[]) => {
+    setShowUploadDialog(false);
+    refreshData();
+    toast.success(`${files.length} arquivo(s) enviado(s) com sucesso!`);
+  };
+
+  const handleFileDrop = (files: File[]) => {
+    const currentFolderId = currentPath[currentPath.length - 1] || "root";
+    uploadFiles(files, currentFolderId);
   };
 
   const formatFileSize = (bytes: number) => {
@@ -180,69 +236,205 @@ export default function GEDJuridico() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  const getActiveSection = () => {
-    const path = window.location.pathname;
-    if (path.includes("/favoritos")) return "favoritos";
-    if (path.includes("/lixeira")) return "lixeira";
-    if (path.includes("/cliente/")) return "cliente";
-    if (path.includes("/processo/")) return "processo";
-    return "todos";
-  };
-
-  const activeSection = getActiveSection();
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-screen">
         <div className="text-center">
-          <FolderOpen className="h-12 w-12 mx-auto mb-4 animate-pulse text-[rgb(var(--theme-primary))]" />
-          <p className="text-muted-foreground">Carregando documentos...</p>
+          <FolderOpen className="h-12 w-12 mx-auto mb-4 animate-pulse text-primary" />
+          <p className="text-muted-foreground">Carregando GED Jurídico...</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="flex h-full">
-      {/* Sidebar */}
-      <GEDSidebar
-        stats={stats}
-        activeSection={activeSection}
-        onSectionChange={(section) => {
-          switch (section) {
-            case "todos":
-              navigate("/ged");
-              updateFilters({ isDeleted: false, isFavorite: undefined });
-              break;
-            case "favoritos":
-              navigate("/ged/favoritos");
-              updateFilters({ isDeleted: false, isFavorite: true });
-              break;
-            case "lixeira":
-              navigate("/ged/lixeira");
-              updateFilters({ isDeleted: true, isFavorite: undefined });
-              break;
-          }
-        }}
-      />
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Card className="max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-destructive" />
+            <h3 className="text-lg font-semibold mb-2">Erro no GED</h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={refreshData}>Tentar Novamente</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-      {/* Conteúdo Principal */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="border-b bg-background p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold flex items-center space-x-2">
-                <FolderOpen className="h-8 w-8 text-[rgb(var(--theme-primary))]" />
-                <span>GED Jurídico</span>
-              </h1>
-              <p className="text-muted-foreground">
-                Gestão Eletrônica de Documentos do escritório
-              </p>
+  return (
+    <div className="h-screen flex overflow-hidden bg-background">
+      {/* Sidebar - Desktop */}
+      {!isMobile && (
+        <motion.div
+          initial={false}
+          animate={{ width: sidebarOpen ? 320 : 0 }}
+          transition={{ duration: 0.2 }}
+          className="border-r bg-card overflow-hidden"
+        >
+          <div className="h-full flex flex-col">
+            {/* Sidebar Header */}
+            <div className="p-4 border-b">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold flex items-center gap-2">
+                  <FolderOpen className="h-5 w-5" />
+                  Navegação
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-muted/50 p-2 rounded text-center">
+                  <div className="font-semibold">{stats.totalFiles}</div>
+                  <div className="text-muted-foreground">Arquivos</div>
+                </div>
+                <div className="bg-muted/50 p-2 rounded text-center">
+                  <div className="font-semibold">
+                    {formatFileSize(stats.totalSize)}
+                  </div>
+                  <div className="text-muted-foreground">Total</div>
+                </div>
+              </div>
             </div>
 
-            <div className="flex space-x-2">
-              <Button variant="outline" onClick={refreshDocuments}>
+            {/* Tree Navigation */}
+            <div className="flex-1 overflow-y-auto">
+              <TreeView
+                data={treeData}
+                selectedPath={currentPath}
+                onSelectPath={navigateToPath}
+                onCreateFolder={createFolder}
+                onRenameNode={renameNode}
+                onDeleteNode={deleteNode}
+                onDuplicateNode={duplicateNode}
+                onMoveNode={moveNode}
+              />
+            </div>
+
+            {/* Sidebar Footer */}
+            <div className="p-4 border-t space-y-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start"
+                onClick={() => setShowCreateFolderDialog(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Pasta
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start"
+                onClick={() => setShowUploadDialog(true)}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Upload
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Sidebar - Mobile */}
+      {isMobile && (
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="fixed top-4 left-4 z-50 md:hidden"
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-80 p-0">
+            <SheetHeader className="p-4 border-b">
+              <SheetTitle className="flex items-center gap-2">
+                <FolderOpen className="h-5 w-5" />
+                Navegação GED
+              </SheetTitle>
+              <SheetDescription>
+                Navegue pelas pastas e gerencie seus documentos
+              </SheetDescription>
+            </SheetHeader>
+
+            <div className="h-full flex flex-col">
+              <div className="flex-1 overflow-y-auto p-4">
+                <TreeView
+                  data={treeData}
+                  selectedPath={currentPath}
+                  onSelectPath={navigateToPath}
+                  onCreateFolder={createFolder}
+                  onRenameNode={renameNode}
+                  onDeleteNode={deleteNode}
+                  onDuplicateNode={duplicateNode}
+                  onMoveNode={moveNode}
+                />
+              </div>
+
+              <div className="p-4 border-t space-y-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => setShowCreateFolderDialog(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Pasta
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => setShowUploadDialog(true)}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="border-b bg-background p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              {!sidebarOpen && !isMobile && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              )}
+
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                <FolderOpen className="h-6 w-6 text-primary" />
+                GED Jurídico
+              </h1>
+
+              {isUploading && (
+                <Badge variant="secondary" className="animate-pulse">
+                  Enviando...
+                </Badge>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={refreshData}>
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Atualizar
               </Button>
@@ -252,157 +444,73 @@ export default function GEDJuridico() {
                 onOpenChange={setShowUploadDialog}
               >
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button size="sm">
                     <Upload className="h-4 w-4 mr-2" />
-                    Novo Upload
+                    Upload
                   </Button>
                 </DialogTrigger>
-                <GEDUploadDialog onUpload={handleUpload} />
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Enviar Documentos</DialogTitle>
+                    <DialogDescription>
+                      Faça upload de arquivos para a pasta atual:{" "}
+                      {currentNode?.name || "Raiz"}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DropzoneUpload
+                    currentFolderId={
+                      currentPath[currentPath.length - 1] || "root"
+                    }
+                    onUploadComplete={handleUploadComplete}
+                    className="min-h-[300px]"
+                  />
+                </DialogContent>
               </Dialog>
             </div>
           </div>
 
-          {/* Estatísticas Rápidas */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <FileText className="h-5 w-5 text-blue-500" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total</p>
-                    <p className="text-lg font-semibold">{stats?.total || 0}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Breadcrumbs */}
+          <DynamicBreadcrumb
+            segments={breadcrumbs}
+            canGoBack={canGoBack}
+            canGoForward={canGoForward}
+            onNavigate={navigateToPath}
+            onGoBack={goBack}
+            onGoForward={goForward}
+            fileCount={filteredFiles.length}
+          />
+        </div>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Eye className="h-5 w-5 text-green-500" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Visível Cliente
-                    </p>
-                    <p className="text-lg font-semibold">
-                      {stats?.clientVisible || 0}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Star className="h-5 w-5 text-yellow-500" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Favoritos</p>
-                    <p className="text-lg font-semibold">
-                      {stats?.favorites || 0}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <BarChart3 className="h-5 w-5 text-purple-500" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Tamanho Total
-                    </p>
-                    <p className="text-lg font-semibold">
-                      {formatFileSize(stats?.totalSize || 0)}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Barra de Ferramentas */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            {/* Busca */}
-            <div className="flex-1">
+        {/* Toolbar */}
+        <div className="border-b bg-muted/30 p-4">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            {/* Search */}
+            <div className="flex-1 max-w-md">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar documentos, clientes, processos..."
-                  value={filters.search || ""}
-                  onChange={(e) => updateFilters({ search: e.target.value })}
+                  placeholder="Buscar arquivos, tags, usuários..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
 
-            {/* Filtros */}
-            <div className="flex space-x-2">
-              <Select
-                value={filters.source || "all"}
-                onValueChange={(value) =>
-                  updateFilters({ source: value === "all" ? undefined : value })
-                }
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCreateFolderDialog(true)}
               >
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Origem" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="UPLOAD_DIRETO">Upload Direto</SelectItem>
-                  <SelectItem value="CRM">CRM</SelectItem>
-                  <SelectItem value="ATENDIMENTO">Atendimento</SelectItem>
-                  <SelectItem value="IA">IA Jurídica</SelectItem>
-                  <SelectItem value="PORTAL_CLIENTE">Portal Cliente</SelectItem>
-                </SelectContent>
-              </Select>
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Pasta
+              </Button>
 
-              <Select
-                value={filters.visibility || "all"}
-                onValueChange={(value) =>
-                  updateFilters({
-                    visibility: value === "all" ? undefined : value,
-                  })
-                }
-              >
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Visibilidade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="INTERNO">Interno</SelectItem>
-                  <SelectItem value="VISIVEL_CLIENTE">
-                    Visível Cliente
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <Separator orientation="vertical" className="h-8" />
 
-              <Select
-                value={filters.fileType || "all"}
-                onValueChange={(value) =>
-                  updateFilters({
-                    fileType: value === "all" ? undefined : value,
-                  })
-                }
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="PDF">PDF</SelectItem>
-                  <SelectItem value="DOCX">DOCX</SelectItem>
-                  <SelectItem value="XLSX">XLSX</SelectItem>
-                  <SelectItem value="JPG">JPG</SelectItem>
-                  <SelectItem value="PNG">PNG</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Visualização e Ordenação */}
-            <div className="flex items-center space-x-2">
+              {/* View Mode Toggle */}
               <div className="flex border rounded-md">
                 <Button
                   variant={viewMode === "grid" ? "default" : "ghost"}
@@ -421,115 +529,140 @@ export default function GEDJuridico() {
                   <List className="h-4 w-4" />
                 </Button>
               </div>
-
-              <Select
-                value={`${sortBy}-${sortOrder}`}
-                onValueChange={(value) => {
-                  const [sort, order] = value.split("-");
-                  setSortBy(sort as SortBy);
-                  setSortOrder(order as SortOrder);
-                }}
-              >
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="date-desc">Mais Recente</SelectItem>
-                  <SelectItem value="date-asc">Mais Antigo</SelectItem>
-                  <SelectItem value="name-asc">Nome A-Z</SelectItem>
-                  <SelectItem value="name-desc">Nome Z-A</SelectItem>
-                  <SelectItem value="size-desc">Maior</SelectItem>
-                  <SelectItem value="size-asc">Menor</SelectItem>
-                  <SelectItem value="downloads-desc">Mais Baixados</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
         </div>
 
-        {/* Lista de Documentos */}
-        <div className="flex-1 overflow-auto p-6">
-          {filteredAndSortedDocuments.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <FolderOpen className="h-16 w-16 text-muted-foreground mb-4" />
-                <h3 className="text-xl font-semibold mb-2">
-                  {filters.search
-                    ? "Nenhum documento encontrado"
-                    : activeSection === "lixeira"
-                      ? "Lixeira vazia"
-                      : activeSection === "favoritos"
-                        ? "Nenhum favorito"
-                        : "Nenhum documento"}
-                </h3>
-                <p className="text-muted-foreground text-center mb-6 max-w-md">
-                  {filters.search
-                    ? "Tente ajustar os filtros ou buscar por outros termos"
-                    : activeSection === "lixeira"
-                      ? "Documentos excluídos aparecerão aqui"
-                      : "Faça upload de documentos para começar a organizar seus arquivos"}
-                </p>
-                {!filters.search && activeSection === "todos" && (
-                  <Button onClick={() => setShowUploadDialog(true)}>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Fazer Upload
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-muted-foreground">
-                  {filteredAndSortedDocuments.length} documento(s) encontrado(s)
-                </p>
+        {/* Bulk Actions */}
+        {selectedFiles.length > 0 && (
+          <div className="p-4">
+            <BulkActions
+              selectedFiles={selectedFileObjects}
+              onClearSelection={clearSelection}
+              onDeleteFiles={deleteMultiple}
+              onToggleVisibility={toggleFileVisibility}
+              onMoveFiles={moveFiles}
+              onSendToAI={(fileIds, action) => sendToAI(fileIds, action)}
+              availableFolders={availableFolders}
+            />
+          </div>
+        )}
 
-                {filters.search && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => updateFilters({ search: "" })}
-                  >
-                    Limpar busca
-                  </Button>
-                )}
-              </div>
-
-              {viewMode === "grid" ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {filteredAndSortedDocuments.map((document, index) => (
-                    <motion.div
-                      key={document.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <GEDDocumentCard
-                        document={document}
-                        onToggleFavorite={() => toggleFavorite(document.id)}
-                        onMoveToTrash={() => moveToTrash(document.id)}
-                        onRestore={() => restoreFromTrash(document.id)}
-                        onDeletePermanently={() =>
-                          deletePermanently(document.id)
-                        }
-                        isInTrash={document.isDeleted}
-                      />
-                    </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <GEDDocumentList
-                  documents={filteredAndSortedDocuments}
-                  onToggleFavorite={toggleFavorite}
-                  onMoveToTrash={moveToTrash}
-                  onRestore={restoreFromTrash}
-                  onDeletePermanently={deletePermanently}
-                />
-              )}
-            </>
+        {/* File Area */}
+        <div className="flex-1 overflow-hidden">
+          {uploadProgress.length > 0 && (
+            <div className="p-4 border-b">
+              <DropzoneUpload
+                currentFolderId={currentPath[currentPath.length - 1] || "root"}
+                onUploadComplete={handleUploadComplete}
+                className="min-h-[150px]"
+              />
+            </div>
           )}
+
+          <div className="h-full overflow-y-auto p-4">
+            <FileViewer
+              files={filteredFiles}
+              viewMode={viewMode}
+              selectedFiles={selectedFiles}
+              onSelectFile={selectFile}
+              onSelectAll={selectAllFiles}
+              onPreview={previewFile}
+              onDownload={downloadFile}
+              onEdit={editFile}
+              onDelete={deleteFile}
+              onToggleFavorite={toggleFavorite}
+              onShare={shareFile}
+              onSendToAI={(file, action) => sendToAI(file, action)}
+              onAssociate={associateFile}
+            />
+          </div>
+        </div>
+
+        {/* Footer Stats */}
+        <div className="border-t bg-muted/30 p-2">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center gap-4">
+              <span>
+                {filteredFiles.length} arquivo
+                {filteredFiles.length !== 1 ? "s" : ""}
+              </span>
+              <span>{formatFileSize(stats.totalSize)} total</span>
+              {selectedFiles.length > 0 && (
+                <span>
+                  {selectedFiles.length} selecionado
+                  {selectedFiles.length !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1">
+                <Star className="h-3 w-3" />
+                {stats.favoriteFiles} favoritos
+              </span>
+              <span className="flex items-center gap-1">
+                <Eye className="h-3 w-3" />
+                {stats.clientVisibleFiles} visíveis ao cliente
+              </span>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Create Folder Dialog */}
+      <Dialog
+        open={showCreateFolderDialog}
+        onOpenChange={setShowCreateFolderDialog}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Pasta</DialogTitle>
+            <DialogDescription>
+              Criar nova pasta em: {currentNode?.name || "Raiz"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="folder-name">Nome da Pasta</Label>
+              <Input
+                id="folder-name"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                placeholder="Ex: Contratos, Procurações, Intimações..."
+              />
+            </div>
+            <div>
+              <Label htmlFor="folder-type">Tipo</Label>
+              <select
+                id="folder-type"
+                value={newFolderType}
+                onChange={(e) =>
+                  setNewFolderType(e.target.value as TreeNode["type"])
+                }
+                className="w-full p-2 border rounded-md"
+              >
+                <option value="folder">📁 Pasta Comum</option>
+                <option value="client">👤 Pasta de Cliente</option>
+                <option value="process">⚖️ Pasta de Processo</option>
+              </select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCreateFolderDialog(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleCreateFolder}
+              disabled={!newFolderName.trim()}
+            >
+              Criar Pasta
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
