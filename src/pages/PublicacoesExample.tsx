@@ -43,8 +43,8 @@ export default function PublicacoesExample() {
     useState<PublicacaoData | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterUrgency, setFilterUrgency] = useState("");
-  const [filterTribunal, setFilterTribunal] = useState("");
+  const [filterUrgency, setFilterUrgency] = useState("all");
+  const [filterTribunal, setFilterTribunal] = useState("all");
   const [publicacoes, setPublicacoes] = useState<PublicacaoData[]>([
     {
       id: "pub_001",
