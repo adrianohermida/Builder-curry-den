@@ -49,6 +49,18 @@ const menuItems = [
     icon: Calendar,
   },
   {
+    title: "Tarefas",
+    href: "/tarefas",
+    icon: CheckSquare,
+    description: "Gestão de Tarefas Integrada",
+  },
+  {
+    title: "Publicações",
+    href: "/publicacoes",
+    icon: FileText,
+    description: "Diários Oficiais e Intimações",
+  },
+  {
     title: "IA Jurídica",
     href: "/ai",
     icon: Brain,
