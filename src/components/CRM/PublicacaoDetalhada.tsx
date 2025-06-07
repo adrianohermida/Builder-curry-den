@@ -928,7 +928,7 @@ export function PublicacaoDetalhada({
                             Dias Corridos
                           </Label>
                           <p className="font-semibold">
-                            {resultadoPrazo.diasCorridos} dias
+                            {resultadoPrazo?.diasCorridos || 0} dias
                           </p>
                         </div>
                         <div>
