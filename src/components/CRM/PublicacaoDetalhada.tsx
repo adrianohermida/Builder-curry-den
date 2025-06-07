@@ -142,12 +142,26 @@ export function PublicacaoDetalhada({
   onClose,
   onUpdate,
 }: PublicacaoDetalhadaProps) {
+  // Safety check and default values for publicacao data
+  const safePublicacao = {
+    ...publicacao,
+    partes: publicacao.partes || [],
+    tags: publicacao.tags || [],
+    numeroProcesso: publicacao.numeroProcesso || publicacao.numero || "",
+    dataPublicacao: publicacao.dataPublicacao || publicacao.data || "",
+    assunto: publicacao.assunto || "",
+    observacoes: publicacao.observacoes || "",
+    visivelCliente: publicacao.visivelCliente || false,
+    processoVinculado: publicacao.processoVinculado || "",
+    clienteId: publicacao.clienteId || "",
+  };
+
   const [activeTab, setActiveTab] = useState("conteudo");
   const [visivelCliente, setVisivelCliente] = useState(
-    publicacao.visivelCliente || false,
+    safePublicacao.visivelCliente,
   );
-  const [observacoes, setObservacoes] = useState(publicacao.observacoes || "");
-  const [tags, setTags] = useState(publicacao.tags || []);
+  const [observacoes, setObservacoes] = useState(safePublicacao.observacoes);
+  const [tags, setTags] = useState(safePublicacao.tags);
   const [newTag, setNewTag] = useState("");
   const [showIAChat, setShowIAChat] = useState(false);
   const [analisandoIA, setAnalisandoIA] = useState(false);
@@ -155,10 +169,10 @@ export function PublicacaoDetalhada({
   const [calculandoPrazo, setCalculandoPrazo] = useState(false);
   const [resultadoPrazo, setResultadoPrazo] = useState<any>(null);
   const [processoVinculado, setProcessoVinculado] = useState(
-    publicacao.processoVinculado || "",
+    safePublicacao.processoVinculado,
   );
   const [clienteVinculado, setClienteVinculado] = useState(
-    publicacao.clienteId || "",
+    safePublicacao.clienteId,
   );
 
   const { configuracao } = useRegrasProcessuais();
