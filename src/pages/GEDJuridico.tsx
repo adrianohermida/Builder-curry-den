@@ -447,9 +447,13 @@ export default function GEDJuridico() {
                   <div className="flex-1 overflow-auto">
                     <TreeView
                       data={treeData}
-                      onNavigate={navigateToPath}
-                      currentPath={currentPath}
+                      selectedPath={currentPath}
+                      onSelectPath={navigateToPath}
                       onCreateFolder={handleCreateFolder}
+                      onRenameNode={() => {}}
+                      onDeleteNode={() => {}}
+                      onDuplicateNode={() => {}}
+                      onMoveNode={() => {}}
                     />
                   </div>
                 </div>
@@ -523,12 +527,16 @@ export default function GEDJuridico() {
           <div className="h-full overflow-auto p-4">
             <TreeView
               data={treeData}
-              onNavigate={(path) => {
+              selectedPath={currentPath}
+              onSelectPath={(path) => {
                 navigateToPath(path);
                 setSidebarOpen(false);
               }}
-              currentPath={currentPath}
               onCreateFolder={handleCreateFolder}
+              onRenameNode={() => {}}
+              onDeleteNode={() => {}}
+              onDuplicateNode={() => {}}
+              onMoveNode={() => {}}
             />
           </div>
         </SheetContent>
