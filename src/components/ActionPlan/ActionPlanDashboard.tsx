@@ -63,6 +63,7 @@ interface DashboardProps {
   onNavigateToModule?: (module: ModuleName) => void;
   onNavigateToLogs?: () => void;
   onNavigateToAnalysis?: () => void;
+  onNavigateToBacklog?: () => void;
 }
 
 export default function ActionPlanDashboard({
