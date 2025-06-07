@@ -199,7 +199,8 @@ export default function CRMEnhanced() {
     "status" | "area" | "assignee"
   >("status");
 
-  const { isDark, getThemeClass } = useTheme();
+  const { isDark, colors } = useTheme();
+  const { getThemeClass } = useThemeClasses();
   const { criarTarefaDeCRM, isModalOpen, modalParams, setModalOpen } =
     useTarefaIntegration();
 
