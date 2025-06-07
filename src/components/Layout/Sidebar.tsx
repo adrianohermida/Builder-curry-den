@@ -25,7 +25,6 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { useTheme } from "@/providers/ThemeProvider";
 
 interface SidebarProps {
   open: boolean;
