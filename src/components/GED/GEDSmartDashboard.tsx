@@ -6,7 +6,7 @@ import {
   HardDrive,
   Users,
   TrendingUp,
-  Pie,
+  PieChart,
   Archive,
   Clock,
   AlertTriangle,
@@ -401,7 +401,7 @@ export function GEDSmartDashboard({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Pie className="h-5 w-5" />
+              <PieChart className="h-5 w-5" />
               <span>Documentos por Tipo</span>
             </CardTitle>
           </CardHeader>
