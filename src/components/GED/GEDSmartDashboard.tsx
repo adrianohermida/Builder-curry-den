@@ -238,14 +238,14 @@ export function GEDSmartDashboard({
   };
 
   const chartColors = [
-    "rgb(99, 102, 241)",
-    "rgb(236, 72, 153)",
-    "rgb(34, 197, 94)",
-    "rgb(251, 191, 36)",
-    "rgb(239, 68, 68)",
-    "rgb(168, 85, 247)",
-    "rgb(14, 165, 233)",
-    "rgb(245, 101, 101)",
+    "hsl(var(--primary))",
+    "hsl(var(--primary))",
+    "hsl(var(--success))",
+    "hsl(var(--warning))",
+    "hsl(var(--destructive))",
+    "hsl(var(--primary))",
+    "hsl(var(--primary))",
+    "hsl(var(--destructive))",
   ];
 
   const summaryCards = useMemo(() => {
