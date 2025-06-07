@@ -375,14 +375,14 @@ function TreeItem({
 
 export function TreeView({
   data,
-  selectedPath,
+  selectedPath = [],
   onSelectPath,
   onCreateFolder,
   onRenameNode,
   onDeleteNode,
   onDuplicateNode,
   onMoveNode,
-  className = "",
+  className,
 }: TreeViewProps) {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(
     new Set(["root"]),
