@@ -63,6 +63,18 @@ const menuItems = [
     description: "Diários Oficiais e Intimações",
   },
   {
+    title: "Contratos",
+    href: "/contratos",
+    icon: FileSignature,
+    description: "Gestão Contratual e Assinaturas",
+  },
+  {
+    title: "Financeiro",
+    href: "/financeiro",
+    icon: DollarSign,
+    description: "Faturas, Cobranças e Fluxo de Caixa",
+  },
+  {
     title: "IA Jurídica",
     href: "/ai",
     icon: Brain,
