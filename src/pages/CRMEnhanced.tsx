@@ -599,7 +599,7 @@ export default function CRMEnhanced() {
         {activeTab === "clientes" ? (
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="border-b bg-muted/50">
                 <TableHead className="w-12">
                   <input
                     type="checkbox"
@@ -614,19 +614,24 @@ export default function CRMEnhanced() {
                   />
                 </TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Contato</TableHead>
+                <TableHead className="hidden md:table-cell">Contato</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Área</TableHead>
-                <TableHead>Responsável</TableHead>
-                <TableHead>Casos</TableHead>
+                <TableHead className="hidden lg:table-cell">Área</TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Responsável
+                </TableHead>
+                <TableHead className="hidden md:table-cell">Casos</TableHead>
                 <TableHead>Receita</TableHead>
-                <TableHead>Score</TableHead>
+                <TableHead className="hidden xl:table-cell">Score</TableHead>
                 <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredClients.map((client) => (
-                <TableRow key={client.id} className="hover:bg-accent/50">
+                <TableRow
+                  key={client.id}
+                  className="hover:bg-muted/50 border-b"
+                >
                   <TableCell>
                     <input
                       type="checkbox"
