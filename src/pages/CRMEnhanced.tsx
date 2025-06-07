@@ -685,40 +685,44 @@ export default function CRMEnhanced() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <Badge className={statusColors[client.status]}>
-                      {client.status}
-                    </Badge>
+                  <TableCell className="hidden md:table-cell">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{client.cases}</span>
+                      {client.tasks > 0 && (
+                        <div className="flex items-center gap-1">
+                          <Progress
+                            value={(client.completedTasks / client.tasks) * 100}
+                            className="w-12 h-2"
+                          />
+                          <span className="text-xs text-muted-foreground">
+                            {client.completedTasks}/{client.tasks}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    <Badge
-                      variant="outline"
-                      className={areaColors[client.area]}
-                    >
-                      {client.area}
-                    </Badge>
+                  <TableCell className="font-medium">
+                    <div className="text-sm md:text-base">
+                      {client.revenue.toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      })}
+                    </div>
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={client.assignee.avatar} />
-                              <AvatarFallback className="text-xs">
-                                {client.assignee.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm">
-                              {client.assignee.name.split(" ")[0]}
-                            </span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{client.assignee.name}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                  <TableCell className="hidden xl:table-cell">
+                    <div className="flex items-center gap-2">
+                      <div className="w-12 h-2 bg-secondary rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
+                          style={{ width: `${client.score}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium">
+                        {client.score}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
