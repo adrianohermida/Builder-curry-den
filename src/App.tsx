@@ -92,6 +92,14 @@ const App = () => (
                       path="crm"
                       element={
                         <PageWrapper>
+                          <CRMEnhanced />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="crm-legacy"
+                      element={
+                        <PageWrapper>
                           <CRM />
                         </PageWrapper>
                       }
