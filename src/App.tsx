@@ -125,6 +125,22 @@ const App = () => (
                         }
                       />
                       <Route
+                        path="contratos"
+                        element={
+                          <PageWrapper>
+                            <Contratos />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="financeiro"
+                        element={
+                          <PageWrapper>
+                            <Financeiro />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
                         path="tickets"
                         element={
                           <PageWrapper>
