@@ -29,7 +29,16 @@ export function Topbar({
   const { user } = usePermissions();
 
   return (
-    <header className="topbar">
+    <header
+      className={cn(
+        "topbar sticky top-0 z-30",
+        "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+        "border-b border-border",
+        "px-4 sm:px-6 lg:px-8",
+        "h-16 flex items-center justify-between",
+        "transition-all duration-200",
+      )}
+    >
       <div className="flex items-center gap-2 sm:gap-4">
         {/* Mobile Navigation */}
         {showMobileNav ? (
@@ -39,7 +48,11 @@ export function Topbar({
             variant="ghost"
             size="sm"
             onClick={onMenuClick}
-            className="lg:hidden touch-target"
+            className={cn(
+              "lg:hidden touch-target",
+              "h-10 w-10 p-0",
+              "hover:bg-accent focus-visible:ring-ring",
+            )}
             aria-label="Alternar menu lateral"
           >
             <Menu className="h-5 w-5" />
@@ -49,10 +62,10 @@ export function Topbar({
         {/* Logo for mobile when sidebar is closed */}
         {showMobileNav && (
           <div className="flex items-center gap-2 lg:hidden">
-            <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
+            <div className="w-6 h-6 rounded bg-primary flex items-center justify-center shadow-sm">
               <Scale className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-bold text-sm">Lawdesk</span>
+            <span className="font-bold text-sm text-foreground">Lawdesk</span>
           </div>
         )}
 
@@ -61,7 +74,11 @@ export function Topbar({
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="hidden sm:flex items-center gap-2"
+              className={cn(
+                "hidden sm:flex items-center gap-2",
+                "text-foreground hover:text-foreground",
+                "hover:bg-accent focus-visible:ring-ring",
+              )}
             >
               <span className="font-medium">Lawdesk CRM</span>
               <ChevronDown className="h-4 w-4" />
@@ -98,14 +115,20 @@ export function Topbar({
         <Button
           variant="ghost"
           size="sm"
-          className="hidden md:flex items-center gap-2 text-muted-foreground"
+          className={cn(
+            "hidden md:flex items-center gap-2",
+            "text-muted-foreground hover:text-foreground",
+            "hover:bg-accent focus-visible:ring-ring",
+            "h-9 px-3",
+          )}
           onClick={() => {
             document.dispatchEvent(new CustomEvent("open-global-search"));
           }}
+          aria-label="Abrir busca global"
         >
           <Search className="h-4 w-4" />
           <span className="hidden lg:inline text-sm">Buscar...</span>
-          <kbd className="hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium text-muted-foreground">
+          <kbd className="hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-xs font-medium text-muted-foreground">
             ⌘K
           </kbd>
         </Button>
@@ -114,7 +137,10 @@ export function Topbar({
         <ThemeToggle
           variant="button"
           showLabel={false}
-          className="touch-target"
+          className={cn(
+            "touch-target h-9 w-9 p-0",
+            "hover:bg-accent focus-visible:ring-ring",
+          )}
         />
 
         {/* Notifications */}
@@ -125,11 +151,21 @@ export function Topbar({
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="flex items-center gap-2 px-2 touch-target"
+              className={cn(
+                "flex items-center gap-2 px-2 touch-target",
+                "hover:bg-accent focus-visible:ring-ring",
+                "h-10",
+              )}
+              aria-label="Menu do usuário"
             >
               <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                 <AvatarImage src="" />
-                <AvatarFallback className="text-xs">
+                <AvatarFallback
+                  className={cn(
+                    "text-xs bg-primary text-primary-foreground",
+                    "font-medium",
+                  )}
+                >
                   {user?.name
                     ?.split(" ")
                     .map((n) => n[0])
@@ -137,21 +173,21 @@ export function Topbar({
                 </AvatarFallback>
               </Avatar>
               <div className="hidden sm:flex flex-col items-start">
-                <span className="text-sm font-medium">
+                <span className="text-sm font-medium text-foreground">
                   {user?.name || "Usuário"}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {user?.email || "user@lawdesk.com"}
                 </span>
               </div>
-              <ChevronDown className="h-4 w-4 hidden sm:inline" />
+              <ChevronDown className="h-4 w-4 hidden sm:inline text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <div className="flex items-center gap-2 p-2">
               <Avatar className="h-8 w-8">
                 <AvatarImage src="" />
-                <AvatarFallback className="text-xs">
+                <AvatarFallback className="text-xs bg-primary text-primary-foreground font-medium">
                   {user?.name
                     ?.split(" ")
                     .map((n) => n[0])
@@ -176,14 +212,18 @@ export function Topbar({
               </div>
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem className="focus:bg-accent">
               <User className="mr-2 h-4 w-4" />
               Meu Perfil
             </DropdownMenuItem>
-            <DropdownMenuItem>Configurações da Conta</DropdownMenuItem>
-            <DropdownMenuItem>Central de Ajuda</DropdownMenuItem>
+            <DropdownMenuItem className="focus:bg-accent">
+              Configurações da Conta
+            </DropdownMenuItem>
+            <DropdownMenuItem className="focus:bg-accent">
+              Central de Ajuda
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive">
+            <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">
               Sair do Sistema
             </DropdownMenuItem>
           </DropdownMenuContent>
