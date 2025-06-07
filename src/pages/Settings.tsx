@@ -37,6 +37,16 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useTheme } from "@/providers/ThemeProvider";
+
+// Define default color presets for backwards compatibility
+const defaultPresets = [
+  "#3b82f6", // Blue
+  "#10b981", // Emerald
+  "#f59e0b", // Amber
+  "#ef4444", // Red
+  "#8b5cf6", // Violet
+  "#06b6d4", // Cyan
+];
 import { cn } from "@/lib/utils";
 
 export default function Settings() {
