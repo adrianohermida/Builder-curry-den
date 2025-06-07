@@ -112,8 +112,8 @@ function TreeItem({
   const [newFolderType, setNewFolderType] =
     useState<TreeNode["type"]>("folder");
 
-  const currentPath = [...parentPath, node.id];
-  const isSelected = selectedPath.join("/") === currentPath.join("/");
+  const currentPath = [...(parentPath || []), node.id];
+  const isSelected = (selectedPath || []).join("/") === currentPath.join("/");
   const hasChildren = node.children && node.children.length > 0;
   const isExpanded = node.isExpanded || false;
 
