@@ -37,6 +37,7 @@ const ConfiguracaoArmazenamento = lazy(
 const ConfiguracoesPrazosPage = lazy(
   () => import("./pages/ConfiguracoesPrazosPage"),
 );
+const PlanoDeAcaoIA = lazy(() => import("./components/System/PlanoDeAcaoIA"));
 
 // Test pages (lazy loaded)
 const ClienteDetalhesTest = lazy(() => import("./pages/ClienteDetalhesTest"));
@@ -190,6 +191,14 @@ const App = () => (
                           element={
                             <PageWrapper>
                               <AIEnhanced />
+                            </PageWrapper>
+                          }
+                        />
+                        <Route
+                          path="plano-acao-ia"
+                          element={
+                            <PageWrapper>
+                              <PlanoDeAcaoIA />
                             </PageWrapper>
                           }
                         />
