@@ -592,17 +592,18 @@ export function PublicacaoDetalhada({
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-2">
-                            {analiseIA.acoesSugeridas.map(
-                              (acao: string, index: number) => (
-                                <li
-                                  key={index}
-                                  className="flex items-start gap-2 text-sm"
-                                >
-                                  <Target className="h-4 w-4 mt-0.5 text-blue-500" />
-                                  {acao}
-                                </li>
-                              ),
-                            )}
+                            {analiseIA.acoesSugeridas &&
+                              analiseIA.acoesSugeridas.map(
+                                (acao: string, index: number) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-start gap-2 text-sm"
+                                  >
+                                    <Target className="h-4 w-4 mt-0.5 text-blue-500" />
+                                    {acao}
+                                  </li>
+                                ),
+                              )}
                           </ul>
                         </CardContent>
                       </Card>
