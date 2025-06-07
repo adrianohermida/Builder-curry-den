@@ -290,15 +290,15 @@ export function PublicacaoDetalhada({
     const elemento = document.createElement("a");
     const conteudo = `
       PUBLICAÇÃO JUDICIAL
-      
+
       Processo: ${publicacao.numeroProcesso}
       Tribunal: ${publicacao.tribunal}
       Data: ${new Date(publicacao.dataPublicacao).toLocaleDateString("pt-BR")}
       Tipo: ${publicacao.tipo}
-      
+
       CONTEÚDO:
       ${publicacao.conteudo}
-      
+
       ${analiseIA ? `ANÁLISE IA:\n${analiseIA.resumo}` : ""}
     `;
 
@@ -496,7 +496,7 @@ export function PublicacaoDetalhada({
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-1">
-                          {publicacao.partes.length > 0 ? (
+                          {publicacao.partes && publicacao.partes.length > 0 ? (
                             publicacao.partes.map((parte, index) => (
                               <div key={index} className="text-sm">
                                 {parte}
