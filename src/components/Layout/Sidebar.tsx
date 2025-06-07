@@ -31,10 +31,10 @@ const menuItems = [
     icon: Users,
   },
   {
-    title: "📁 GED Jurídico",
+    title: "",
     href: "/ged-juridico",
     icon: FolderOpen,
-    description: "Gestão Eletrônica de Documentos",
+    description: "GED Jurídico",
   },
   {
     title: "Atendimento",
