@@ -630,25 +630,26 @@ export function PublicacaoDetalhada({
                               {analiseIA.tipoManifestacao}
                             </span>
                           </div>
-                          {analiseIA.riscosIdentificados.length > 0 && (
-                            <div>
-                              <span className="text-sm text-muted-foreground">
-                                Riscos:
-                              </span>
-                              <div className="mt-1 space-y-1">
-                                {analiseIA.riscosIdentificados.map(
-                                  (risco: string, index: number) => (
-                                    <Alert key={index}>
-                                      <AlertTriangle className="h-4 w-4" />
-                                      <AlertDescription className="text-sm">
-                                        {risco}
-                                      </AlertDescription>
-                                    </Alert>
-                                  ),
-                                )}
+                          {analiseIA.riscosIdentificados &&
+                            analiseIA.riscosIdentificados.length > 0 && (
+                              <div>
+                                <span className="text-sm text-muted-foreground">
+                                  Riscos:
+                                </span>
+                                <div className="mt-1 space-y-1">
+                                  {analiseIA.riscosIdentificados.map(
+                                    (risco: string, index: number) => (
+                                      <Alert key={index}>
+                                        <AlertTriangle className="h-4 w-4" />
+                                        <AlertDescription className="text-sm">
+                                          {risco}
+                                        </AlertDescription>
+                                      </Alert>
+                                    ),
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
                         </CardContent>
                       </Card>
                     </div>
