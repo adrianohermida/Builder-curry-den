@@ -42,6 +42,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientForm } from "@/components/CRM/ClientForm";
 import { ClientProcesses } from "@/components/CRM/ClientProcesses";
 import { ClientPublications } from "@/components/CRM/ClientPublications";
+import { useTarefaIntegration } from "@/hooks/useTarefaIntegration";
+import { TarefaCreateModal } from "@/components/Tarefas/TarefaCreateModal";
 
 type ViewMode = "list" | "form" | "processes" | "publications";
 
