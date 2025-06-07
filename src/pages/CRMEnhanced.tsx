@@ -554,8 +554,8 @@ export default function CRMEnhanced() {
   );
 
   const renderListView = () => (
-    <Card>
-      <CardHeader>
+    <Card className="border-0 shadow-sm">
+      <CardHeader className="border-b bg-card">
         <div className="flex items-center justify-between">
           <CardTitle>
             {activeTab === "clientes" ? "Clientes" : "Processos"}(
@@ -595,7 +595,7 @@ export default function CRMEnhanced() {
           )}
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         {activeTab === "clientes" ? (
           <Table>
             <TableHeader>
