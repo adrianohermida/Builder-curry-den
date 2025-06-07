@@ -46,6 +46,7 @@ const ClienteDetalhesTest = lazy(() => import("./pages/ClienteDetalhesTest"));
 const TesteConfiguracaoStorage = lazy(
   () => import("./pages/TesteConfiguracaoStorage"),
 );
+const ThemeTestPage = lazy(() => import("./pages/ThemeTestPage"));
 
 // Configure React Query with optimized defaults
 const queryClient = new QueryClient({
