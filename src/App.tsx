@@ -77,14 +77,13 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ErrorBoundary>
       <ThemeProvider>
-        <EnhancedThemeProvider>
-          <StorageProvider>
-            <RegrasProcessuaisProvider>
-              <PermissionProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
+        <StorageProvider>
+          <RegrasProcessuaisProvider>
+            <PermissionProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
                     <Routes>
                       <Route
                         path="/"
