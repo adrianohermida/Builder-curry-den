@@ -769,7 +769,7 @@ export function StorageAuditLogs() {
                   <SelectValue placeholder="Todos os níveis" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="LOW">Baixo</SelectItem>
                   <SelectItem value="MEDIUM">Médio</SelectItem>
                   <SelectItem value="HIGH">Alto</SelectItem>
