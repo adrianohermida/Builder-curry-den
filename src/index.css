@@ -1,5 +1,5 @@
 /* Enhanced Theme System for Lawdesk CRM */
-@import "./styles/themes.css";
+@import url("./styles/themes.css");
 
 /* Additional global styles for consistency */
 @layer base {
