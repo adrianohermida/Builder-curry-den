@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import {
   Scale,
   Users,
@@ -5,14 +6,62 @@ import {
   TrendingUp,
   Clock,
   FileText,
+  CheckSquare,
+  AlertTriangle,
+  Activity,
+  BarChart3,
 } from "lucide-react";
 import { DashboardCard } from "@/components/Dashboard/DashboardCard";
 import { SLAMetrics } from "@/components/Dashboard/SLAMetrics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
-export default function Dashboard() {
+// Memoized hearing card component
+const HearingCard = memo(({ hearing }: { hearing: any }) => (
+  <motion.div
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+  >
+    <div className="flex-1">
+      <p className="text-sm font-medium">{hearing.case}</p>
+      <p className="text-xs text-muted-foreground">{hearing.client}</p>
+      <div className="flex items-center gap-2 mt-1">
+        <Badge variant={hearing.status === "confirmed" ? "default" : "secondary"} className="text-xs">
+          {hearing.status === "confirmed" ? "Confirmada" : "Pendente"}
+        </Badge>
+        <span className="text-xs text-muted-foreground">{hearing.type}</span>
+      </div>
+    </div>
+    <div className="text-right text-xs text-muted-foreground">
+      <p>{new Date(hearing.date).toLocaleDateString('pt-BR')}</p>
+      <p>{hearing.time}</p>
+    </div>
+  </motion.div>
+));
+
+// Memoized case area card
+const CaseAreaCard = memo(({ area }: { area: any }) => (
+  <div className="flex items-center justify-between p-3 border rounded-lg">
+    <div>
+      <p className="text-sm font-medium">{area.area}</p>
+      <p className="text-xs text-muted-foreground">{area.count} casos</p>
+    </div>
+    <div className="text-right">
+      <p className="text-sm font-bold">{area.percentage}%</p>
+      <div className="w-12 h-2 bg-secondary rounded-full overflow-hidden mt-1">
+        <div
+          className="h-full bg-primary transition-all duration-500"
+          style={{ width: `${area.percentage}%` }}
+        />
+      </div>
+    </div>
+  </div>
+));
+
+const Dashboard = memo(() => {
   const upcomingHearings = [
     {
       id: 1,
