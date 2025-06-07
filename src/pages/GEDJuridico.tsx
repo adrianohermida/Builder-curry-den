@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FolderOpen,
   Grid3X3,
@@ -23,6 +23,14 @@ import {
   Archive,
   FileText,
   AlertTriangle,
+  Shield,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Calendar,
+  Clock,
+  Zap,
+  Database,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,640 +54,825 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
-// GED Components
-import { TreeView, TreeNode } from "@/components/GED/TreeView";
-import { DynamicBreadcrumb } from "@/components/GED/DynamicBreadcrumb";
-import { FileViewer } from "@/components/GED/FileViewer";
+// Import GED components
+import { TreeView } from "@/components/GED/TreeView";
 import { DropzoneUpload } from "@/components/GED/DropzoneUpload";
-import { BulkActions, SelectedFile } from "@/components/GED/BulkActions";
-import { FileContextMenu, FileItem } from "@/components/GED/FileContextMenu";
+import { BulkActions } from "@/components/GED/BulkActions";
+import { FileViewer } from "@/components/GED/FileViewer";
+import { DynamicBreadcrumb } from "@/components/GED/DynamicBreadcrumb";
+import { FileContextMenu } from "@/components/GED/FileContextMenu";
 import { FilePreview } from "@/components/GED/FilePreview";
+import { GEDPermissions } from "@/components/GED/GEDPermissions";
+import { GEDStats } from "@/components/GED/GEDStats";
+import { GEDSmartDashboard } from "@/components/GED/GEDSmartDashboard";
+import { GEDFolderTemplates } from "@/components/GED/GEDFolderTemplates";
+import { GEDAIIntegration } from "@/components/GED/GEDAIIntegration";
+import { GEDWatchdog } from "@/components/GED/GEDWatchdog";
+import { GEDFloatingButton } from "@/components/GED/GEDFloatingButton";
 
-// Hook
+// Import hooks
 import { useGEDAdvanced } from "@/hooks/useGEDAdvanced";
-import { cn } from "@/lib/utils";
+import { useGEDCRMIntegration } from "@/hooks/useGEDCRMIntegration";
+import { useModuleIntegration } from "@/hooks/useModuleIntegration";
+
+interface ViewMode {
+  id: "grid" | "list";
+  name: string;
+  icon: any;
+}
+
+interface FilterOptions {
+  type: string;
+  visibility: string;
+  dateRange: string;
+  client: string;
+  tags: string[];
+}
 
 export default function GEDJuridico() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
-  const [newFolderType, setNewFolderType] =
-    useState<TreeNode["type"]>("folder");
-  const [isMobile, setIsMobile] = useState(false);
-  const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
+  // Core GED state
   const {
-    // Tree Structure
     treeData,
     currentPath,
     currentNode,
-
-    // Files
     currentFiles,
     selectedFiles,
-    viewMode,
-
-    // Navigation
     breadcrumbs,
     navigationHistory,
-    canGoBack,
-    canGoForward,
-
-    // Statistics
-    stats,
-
-    // Upload
-    uploadProgress,
-    isUploading,
-
-    // Loading States
-    loading,
-    error,
-
-    // Actions
+    viewMode,
+    searchQuery,
+    filterOptions,
     navigateToPath,
-    goBack,
-    goForward,
-    setViewMode,
-
-    // File Operations
-    selectFile,
-    selectAllFiles,
-    clearSelection,
-    previewFile: previewFileFromHook,
-    downloadFile,
-    editFile,
-    deleteFile,
-    deleteMultiple,
-    toggleFavorite,
-    shareFile,
-    sendToAI,
-    associateFile,
-
-    // Folder Operations
     createFolder,
-    renameNode,
-    deleteNode,
-    duplicateNode,
-    moveNode,
-    moveFiles,
-
-    // Upload Operations
     uploadFiles,
-
-    // Bulk Operations
-    toggleFileVisibility,
-
-    // Refresh
+    selectFile,
+    selectMultipleFiles,
+    clearSelection,
+    setViewMode,
+    setSearchQuery,
+    setFilterOptions,
+    deleteFiles,
+    toggleFavorite,
+    toggleClientVisible,
+    moveFiles,
+    downloadZip,
     refreshData,
   } = useGEDAdvanced();
 
-  // Responsive handling
-  useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (mobile) {
-        setSidebarOpen(false);
-      }
-    };
+  // CRM Integration
+  const {
+    clients,
+    processes,
+    contracts,
+    folderTemplates,
+    createEntityFolder,
+    syncCRMEntities,
+    validateFolderStructure,
+    loading: crmLoading,
+    syncing: crmSyncing,
+  } = useGEDCRMIntegration();
 
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+  // Module Integration
+  const { executeAction } = useModuleIntegration();
 
-  // Filter files based on search
-  const filteredFiles = currentFiles.filter((file) => {
-    if (!searchTerm) return true;
-    return (
-      file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      file.tags.some((tag) =>
-        tag.toLowerCase().includes(searchTerm.toLowerCase()),
-      ) ||
-      file.uploadedBy.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  // UI State
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("files");
+  const [previewFile, setPreviewFile] = useState<any>(null);
+  const [contextMenuOpen, setContextMenuOpen] = useState(false);
+  const [contextMenuFile, setContextMenuFile] = useState<any>(null);
+  const [contextMenuPosition, setContextMenuPosition] = useState({
+    x: 0,
+    y: 0,
   });
+  const [uploadProgress, setUploadProgress] = useState<{
+    [key: string]: number;
+  }>({});
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [permissionsOpen, setPermissionsOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [watchdogOpen, setWatchdogOpen] = useState(false);
 
-  // Get selected file objects for bulk actions
-  const selectedFileObjects: SelectedFile[] = selectedFiles
-    .map((id) => {
-      const file = currentFiles.find((f) => f.id === id);
-      return file
-        ? {
-            id: file.id,
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            clientVisible: file.clientVisible,
-            folderId: currentPath[currentPath.length - 1] || "root",
-          }
-        : null;
-    })
-    .filter(Boolean) as SelectedFile[];
+  // Advanced filters and search
+  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
+  const [smartSearchActive, setSmartSearchActive] = useState(false);
 
-  // Available folders for moving files
-  const availableFolders = useMemo(() => {
-    const extractFolders = (
-      nodes: TreeNode[],
-      path: string[] = [],
-    ): Array<{ id: string; name: string; path: string }> => {
-      const folders: Array<{ id: string; name: string; path: string }> = [];
+  const viewModes: ViewMode[] = [
+    { id: "grid", name: "Grade", icon: Grid3X3 },
+    { id: "list", name: "Lista", icon: List },
+  ];
 
-      for (const node of nodes) {
-        const currentPath = [...path, node.name];
-        folders.push({
-          id: node.id,
-          name: node.name,
-          path: currentPath.join(" > "),
-        });
-
-        if (node.children) {
-          folders.push(...extractFolders(node.children, currentPath));
-        }
-      }
-
-      return folders;
-    };
-
-    return extractFolders(treeData);
-  }, [treeData]);
-
-  const handleCreateFolder = () => {
-    if (newFolderName.trim()) {
-      const parentId = currentPath[currentPath.length - 1] || "root";
-      createFolder(parentId, newFolderName.trim(), newFolderType);
-      setNewFolderName("");
-      setShowCreateFolderDialog(false);
-      toast.success("Pasta criada com sucesso!");
+  // Navigation handlers
+  const handleNavigateBack = () => {
+    if (navigationHistory.length > 1) {
+      const previousPath = navigationHistory[navigationHistory.length - 2];
+      navigateToPath(previousPath.path);
     }
   };
 
-  const handleUploadComplete = (files: any[]) => {
-    setShowUploadDialog(false);
-    refreshData();
-    toast.success(`${files.length} arquivo(s) enviado(s) com sucesso!`);
+  const handleNavigateForward = () => {
+    // Implementation would require forward history tracking
+    toast.info("Funcionalidade de navegação para frente em desenvolvimento");
   };
 
-  const handleFileDrop = (files: File[]) => {
-    const currentFolderId = currentPath[currentPath.length - 1] || "root";
-    uploadFiles(files, currentFolderId);
+  // File operations
+  const handleFileSelect = (fileId: string, event?: React.MouseEvent) => {
+    if (event?.ctrlKey || event?.metaKey) {
+      selectMultipleFiles([fileId]);
+    } else if (event?.shiftKey && selectedFiles.length > 0) {
+      // Implement shift-click selection
+      const lastSelectedIndex = currentFiles.findIndex(
+        (f) => f.id === selectedFiles[selectedFiles.length - 1],
+      );
+      const currentIndex = currentFiles.findIndex((f) => f.id === fileId);
+      const start = Math.min(lastSelectedIndex, currentIndex);
+      const end = Math.max(lastSelectedIndex, currentIndex);
+      const filesToSelect = currentFiles.slice(start, end + 1).map((f) => f.id);
+      selectMultipleFiles(filesToSelect);
+    } else {
+      selectFile(fileId);
+    }
   };
 
-  const handlePreviewFile = (file: FileItem) => {
+  const handleFileContextMenu = (file: any, event: React.MouseEvent) => {
+    event.preventDefault();
+    setContextMenuFile(file);
+    setContextMenuPosition({ x: event.clientX, y: event.clientY });
+    setContextMenuOpen(true);
+  };
+
+  const handleFilePreview = (file: any) => {
     setPreviewFile(file);
-    setShowPreview(true);
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  const handleUpload = async (files: File[]) => {
+    if (!currentNode) {
+      toast.error("Selecione uma pasta de destino");
+      return;
+    }
+
+    const uploadPromises = files.map(async (file, index) => {
+      const fileId = `upload_${Date.now()}_${index}`;
+      setUploadProgress((prev) => ({ ...prev, [fileId]: 0 }));
+
+      try {
+        // Simulate upload progress
+        for (let progress = 0; progress <= 100; progress += 10) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          setUploadProgress((prev) => ({ ...prev, [fileId]: progress }));
+        }
+
+        await uploadFiles([file], currentNode.id);
+
+        // Clean up progress
+        setUploadProgress((prev) => {
+          const newProgress = { ...prev };
+          delete newProgress[fileId];
+          return newProgress;
+        });
+
+        toast.success(`${file.name} enviado com sucesso`);
+      } catch (error) {
+        console.error("Erro no upload:", error);
+        toast.error(`Erro ao enviar ${file.name}`);
+        setUploadProgress((prev) => {
+          const newProgress = { ...prev };
+          delete newProgress[fileId];
+          return newProgress;
+        });
+      }
+    });
+
+    await Promise.all(uploadPromises);
+    refreshData();
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <FolderOpen className="h-12 w-12 mx-auto mb-4 animate-pulse text-primary" />
-          <p className="text-muted-foreground">Carregando GED Jurídico...</p>
-        </div>
-      </div>
-    );
-  }
+  const handleCreateFolder = async (name: string, type: string) => {
+    if (!currentNode) {
+      toast.error("Selecione uma pasta pai");
+      return;
+    }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Card className="max-w-md">
-          <CardContent className="p-6 text-center">
-            <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-destructive" />
-            <h3 className="text-lg font-semibold mb-2">Erro no GED</h3>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={refreshData}>Tentar Novamente</Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+    try {
+      await createFolder(currentNode.id, name, type as any);
+      refreshData();
+    } catch (error) {
+      console.error("Erro ao criar pasta:", error);
+      toast.error("Erro ao criar pasta");
+    }
+  };
+
+  const handleCreateDocument = async (name: string, template: string) => {
+    toast.info("Criação de documentos será implementada em breve");
+  };
+
+  const handleSyncDrive = async () => {
+    try {
+      await syncCRMEntities();
+    } catch (error) {
+      console.error("Erro na sincronização:", error);
+      toast.error("Erro na sincronização");
+    }
+  };
+
+  // AI Integration handlers
+  const handleStartAIChat = (documentId: string, documentName: string) => {
+    executeAction({
+      type: "START_AI_CHAT",
+      module: "IA",
+      data: {
+        type: "DOCUMENT_ANALYSIS",
+        context: { documentId, documentName },
+        initialMessage: `Olá! Vou ajudá-lo com a análise do documento "${documentName}". O que você gostaria de saber?`,
+      },
+      source: "GED_JURIDICO",
+    });
+  };
+
+  // Filter helpers
+  const filteredFiles = useMemo(() => {
+    return currentFiles.filter((file) => {
+      // Search filter
+      if (
+        searchQuery &&
+        !file.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ) {
+        return false;
+      }
+
+      // Type filter
+      if (filterOptions.type && filterOptions.type !== "all") {
+        const fileExtension = file.name.split(".").pop()?.toLowerCase();
+        if (filterOptions.type !== fileExtension) {
+          return false;
+        }
+      }
+
+      // Visibility filter
+      if (filterOptions.visibility && filterOptions.visibility !== "all") {
+        if (filterOptions.visibility === "client" && !file.clientVisible) {
+          return false;
+        }
+        if (filterOptions.visibility === "internal" && file.clientVisible) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [currentFiles, searchQuery, filterOptions]);
+
+  // Statistics
+  const stats = useMemo(() => {
+    return {
+      totalFiles: currentFiles.length,
+      selectedCount: selectedFiles.length,
+      clientVisible: currentFiles.filter((f) => f.clientVisible).length,
+      favorites: currentFiles.filter((f) => f.isFavorite).length,
+      totalSize: currentFiles.reduce((sum, f) => sum + (f.size || 0), 0),
+    };
+  }, [currentFiles, selectedFiles]);
 
   return (
-    <div className="h-screen flex overflow-hidden bg-background">
-      {/* Sidebar - Desktop */}
-      {!isMobile && (
-        <motion.div
-          initial={false}
-          animate={{ width: sidebarOpen ? 320 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="border-r bg-card overflow-hidden"
-        >
-          <div className="h-full flex flex-col">
-            {/* Sidebar Header */}
-            <div className="p-4 border-b">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold flex items-center gap-2">
-                  <FolderOpen className="h-5 w-5" />
-                  Navegação
-                </h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-muted/50 p-2 rounded text-center">
-                  <div className="font-semibold">{stats.totalFiles}</div>
-                  <div className="text-muted-foreground">Arquivos</div>
-                </div>
-                <div className="bg-muted/50 p-2 rounded text-center">
-                  <div className="font-semibold">
-                    {formatFileSize(stats.totalSize)}
-                  </div>
-                  <div className="text-muted-foreground">Total</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Tree Navigation */}
-            <div className="flex-1 overflow-y-auto">
-              <TreeView
-                data={treeData}
-                selectedPath={currentPath}
-                onSelectPath={navigateToPath}
-                onCreateFolder={createFolder}
-                onRenameNode={renameNode}
-                onDeleteNode={deleteNode}
-                onDuplicateNode={duplicateNode}
-                onMoveNode={moveNode}
-              />
-            </div>
-
-            {/* Sidebar Footer */}
-            <div className="p-4 border-t space-y-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start"
-                onClick={() => setShowCreateFolderDialog(true)}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Pasta
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start"
-                onClick={() => setShowUploadDialog(true)}
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Upload
-              </Button>
-            </div>
+    <div className="flex h-screen bg-background">
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex lg:w-80 lg:flex-col border-r bg-card">
+        <div className="p-4 border-b">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold flex items-center space-x-2">
+              <FolderOpen className="h-5 w-5" />
+              <span>GED Jurídico</span>
+            </h2>
+            <Badge variant="secondary">v2.2.0</Badge>
           </div>
-        </motion.div>
-      )}
+          <p className="text-sm text-muted-foreground mt-1">
+            Gestão Eletrônica de Documentos
+          </p>
+        </div>
 
-      {/* Sidebar - Mobile */}
-      {isMobile && (
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="fixed top-4 left-4 z-50 md:hidden"
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-80 p-0">
-            <SheetHeader className="p-4 border-b">
-              <SheetTitle className="flex items-center gap-2">
-                <FolderOpen className="h-5 w-5" />
-                Navegação GED
-              </SheetTitle>
-              <SheetDescription>
-                Navegue pelas pastas e gerencie seus documentos
-              </SheetDescription>
-            </SheetHeader>
-
-            <div className="h-full flex flex-col">
-              <div className="flex-1 overflow-y-auto p-4">
-                <TreeView
-                  data={treeData}
-                  selectedPath={currentPath}
-                  onSelectPath={navigateToPath}
-                  onCreateFolder={createFolder}
-                  onRenameNode={renameNode}
-                  onDeleteNode={deleteNode}
-                  onDuplicateNode={duplicateNode}
-                  onMoveNode={moveNode}
-                />
-              </div>
-
-              <div className="p-4 border-t space-y-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => setShowCreateFolderDialog(true)}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nova Pasta
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => setShowUploadDialog(true)}
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload
-                </Button>
-              </div>
+        <div className="flex-1 overflow-hidden">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="h-full flex flex-col"
+          >
+            <div className="px-4 pt-4">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="files" className="text-xs">
+                  <FolderOpen className="h-3 w-3 mr-1" />
+                  Arquivos
+                </TabsTrigger>
+                <TabsTrigger value="ai" className="text-xs">
+                  <Brain className="h-3 w-3 mr-1" />
+                  IA
+                </TabsTrigger>
+                <TabsTrigger value="stats" className="text-xs">
+                  <BarChart3 className="h-3 w-3 mr-1" />
+                  Stats
+                </TabsTrigger>
+                <TabsTrigger value="tools" className="text-xs">
+                  <Settings className="h-3 w-3 mr-1" />
+                  Tools
+                </TabsTrigger>
+              </TabsList>
             </div>
-          </SheetContent>
-        </Sheet>
-      )}
+
+            <div className="flex-1 overflow-hidden">
+              <TabsContent value="files" className="h-full m-0 p-4">
+                <div className="h-full flex flex-col space-y-4">
+                  {/* Quick Actions */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setTemplatesOpen(true)}
+                      className="text-xs"
+                    >
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Templates
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSyncDrive}
+                      disabled={crmSyncing}
+                      className="text-xs"
+                    >
+                      {crmSyncing ? (
+                        <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-3 w-3 mr-1" />
+                      )}
+                      Sync
+                    </Button>
+                  </div>
+
+                  {/* Watchdog Status */}
+                  <GEDWatchdog compact className="mb-4" />
+
+                  {/* Tree View */}
+                  <div className="flex-1 overflow-auto">
+                    <TreeView
+                      data={treeData}
+                      onNavigate={navigateToPath}
+                      currentPath={currentPath}
+                      onCreateFolder={handleCreateFolder}
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="ai" className="h-full m-0 p-4">
+                <div className="h-full overflow-auto">
+                  <GEDAIIntegration
+                    selectedFiles={selectedFiles
+                      .map((id) => currentFiles.find((f) => f.id === id)!)
+                      .filter(Boolean)}
+                    onStartChat={handleStartAIChat}
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="stats" className="h-full m-0 p-4">
+                <div className="h-full overflow-auto">
+                  <GEDSmartDashboard />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="tools" className="h-full m-0 p-4">
+                <div className="space-y-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPermissionsOpen(true)}
+                    className="w-full justify-start text-xs"
+                  >
+                    <Users className="h-3 w-3 mr-2" />
+                    Permissões
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setWatchdogOpen(true)}
+                    className="w-full justify-start text-xs"
+                  >
+                    <Shield className="h-3 w-3 mr-2" />
+                    Watchdog
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSettingsOpen(true)}
+                    className="w-full justify-start text-xs"
+                  >
+                    <Settings className="h-3 w-3 mr-2" />
+                    Configurações
+                  </Button>
+                </div>
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
+      </div>
+
+      {/* Mobile Sidebar */}
+      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+        <SheetContent side="left" className="w-80 p-0">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle className="flex items-center space-x-2">
+              <FolderOpen className="h-5 w-5" />
+              <span>GED Jurídico</span>
+            </SheetTitle>
+            <SheetDescription>Gestão Eletrônica de Documentos</SheetDescription>
+          </SheetHeader>
+          <div className="h-full overflow-auto p-4">
+            <TreeView
+              data={treeData}
+              onNavigate={(path) => {
+                navigateToPath(path);
+                setSidebarOpen(false);
+              }}
+              currentPath={currentPath}
+              onCreateFolder={handleCreateFolder}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="border-b bg-background p-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              {!sidebarOpen && !isMobile && (
+        <header className="border-b bg-card px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+
+              {/* Navigation */}
+              <div className="flex items-center space-x-2">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setSidebarOpen(true)}
+                  onClick={handleNavigateBack}
+                  disabled={navigationHistory.length <= 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleNavigateForward}
+                  disabled={true}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
-              )}
-
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <FolderOpen className="h-6 w-6 text-primary" />
-                GED Jurídico
-              </h1>
-
-              {isUploading && (
-                <Badge variant="secondary" className="animate-pulse">
-                  Enviando...
-                </Badge>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={refreshData}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Atualizar
-              </Button>
-
-              <Dialog
-                open={showUploadDialog}
-                onOpenChange={setShowUploadDialog}
-              >
-                <DialogTrigger asChild>
-                  <Button size="sm">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Enviar Documentos</DialogTitle>
-                    <DialogDescription>
-                      Faça upload de arquivos para a pasta atual:{" "}
-                      {currentNode?.name || "Raiz"}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DropzoneUpload
-                    currentFolderId={
-                      currentPath[currentPath.length - 1] || "root"
-                    }
-                    onUploadComplete={handleUploadComplete}
-                    className="min-h-[300px]"
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-
-          {/* Breadcrumbs */}
-          <DynamicBreadcrumb
-            segments={breadcrumbs}
-            canGoBack={canGoBack}
-            canGoForward={canGoForward}
-            onNavigate={navigateToPath}
-            onGoBack={goBack}
-            onGoForward={goForward}
-            fileCount={filteredFiles.length}
-          />
-        </div>
-
-        {/* Toolbar */}
-        <div className="border-b bg-muted/30 p-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            {/* Search */}
-            <div className="flex-1 max-w-md">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar arquivos, tags, usuários..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
               </div>
+
+              {/* Breadcrumbs */}
+              <DynamicBreadcrumb
+                segments={breadcrumbs}
+                onNavigate={navigateToPath}
+                fileCount={currentFiles.length}
+              />
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowCreateFolderDialog(true)}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Pasta
+            <div className="flex items-center space-x-2">
+              {/* View Mode Toggle */}
+              <div className="flex border rounded-lg p-1">
+                {viewModes.map((mode) => (
+                  <Button
+                    key={mode.id}
+                    variant={viewMode === mode.id ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode(mode.id)}
+                    className="px-2"
+                  >
+                    <mode.icon className="h-4 w-4" />
+                  </Button>
+                ))}
+              </div>
+
+              {/* Refresh */}
+              <Button variant="ghost" size="sm" onClick={refreshData}>
+                <RefreshCw className="h-4 w-4" />
               </Button>
 
-              <Separator orientation="vertical" className="h-8" />
-
-              {/* View Mode Toggle */}
-              <div className="flex border rounded-md">
-                <Button
-                  variant={viewMode === "grid" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("grid")}
-                  className="rounded-r-none"
-                >
-                  <Grid3X3 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "list" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("list")}
-                  className="rounded-l-none"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
+              {/* Settings */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSettingsOpen(true)}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
             </div>
           </div>
-        </div>
 
-        {/* Bulk Actions */}
-        {selectedFiles.length > 0 && (
-          <div className="p-4">
-            <BulkActions
-              selectedFiles={selectedFileObjects}
-              onClearSelection={clearSelection}
-              onDeleteFiles={deleteMultiple}
-              onToggleVisibility={toggleFileVisibility}
-              onMoveFiles={moveFiles}
-              onSendToAI={(fileIds, action) => sendToAI(fileIds, action)}
-              availableFolders={availableFolders}
-            />
+          {/* Search and Filters */}
+          <div className="flex items-center space-x-4 mt-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar documentos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setAdvancedFiltersOpen(true)}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filtros
+            </Button>
           </div>
-        )}
 
-        {/* File Area */}
+          {/* Quick Stats */}
+          <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
+            <div className="flex items-center space-x-4">
+              <span>{stats.totalFiles} arquivo(s)</span>
+              {stats.selectedCount > 0 && (
+                <span className="text-primary font-medium">
+                  {stats.selectedCount} selecionado(s)
+                </span>
+              )}
+              <span>{stats.clientVisible} visível ao cliente</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              {stats.favorites > 0 && (
+                <div className="flex items-center space-x-1">
+                  <Star className="h-3 w-3 text-yellow-500" />
+                  <span>{stats.favorites}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Content Area */}
         <div className="flex-1 overflow-hidden">
-          {uploadProgress.length > 0 && (
-            <div className="p-4 border-b">
-              <DropzoneUpload
-                currentFolderId={currentPath[currentPath.length - 1] || "root"}
-                onUploadComplete={handleUploadComplete}
-                className="min-h-[150px]"
+          {/* Upload Zone */}
+          {currentNode && (
+            <DropzoneUpload
+              onDrop={handleUpload}
+              currentFolder={currentNode.name}
+              uploadProgress={uploadProgress}
+            />
+          )}
+
+          {/* Bulk Actions */}
+          {selectedFiles.length > 0 && (
+            <div className="border-b bg-muted/30 px-4 py-2">
+              <BulkActions
+                selectedFiles={selectedFiles}
+                onClearSelection={clearSelection}
+                onDelete={() => deleteFiles(selectedFiles)}
+                onDownloadZip={() => downloadZip(selectedFiles)}
+                onToggleClientVisible={() => {
+                  selectedFiles.forEach((fileId) =>
+                    toggleClientVisible(fileId),
+                  );
+                }}
+                onToggleFavorite={() => {
+                  selectedFiles.forEach((fileId) => toggleFavorite(fileId));
+                }}
+                onMove={(targetFolderId) =>
+                  moveFiles(selectedFiles, targetFolderId)
+                }
+                currentFolderId={currentNode?.id || ""}
+                treeData={treeData}
               />
             </div>
           )}
 
-          <div className="h-full overflow-y-auto p-4">
+          {/* File Viewer */}
+          <div className="flex-1 overflow-auto p-4">
             <FileViewer
               files={filteredFiles}
-              viewMode={viewMode}
               selectedFiles={selectedFiles}
-              onSelectFile={selectFile}
-              onSelectAll={selectAllFiles}
-              onPreview={handlePreviewFile}
-              onDownload={downloadFile}
-              onEdit={editFile}
-              onDelete={deleteFile}
-              onToggleFavorite={toggleFavorite}
-              onShare={shareFile}
-              onSendToAI={(file, action) => sendToAI(file, action)}
-              onAssociate={associateFile}
+              viewMode={viewMode}
+              onFileSelect={handleFileSelect}
+              onFilePreview={handleFilePreview}
+              onContextMenu={handleFileContextMenu}
             />
-          </div>
-        </div>
-
-        {/* Footer Stats */}
-        <div className="border-t bg-muted/30 p-2">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <div className="flex items-center gap-4">
-              <span>
-                {filteredFiles.length} arquivo
-                {filteredFiles.length !== 1 ? "s" : ""}
-              </span>
-              <span>{formatFileSize(stats.totalSize)} total</span>
-              {selectedFiles.length > 0 && (
-                <span>
-                  {selectedFiles.length} selecionado
-                  {selectedFiles.length !== 1 ? "s" : ""}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1">
-                <Star className="h-3 w-3" />
-                {stats.favoriteFiles} favoritos
-              </span>
-              <span className="flex items-center gap-1">
-                <Eye className="h-3 w-3" />
-                {stats.clientVisibleFiles} visíveis ao cliente
-              </span>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Create Folder Dialog */}
-      <Dialog
-        open={showCreateFolderDialog}
-        onOpenChange={setShowCreateFolderDialog}
-      >
+      {/* Floating Action Button */}
+      <GEDFloatingButton
+        onUpload={handleUpload}
+        onCreateFolder={handleCreateFolder}
+        onCreateDocument={handleCreateDocument}
+        onSyncDrive={handleSyncDrive}
+      />
+
+      {/* Dialogs */}
+
+      {/* File Context Menu */}
+      {contextMenuOpen && contextMenuFile && (
+        <FileContextMenu
+          file={contextMenuFile}
+          position={contextMenuPosition}
+          open={contextMenuOpen}
+          onClose={() => setContextMenuOpen(false)}
+          onPreview={() => handleFilePreview(contextMenuFile)}
+          onEdit={() => {}}
+          onDelete={() => deleteFiles([contextMenuFile.id])}
+          onShare={() => {}}
+          onDownload={() => {}}
+          onToggleFavorite={() => toggleFavorite(contextMenuFile.id)}
+          onToggleClientVisible={() => toggleClientVisible(contextMenuFile.id)}
+          onMove={() => {}}
+        />
+      )}
+
+      {/* File Preview */}
+      {previewFile && (
+        <FilePreview
+          file={previewFile}
+          open={!!previewFile}
+          onClose={() => setPreviewFile(null)}
+        />
+      )}
+
+      {/* Permissions Dialog */}
+      <Dialog open={permissionsOpen} onOpenChange={setPermissionsOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Permissões do GED</DialogTitle>
+            <DialogDescription>
+              Gerencie permissões de acesso a documentos e pastas
+            </DialogDescription>
+          </DialogHeader>
+          <GEDPermissions />
+        </DialogContent>
+      </Dialog>
+
+      {/* Templates Dialog */}
+      <Dialog open={templatesOpen} onOpenChange={setTemplatesOpen}>
+        <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Templates de Pastas</DialogTitle>
+            <DialogDescription>
+              Gerencie templates para criação automática de estruturas
+            </DialogDescription>
+          </DialogHeader>
+          <GEDFolderTemplates
+            onApplyTemplate={(templateId, entityId) => {
+              toast.success("Template aplicado com sucesso");
+              setTemplatesOpen(false);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Watchdog Dialog */}
+      <Dialog open={watchdogOpen} onOpenChange={setWatchdogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Watchdog do Sistema</DialogTitle>
+            <DialogDescription>
+              Monitoramento e validação contínua do GED
+            </DialogDescription>
+          </DialogHeader>
+          <GEDWatchdog />
+        </DialogContent>
+      </Dialog>
+
+      {/* Advanced Filters Dialog */}
+      <Dialog open={advancedFiltersOpen} onOpenChange={setAdvancedFiltersOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nova Pasta</DialogTitle>
+            <DialogTitle>Filtros Avançados</DialogTitle>
             <DialogDescription>
-              Criar nova pasta em: {currentNode?.name || "Raiz"}
+              Configure filtros detalhados para busca
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="folder-name">Nome da Pasta</Label>
-              <Input
-                id="folder-name"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                placeholder="Ex: Contratos, Procurações, Intimações..."
-              />
-            </div>
-            <div>
-              <Label htmlFor="folder-type">Tipo</Label>
-              <select
-                id="folder-type"
-                value={newFolderType}
-                onChange={(e) =>
-                  setNewFolderType(e.target.value as TreeNode["type"])
-                }
-                className="w-full p-2 border rounded-md"
-              >
-                <option value="folder">📁 Pasta Comum</option>
-                <option value="client">👤 Pasta de Cliente</option>
-                <option value="process">⚖️ Pasta de Processo</option>
-              </select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Tipo de Arquivo</Label>
+                <Select
+                  value={filterOptions.type || "all"}
+                  onValueChange={(value) =>
+                    setFilterOptions({ ...filterOptions, type: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os tipos</SelectItem>
+                    <SelectItem value="pdf">PDF</SelectItem>
+                    <SelectItem value="doc">Word</SelectItem>
+                    <SelectItem value="docx">Word (Novo)</SelectItem>
+                    <SelectItem value="jpg">Imagem</SelectItem>
+                    <SelectItem value="png">PNG</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Visibilidade</Label>
+                <Select
+                  value={filterOptions.visibility || "all"}
+                  onValueChange={(value) =>
+                    setFilterOptions({ ...filterOptions, visibility: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="client">Visível ao Cliente</SelectItem>
+                    <SelectItem value="internal">Apenas Interno</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setShowCreateFolderDialog(false)}
+              onClick={() => {
+                setFilterOptions({
+                  type: "",
+                  visibility: "",
+                  dateRange: "",
+                  client: "",
+                  tags: [],
+                });
+                setAdvancedFiltersOpen(false);
+              }}
             >
-              Cancelar
+              Limpar Filtros
             </Button>
-            <Button
-              onClick={handleCreateFolder}
-              disabled={!newFolderName.trim()}
-            >
-              Criar Pasta
+            <Button onClick={() => setAdvancedFiltersOpen(false)}>
+              Aplicar Filtros
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* File Preview */}
-      <FilePreview
-        file={previewFile}
-        isOpen={showPreview}
-        onClose={() => setShowPreview(false)}
-        onDownload={downloadFile}
-        onShare={shareFile}
-      />
+      {/* Settings Dialog */}
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Configurações do GED</DialogTitle>
+            <DialogDescription>
+              Configure preferências e comportamentos do sistema
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label>Busca Inteligente com IA</Label>
+              <Switch
+                checked={smartSearchActive}
+                onCheckedChange={setSmartSearchActive}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label>Upload Automático para Pasta</Label>
+              <Switch defaultChecked />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label>Notificações de Sistema</Label>
+              <Switch defaultChecked />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label>Sincronização Automática</Label>
+              <Switch defaultChecked />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setSettingsOpen(false)}>
+              Salvar Configurações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
