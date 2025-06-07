@@ -142,6 +142,25 @@ export function PublicacaoDetalhada({
   onClose,
   onUpdate,
 }: PublicacaoDetalhadaProps) {
+  // Safety check for null/undefined publicacao
+  if (!publicacao) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Erro</DialogTitle>
+          </DialogHeader>
+          <div className="p-6 text-center">
+            <p>Dados da publicação não encontrados.</p>
+            <Button onClick={onClose} className="mt-4">
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   // Safety check and default values for publicacao data
   const safePublicacao = {
     ...publicacao,
@@ -349,7 +368,7 @@ export function PublicacaoDetalhada({
 
   const handleCopiarTexto = () => {
     navigator.clipboard.writeText(publicacao.conteudo);
-    toast.success("Texto copiado para a ��rea de transferência!");
+    toast.success("Texto copiado para a área de transferência!");
   };
 
   const handleVincularProcesso = async () => {
