@@ -40,6 +40,7 @@ const ConfiguracoesPrazosPage = lazy(
   () => import("./pages/ConfiguracoesPrazosPage"),
 );
 const PlanoDeAcaoIA = lazy(() => import("./components/System/PlanoDeAcaoIA"));
+const ActionPlan = lazy(() => import("./pages/ActionPlan"));
 
 // Test pages (lazy loaded)
 const ClienteDetalhesTest = lazy(() => import("./pages/ClienteDetalhesTest"));
