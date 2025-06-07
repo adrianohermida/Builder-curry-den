@@ -276,6 +276,14 @@ const App = () => (
                           </PageWrapper>
                         }
                       />
+                      <Route
+                        path="theme-test"
+                        element={
+                          <PageWrapper>
+                            <ThemeTestPage />
+                          </PageWrapper>
+                        }
+                      />
 
                       {/* Legacy route for backward compatibility */}
                       <Route
