@@ -56,6 +56,7 @@ import { FileViewer } from "@/components/GED/FileViewer";
 import { DropzoneUpload } from "@/components/GED/DropzoneUpload";
 import { BulkActions, SelectedFile } from "@/components/GED/BulkActions";
 import { FileContextMenu, FileItem } from "@/components/GED/FileContextMenu";
+import { FilePreview } from "@/components/GED/FilePreview";
 
 // Hook
 import { useGEDAdvanced } from "@/hooks/useGEDAdvanced";
@@ -70,7 +71,8 @@ export default function GEDJuridico() {
   const [newFolderType, setNewFolderType] =
     useState<TreeNode["type"]>("folder");
   const [isMobile, setIsMobile] = useState(false);
-
+  const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const {
     // Tree Structure
     treeData,
@@ -109,7 +111,7 @@ export default function GEDJuridico() {
     selectFile,
     selectAllFiles,
     clearSelection,
-    previewFile,
+    previewFile: handlePreviewFile,
     downloadFile,
     editFile,
     deleteFile,
@@ -227,6 +229,11 @@ export default function GEDJuridico() {
   const handleFileDrop = (files: File[]) => {
     const currentFolderId = currentPath[currentPath.length - 1] || "root";
     uploadFiles(files, currentFolderId);
+  };
+
+  const handlePreviewFile = (file: FileItem) => {
+    setPreviewFile(file);
+    setShowPreview(true);
   };
 
   const formatFileSize = (bytes: number) => {
@@ -568,7 +575,7 @@ export default function GEDJuridico() {
               selectedFiles={selectedFiles}
               onSelectFile={selectFile}
               onSelectAll={selectAllFiles}
-              onPreview={previewFile}
+              onPreview={handlePreviewFile}
               onDownload={downloadFile}
               onEdit={editFile}
               onDelete={deleteFile}
@@ -664,6 +671,15 @@ export default function GEDJuridico() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* File Preview */}
+      <FilePreview
+        file={previewFile}
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        onDownload={downloadFile}
+        onShare={shareFile}
+      />
     </div>
   );
 }
