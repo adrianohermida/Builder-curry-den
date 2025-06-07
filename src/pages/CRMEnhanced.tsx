@@ -1027,7 +1027,7 @@ export default function CRMEnhanced() {
         </div>
 
         {/* Controls */}
-        <Card>
+        <Card className="border-0 shadow-sm">
           <CardContent className="py-4">
             <div className="flex flex-col lg:flex-row gap-4">
               {/* View Selector */}
