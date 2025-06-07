@@ -10,7 +10,9 @@ export type ModuleName =
   | "Atendimento"
   | "Agenda"
   | "Financeiro"
-  | "Configurações";
+  | "Configurações"
+  | "Design System" // Hidden module for design analysis
+  | "Features Beta"; // Hidden module for beta features
 
 export type TaskStatus =
   | "pendente"
