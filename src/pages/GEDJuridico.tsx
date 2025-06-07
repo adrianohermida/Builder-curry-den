@@ -111,7 +111,7 @@ export default function GEDJuridico() {
     selectFile,
     selectAllFiles,
     clearSelection,
-    previewFile: handlePreviewFile,
+    previewFile: previewFileFromHook,
     downloadFile,
     editFile,
     deleteFile,
