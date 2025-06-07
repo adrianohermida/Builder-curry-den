@@ -78,21 +78,30 @@ import {
 
 export interface PublicacaoData {
   id: string;
-  numeroProcesso: string;
+  numeroProcesso?: string;
+  numero?: string;
   tribunal: string;
-  dataPublicacao: string;
+  dataPublicacao?: string;
+  data?: string;
   conteudo: string;
+  assunto?: string;
   tipo:
     | "intimacao"
     | "citacao"
     | "despacho"
     | "sentenca"
     | "acordao"
-    | "outros";
-  partes: string[];
+    | "outros"
+    | "Intimação"
+    | "Citação"
+    | "Despacho"
+    | "Sentença"
+    | "Acórdão"
+    | "Outros";
+  partes?: string[];
   urgencia: "baixa" | "media" | "alta" | "urgente";
-  status: "nao_lida" | "lida" | "processada";
-  origem: "djen" | "domicilio_judicial" | "tribunal_local";
+  status: "nao_lida" | "lida" | "processada" | "pendente" | "visualizada";
+  origem?: "djen" | "domicilio_judicial" | "tribunal_local";
   metadados?: {
     segredoJustica: boolean;
     valorCausa?: number;
@@ -100,10 +109,24 @@ export interface PublicacaoData {
     assunto: string;
   };
   clienteId?: string;
+  cliente?: {
+    id: string;
+    nome: string;
+    tipo: "fisica" | "juridica";
+  };
+  processo?: {
+    id: string;
+    numero: string;
+    assunto: string;
+  };
   processoVinculado?: string;
   visivelCliente?: boolean;
   observacoes?: string;
   tags?: string[];
+  dataLimite?: string;
+  visualizada?: boolean;
+  arquivada?: boolean;
+  responsavel?: string;
 }
 
 interface PublicacaoDetalhadaProps {
