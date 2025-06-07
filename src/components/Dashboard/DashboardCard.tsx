@@ -28,8 +28,8 @@ export function DashboardCard({
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
-        <div className="w-10 h-10 rounded-lg bg-[rgb(var(--theme-primary))]/10 flex items-center justify-center">
-          <Icon className="h-5 w-5 text-[rgb(var(--theme-primary))]" />
+        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+          <Icon className="h-5 w-5 text-primary" />
         </div>
       </CardHeader>
       <CardContent>
