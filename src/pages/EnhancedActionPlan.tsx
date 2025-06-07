@@ -61,6 +61,7 @@ export default function EnhancedActionPlan() {
   const [backlogState, setBacklogState] = useState<BacklogState | null>(null);
   const [notifications, setNotifications] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showHiddenModules, setShowHiddenModules] = useState(false);
 
   const actionPlanService = ActionPlanService.getInstance();
   const backlogService = BacklogService.getInstance();
