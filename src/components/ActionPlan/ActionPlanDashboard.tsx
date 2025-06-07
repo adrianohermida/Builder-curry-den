@@ -48,6 +48,8 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import ActionPlanService from "@/services/actionPlanService";
+import BacklogService from "@/services/backlogService";
+import IntegratedBacklog from "./IntegratedBacklog";
 import {
   ActionPlanState,
   ModuleName,
@@ -55,6 +57,7 @@ import {
   TaskPriority,
   ActionPlanFilter,
 } from "@/types/actionPlan";
+import { BacklogState } from "@/types/backlog";
 
 interface DashboardProps {
   onNavigateToModule?: (module: ModuleName) => void;
