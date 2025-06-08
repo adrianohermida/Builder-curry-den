@@ -99,13 +99,7 @@ const adminModules = [
 
 export default function AdminLayout() {
   const location = useLocation();
-  const { isAdmin } = usePermissions();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  // Redirect if not admin
-  if (!isAdmin()) {
-    return <Navigate to="/dashboard" replace />;
-  }
 
   const isModuleActive = (href: string) => {
     return location.pathname.startsWith(href);
