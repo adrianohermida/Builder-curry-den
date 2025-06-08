@@ -122,10 +122,15 @@ const adminMenuItems = [
     permission: { module: "dashboard", action: "manage" },
     adminOnly: true,
   },
-];
-
-// Sistema 2025 - Módulos Avançados
-const sistema2025Items = [
+  {
+    title: "Painel Admin",
+    href: "/admin",
+    icon: Shield,
+    description: "Administração Interna Lawdesk",
+    badge: "Admin",
+    permission: { module: "admin", action: "manage" },
+    adminOnly: true,
+  },
   {
     title: "Update",
     href: "/update",
