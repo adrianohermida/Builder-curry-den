@@ -149,7 +149,9 @@ const App = () => (
                           path="dashboard-executivo"
                           element={
                             <PageWrapper>
-                              <DashboardExecutivo />
+                              <EnhancedRouteGuard requireAdmin>
+                                <DashboardExecutivo />
+                              </EnhancedRouteGuard>
                             </PageWrapper>
                           }
                         />
@@ -338,6 +340,14 @@ const App = () => (
                         {/* Settings and Configuration Routes */}
                         <Route
                           path="settings"
+                          element={
+                            <PageWrapper>
+                              <Settings />
+                            </PageWrapper>
+                          }
+                        />
+                        <Route
+                          path="profile"
                           element={
                             <PageWrapper>
                               <Settings />
