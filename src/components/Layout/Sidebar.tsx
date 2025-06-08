@@ -122,6 +122,10 @@ const adminMenuItems = [
     permission: { module: "dashboard", action: "manage" },
     adminOnly: true,
   },
+];
+
+// Sistema 2025 - Módulos Avançados
+const sistema2025Items = [
   {
     title: "Update",
     href: "/update",
