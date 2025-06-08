@@ -233,7 +233,7 @@ export default function Login() {
               <div className="space-y-3">
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground mb-3">
-                    Contas de demonstração:
+                    Contas disponíveis:
                   </p>
                 </div>
 
