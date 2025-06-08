@@ -58,7 +58,7 @@ interface BacklogDashboardProps {
   onRunAIAnalysis?: () => void;
 }
 
-export default function BacklogDashboard({
+function BacklogDashboard({
   onNavigateToKanban,
   onItemSelect,
   onRunAIAnalysis,
