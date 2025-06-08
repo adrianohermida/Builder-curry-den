@@ -897,3 +897,9 @@ function BacklogDashboard({
     </div>
   );
 }
+
+// Named export for destructuring imports
+export { BacklogDashboard };
+
+// Default export for backward compatibility
+export default BacklogDashboard;
