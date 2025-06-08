@@ -1,10 +1,10 @@
+/* Import custom styles first */
+@import "./styles/responsive.css";
+@import "./styles/themes.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import custom styles */
-@import "./styles/responsive.css";
-@import "./styles/themes.css";
 
 @layer base {
   :root {
