@@ -284,53 +284,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             })}
           </nav>
 
-          {/* Sistema 2025 Section */}
-          {sistema2025ItemsFiltered.length > 0 && (
-            <>
-              <Separator className="my-4" />
-              <div className="pb-4">
-                <h3 className="px-3 mb-2 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
-                  🚀 Sistema 2025
-                </h3>
-                <nav className="space-y-1">
-                  {sistema2025ItemsFiltered.map((item) => {
-                    const isActive = location.pathname === item.href;
-
-                    return (
-                      <Link
-                        key={item.href}
-                        to={item.href}
-                        className={cn(
-                          "flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-md transition-colors",
-                          isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                        )}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <item.icon className="w-5 h-5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <div className="truncate">{item.title}</div>
-                            {item.description && (
-                              <div className="text-xs text-sidebar-foreground/50 truncate">
-                                {item.description}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        {item.badge && (
-                          <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs">
-                            {item.badge}
-                          </Badge>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </nav>
-              </div>
-            </>
-          )}
-
           {/* Admin Section */}
           {adminItems.length > 0 && (
             <>
