@@ -11,6 +11,7 @@ import { PermissionProvider } from "@/hooks/usePermissions";
 import { ViewModeProvider } from "@/contexts/ViewModeContext";
 import { Layout } from "@/components/Layout/Layout";
 import { EnhancedLayout } from "@/components/Layout/EnhancedLayout";
+import { ResponsiveEnhancedLayout } from "@/components/Layout/ResponsiveEnhancedLayout";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { RouteGuard } from "@/components/RouteGuard";
@@ -129,7 +130,7 @@ const App = () => (
                         }
                       />
 
-                      <Route path="/" element={<EnhancedLayout />}>
+                      <Route path="/" element={<ResponsiveEnhancedLayout />}>
                         {/* Core Application Routes */}
                         <Route
                           path="dashboard"
