@@ -9,7 +9,7 @@ import { useTheme } from "@/providers/ThemeProvider";
 import { useViewMode } from "@/contexts/ViewModeContext";
 
 export function ResponsiveEnhancedLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true); // Default true for desktop
   const [isMobile, setIsMobile] = useState(false);
   const { isDark } = useTheme();
   const { isAdminMode } = useViewMode();
@@ -21,34 +21,55 @@ export function ResponsiveEnhancedLayout() {
       const mobile = width < 1024; // lg breakpoint
       setIsMobile(mobile);
 
-      // Auto-close sidebar on mobile
-      if (mobile && sidebarOpen) {
+      // On mobile, start with sidebar closed
+      if (mobile) {
         setSidebarOpen(false);
+      } else {
+        // On desktop, check localStorage or default to open
+        const saved = localStorage.getItem("sidebarOpen");
+        setSidebarOpen(saved !== null ? JSON.parse(saved) : true);
       }
     };
 
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
     return () => window.removeEventListener("resize", checkScreenSize);
-  }, [sidebarOpen]);
+  }, []);
 
   // Apply theme classes
   useEffect(() => {
     const html = document.documentElement;
     html.classList.toggle("dark", isDark);
     html.classList.toggle("admin-mode", isAdminMode);
+
+    // Apply admin mode specific styles
+    if (isAdminMode) {
+      html.style.setProperty("--sidebar-background", "rgb(15 23 42)");
+      html.style.setProperty("--sidebar-foreground", "rgb(241 245 249)");
+      html.style.setProperty("--sidebar-border", "rgb(51 65 85)");
+    } else {
+      html.style.setProperty("--sidebar-background", "hsl(var(--sidebar))");
+      html.style.setProperty(
+        "--sidebar-foreground",
+        "hsl(var(--sidebar-foreground))",
+      );
+      html.style.setProperty("--sidebar-border", "hsl(var(--sidebar-border))");
+    }
   }, [isDark, isAdminMode]);
 
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
+    const newState = !sidebarOpen;
+    setSidebarOpen(newState);
+
+    // Save state on desktop
+    if (!isMobile) {
+      localStorage.setItem("sidebarOpen", JSON.stringify(newState));
+    }
   };
 
   return (
     <div
-      className={cn(
-        "min-h-screen bg-background flex",
-        isAdminMode && "admin-mode",
-      )}
+      className={cn("min-h-screen bg-background", isAdminMode && "admin-mode")}
     >
       {/* Mobile Overlay */}
       <AnimatePresence>
@@ -57,65 +78,91 @@ export function ResponsiveEnhancedLayout() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            className="fixed inset-0 z-40 bg-black/50"
             onClick={() => setSidebarOpen(false)}
           />
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
-      <div
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 transition-transform duration-300",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full",
-          "lg:relative lg:translate-x-0",
-          !sidebarOpen && "lg:w-0 lg:overflow-hidden",
-        )}
-      >
-        <EnhancedSidebar
-          open={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-        />
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-        {/* Header */}
-        <header className="shrink-0 border-b bg-background/95 backdrop-blur">
-          <EnhancedTopbar
-            onMenuClick={toggleSidebar}
-            sidebarOpen={sidebarOpen}
-            showMobileNav={isMobile}
+      {/* Desktop Layout */}
+      <div className="flex min-h-screen">
+        {/* Sidebar */}
+        <aside
+          className={cn(
+            "transition-all duration-300 ease-in-out",
+            // Mobile: fixed positioned
+            isMobile && "fixed inset-y-0 left-0 z-50",
+            isMobile && (sidebarOpen ? "translate-x-0" : "-translate-x-full"),
+            // Desktop: relative positioned, always visible but can be collapsed
+            !isMobile && "relative",
+            !isMobile && (sidebarOpen ? "w-72" : "w-16"),
+          )}
+        >
+          <EnhancedSidebar
+            open={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+            collapsed={!sidebarOpen && !isMobile}
           />
-        </header>
+        </aside>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-auto">
-          <div className="container mx-auto max-w-7xl p-4 lg:p-6">
-            <motion.div
-              key={isAdminMode ? "admin-content" : "client-content"}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="w-full"
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+          {/* Header */}
+          <header
+            className={cn(
+              "shrink-0 border-b backdrop-blur sticky top-0 z-30",
+              isAdminMode
+                ? "bg-slate-900/95 border-slate-700 text-white"
+                : "bg-background/95 border-border",
+            )}
+          >
+            <EnhancedTopbar
+              onMenuClick={toggleSidebar}
+              sidebarOpen={sidebarOpen}
+              showMobileNav={isMobile}
+            />
+          </header>
+
+          {/* Page Content */}
+          <main className="flex-1 overflow-auto">
+            <div
+              className={cn("container mx-auto max-w-7xl", "p-4 sm:p-6 lg:p-8")}
             >
-              <Outlet />
-            </motion.div>
-          </div>
-        </main>
-
-        {/* Admin Mode Footer */}
-        {isAdminMode && (
-          <footer className="shrink-0 border-t bg-slate-50 dark:bg-slate-900 px-4 py-2">
-            <div className="flex items-center justify-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <span>
-                Modo Administrativo Ativo - Todas as ações são registradas
-              </span>
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <motion.div
+                key={isAdminMode ? "admin-content" : "client-content"}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="w-full"
+              >
+                <Outlet />
+              </motion.div>
             </div>
-          </footer>
-        )}
+          </main>
+
+          {/* Admin Mode Footer */}
+          <AnimatePresence>
+            {isAdminMode && (
+              <motion.footer
+                initial={{ y: 50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 50, opacity: 0 }}
+                className="shrink-0 border-t border-slate-700 bg-slate-900 px-4 py-3"
+              >
+                <div className="flex items-center justify-center gap-2 text-sm text-slate-300">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="font-medium">
+                    🛡️ MODO ADMINISTRATIVO ATIVO
+                  </span>
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-slate-400 ml-2">
+                    Todas as ações são auditadas
+                  </span>
+                </div>
+              </motion.footer>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Widget de Conversação Flutuante */}
@@ -123,18 +170,27 @@ export function ResponsiveEnhancedLayout() {
 
       {/* Global Styles */}
       <style jsx global>{`
+        /* Admin Mode Specific Styles */
         .admin-mode {
-          --sidebar-background: rgb(15 23 42);
-          --sidebar-foreground: rgb(241 245 249);
-          --sidebar-border: rgb(51 65 85);
+          --primary: 220 14% 96%;
+          --primary-foreground: 220 13% 9%;
+          --background: 15 23 42;
+          --foreground: 241 245 249;
         }
 
         .admin-mode .sidebar-layout {
-          background: var(--sidebar-background);
-          color: var(--sidebar-foreground);
-          border-color: var(--sidebar-border);
+          background-color: rgb(15 23 42);
+          color: rgb(241 245 249);
+          border-color: rgb(51 65 85);
         }
 
+        /* Client Mode Specific Styles */
+        .client-mode {
+          --primary: 221.2 83.2% 53.3%;
+          --primary-foreground: 210 40% 98%;
+        }
+
+        /* Responsive Utilities */
         @media (max-width: 1024px) {
           .container {
             padding-left: 1rem;
@@ -157,20 +213,36 @@ export function ResponsiveEnhancedLayout() {
         }
 
         ::-webkit-scrollbar-track {
-          background: rgb(241 245 249);
+          background: hsl(var(--muted));
         }
 
         ::-webkit-scrollbar-thumb {
-          background: rgb(203 213 225);
+          background: hsl(var(--muted-foreground) / 0.3);
           border-radius: 3px;
         }
 
-        .dark ::-webkit-scrollbar-track {
+        ::-webkit-scrollbar-thumb:hover {
+          background: hsl(var(--muted-foreground) / 0.5);
+        }
+
+        /* Admin mode scrollbar */
+        .admin-mode ::-webkit-scrollbar-track {
           background: rgb(30 41 59);
         }
 
-        .dark ::-webkit-scrollbar-thumb {
+        .admin-mode ::-webkit-scrollbar-thumb {
           background: rgb(71 85 105);
+        }
+
+        .admin-mode ::-webkit-scrollbar-thumb:hover {
+          background: rgb(100 116 139);
+        }
+
+        /* Smooth transitions */
+        * {
+          transition-property: color, background-color, border-color;
+          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+          transition-duration: 150ms;
         }
       `}</style>
     </div>

@@ -38,6 +38,8 @@ import {
   Building,
   Award,
   TrendingUp,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -46,10 +48,16 @@ import { useViewMode } from "@/contexts/ViewModeContext";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface EnhancedSidebarProps {
   open: boolean;
   onClose: () => void;
+  collapsed?: boolean;
 }
 
 // Client mode menu items (original Lawdesk CRM)
@@ -229,7 +237,11 @@ const systemTools = [
   },
 ];
 
-export function EnhancedSidebar({ open, onClose }: EnhancedSidebarProps) {
+export function EnhancedSidebar({
+  open,
+  onClose,
+  collapsed = false,
+}: EnhancedSidebarProps) {
   const location = useLocation();
   const { user, hasPermission, isAdmin } = usePermissions();
   const { currentMode, isAdminMode, isClientMode } = useViewMode();
@@ -250,31 +262,31 @@ export function EnhancedSidebar({ open, onClose }: EnhancedSidebarProps) {
       ? "Painel Administrativo"
       : "Sistema Jurídico Completo",
     icon: isAdminMode ? Shield : Scale,
-    iconColor: isAdminMode ? "text-red-600" : "text-blue-600",
-    bgColor: isAdminMode ? "bg-red-100" : "bg-blue-100",
+    iconColor: isAdminMode ? "text-red-500" : "text-blue-600",
+    bgColor: isAdminMode ? "bg-red-500" : "bg-blue-600",
+    textColor: isAdminMode ? "text-white" : "text-white",
   };
 
-  return (
+  const SidebarContent = () => (
     <div
       className={cn(
-        "sidebar-layout",
+        "h-full flex flex-col transition-all duration-300",
         isAdminMode
           ? "bg-slate-900 text-slate-100 border-slate-700"
-          : "bg-sidebar text-sidebar-foreground border-sidebar-border",
-        "w-72 h-full border-r transition-all duration-300 ease-in-out",
-        "flex flex-col",
-        // Responsive adjustments
-        "max-w-[85vw] sm:max-w-72",
+          : "bg-background text-foreground border-border",
+        "border-r",
+        collapsed ? "w-16" : "w-72",
       )}
     >
-      <div className="flex flex-col h-full">
-        {/* Header */}
-        <div
-          className={cn(
-            "flex items-center justify-between p-6 border-b",
-            isAdminMode ? "border-slate-700" : "border-sidebar-border",
-          )}
-        >
+      {/* Header */}
+      <div
+        className={cn(
+          "flex items-center justify-between p-4 border-b",
+          isAdminMode ? "border-slate-700" : "border-border",
+          collapsed && "px-2",
+        )}
+      >
+        {!collapsed && (
           <div className="flex items-center space-x-3">
             <div
               className={cn(
@@ -283,7 +295,7 @@ export function EnhancedSidebar({ open, onClose }: EnhancedSidebarProps) {
               )}
             >
               <brandingInfo.icon
-                className={cn("w-6 h-6", brandingInfo.iconColor)}
+                className={cn("w-6 h-6", brandingInfo.textColor)}
               />
             </div>
             <div>
@@ -291,30 +303,48 @@ export function EnhancedSidebar({ open, onClose }: EnhancedSidebarProps) {
               <p
                 className={cn(
                   "text-xs",
-                  isAdminMode ? "text-slate-400" : "text-sidebar-foreground/70",
+                  isAdminMode ? "text-slate-400" : "text-muted-foreground",
                 )}
               >
                 {brandingInfo.subtitle}
               </p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="lg:hidden"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+        )}
 
-        {/* Mode Indicator */}
+        {collapsed && (
+          <div className="flex items-center justify-center w-full">
+            <div
+              className={cn(
+                "flex items-center justify-center w-10 h-10 rounded-lg",
+                brandingInfo.bgColor,
+              )}
+            >
+              <brandingInfo.icon
+                className={cn("w-6 h-6", brandingInfo.textColor)}
+              />
+            </div>
+          </div>
+        )}
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClose}
+          className="lg:hidden"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Mode Indicator */}
+      {!collapsed && (
         <div
           className={cn(
-            "px-4 py-2 border-b",
+            "px-4 py-3 border-b",
             isAdminMode
               ? "border-slate-700 bg-slate-800/50"
-              : "border-sidebar-border bg-sidebar-accent/30",
+              : "border-border bg-muted/30",
           )}
         >
           <div className="flex items-center justify-center">
@@ -331,69 +361,69 @@ export function EnhancedSidebar({ open, onClose }: EnhancedSidebarProps) {
             </Badge>
           </div>
         </div>
+      )}
 
-        {/* User Info */}
-        {user && (
-          <div
-            className={cn(
-              "p-4 border-b",
-              isAdminMode ? "border-slate-700" : "border-sidebar-border",
-            )}
-          >
-            <div className="flex items-center space-x-3">
-              <div
-                className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center",
-                  isAdminMode ? "bg-slate-700" : "bg-primary/10",
-                )}
-              >
-                <span
-                  className={cn(
-                    "text-sm font-medium",
-                    isAdminMode ? "text-slate-200" : "text-primary",
-                  )}
-                >
-                  {user.name?.charAt(0) || "U"}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{user.name}</p>
-                <p
-                  className={cn(
-                    "text-xs truncate",
-                    isAdminMode
-                      ? "text-slate-400"
-                      : "text-sidebar-foreground/70",
-                  )}
-                >
-                  {user.email}
-                </p>
-              </div>
-              <Badge
-                variant="secondary"
-                className={cn(
-                  "text-xs",
-                  isAdminMode ? "bg-slate-700 text-slate-200" : "",
-                )}
-              >
-                {user.role}
-              </Badge>
-            </div>
-          </div>
-        )}
-
-        {/* Quick Search */}
+      {/* User Info */}
+      {user && !collapsed && (
         <div
           className={cn(
             "p-4 border-b",
-            isAdminMode ? "border-slate-700" : "border-sidebar-border",
+            isAdminMode ? "border-slate-700" : "border-border",
+          )}
+        >
+          <div className="flex items-center space-x-3">
+            <div
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center",
+                isAdminMode ? "bg-slate-700" : "bg-primary/10",
+              )}
+            >
+              <span
+                className={cn(
+                  "text-sm font-medium",
+                  isAdminMode ? "text-slate-200" : "text-primary",
+                )}
+              >
+                {user.name?.charAt(0) || "U"}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{user.name}</p>
+              <p
+                className={cn(
+                  "text-xs truncate",
+                  isAdminMode ? "text-slate-400" : "text-muted-foreground",
+                )}
+              >
+                {user.email}
+              </p>
+            </div>
+            <Badge
+              variant="secondary"
+              className={cn(
+                "text-xs",
+                isAdminMode ? "bg-slate-700 text-slate-200" : "",
+              )}
+            >
+              {user.role}
+            </Badge>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Search */}
+      {!collapsed && (
+        <div
+          className={cn(
+            "p-4 border-b",
+            isAdminMode ? "border-slate-700" : "border-border",
           )}
         >
           <div className="relative">
             <Search
               className={cn(
                 "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4",
-                isAdminMode ? "text-slate-400" : "text-sidebar-foreground/40",
+                isAdminMode ? "text-slate-400" : "text-muted-foreground",
               )}
             />
             <input
@@ -403,56 +433,37 @@ export function EnhancedSidebar({ open, onClose }: EnhancedSidebarProps) {
               }
               className={cn(
                 "w-full pl-10 pr-4 py-2 text-sm rounded-md border focus:outline-none focus:ring-2 focus:ring-primary/50",
-                "touch-manipulation", // Better touch handling on mobile
+                "touch-manipulation",
                 isAdminMode
                   ? "bg-slate-800 border-slate-600 text-slate-200 placeholder-slate-400"
-                  : "bg-sidebar-accent border-sidebar-border",
+                  : "bg-background border-input",
               )}
-              style={{ fontSize: "16px" }} // Prevent zoom on iOS
+              style={{ fontSize: "16px" }}
             />
-            <kbd
-              className={cn(
-                "absolute right-3 top-1/2 transform -translate-y-1/2 text-xs",
-                isAdminMode ? "text-slate-400" : "text-sidebar-foreground/40",
-              )}
-            >
-              <Command className="h-3 w-3" />
-            </kbd>
           </div>
         </div>
+      )}
 
-        {/* Navigation */}
-        <ScrollArea className="flex-1 px-3">
-          <nav className="space-y-1 py-4">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentMode}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-1"
-              >
-                {filteredMenuItems.map((item) => {
-                  const isActive = location.pathname === item.href;
+      {/* Navigation */}
+      <ScrollArea className="flex-1 px-3">
+        <nav className="space-y-1 py-4">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentMode}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-1"
+            >
+              {filteredMenuItems.map((item) => {
+                const isActive = location.pathname === item.href;
 
-                  return (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      className={cn(
-                        "flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-md transition-colors group",
-                        isActive
-                          ? isAdminMode
-                            ? "bg-slate-800 text-slate-100 border border-slate-600"
-                            : "bg-sidebar-accent text-sidebar-accent-foreground"
-                          : isAdminMode
-                            ? "text-slate-300 hover:bg-slate-800/50 hover:text-slate-100"
-                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                      )}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <item.icon className="w-5 h-5 flex-shrink-0" />
+                const LinkContent = () => (
+                  <>
+                    <div className="flex items-center space-x-3">
+                      <item.icon className="w-5 h-5 flex-shrink-0" />
+                      {!collapsed && (
                         <div className="flex-1 min-w-0">
                           <div className="truncate">{item.title}</div>
                           {item.description && (
@@ -461,109 +472,162 @@ export function EnhancedSidebar({ open, onClose }: EnhancedSidebarProps) {
                                 "text-xs truncate",
                                 isAdminMode
                                   ? "text-slate-400"
-                                  : "text-sidebar-foreground/50",
+                                  : "text-muted-foreground",
                               )}
                             >
                               {item.description}
                             </div>
                           )}
                         </div>
-                      </div>
-                      {item.badge && (
-                        <Badge
-                          variant="secondary"
+                      )}
+                    </div>
+                    {item.badge && !collapsed && (
+                      <Badge
+                        variant="secondary"
+                        className={cn(
+                          "text-xs",
+                          item.badge === "2025" &&
+                            "bg-gradient-to-r from-blue-500 to-purple-600 text-white",
+                          item.badge === "Executive" &&
+                            "bg-gradient-to-r from-purple-500 to-indigo-600 text-white",
+                          item.badge === "BI" &&
+                            "bg-gradient-to-r from-green-500 to-emerald-600 text-white",
+                          item.badge === "Dev" &&
+                            "bg-gradient-to-r from-orange-500 to-red-600 text-white",
+                          item.badge === "Live" &&
+                            "bg-gradient-to-r from-green-500 to-emerald-600 text-white animate-pulse",
+                          item.badge === "Beta" &&
+                            "bg-orange-100 text-orange-800",
+                        )}
+                      >
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </>
+                );
+
+                if (collapsed) {
+                  return (
+                    <Tooltip key={item.href}>
+                      <TooltipTrigger asChild>
+                        <Link
+                          to={item.href}
                           className={cn(
-                            "text-xs",
-                            item.badge === "2025" &&
-                              "bg-gradient-to-r from-blue-500 to-purple-600 text-white",
-                            item.badge === "Executive" &&
-                              "bg-gradient-to-r from-purple-500 to-indigo-600 text-white",
-                            item.badge === "BI" &&
-                              "bg-gradient-to-r from-green-500 to-emerald-600 text-white",
-                            item.badge === "Dev" &&
-                              "bg-gradient-to-r from-orange-500 to-red-600 text-white",
-                            item.badge === "Live" &&
-                              "bg-gradient-to-r from-green-500 to-emerald-600 text-white animate-pulse",
-                            item.badge === "Beta" &&
-                              "bg-orange-100 text-orange-800",
+                            "flex items-center justify-center w-12 h-12 rounded-md transition-colors mx-auto",
+                            isActive
+                              ? isAdminMode
+                                ? "bg-slate-800 text-slate-100 border border-slate-600"
+                                : "bg-primary text-primary-foreground"
+                              : isAdminMode
+                                ? "text-slate-300 hover:bg-slate-800/50 hover:text-slate-100"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground",
                           )}
                         >
-                          {item.badge}
+                          <item.icon className="w-5 h-5" />
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <div className="font-medium">{item.title}</div>
+                        {item.description && (
+                          <div className="text-xs text-muted-foreground">
+                            {item.description}
+                          </div>
+                        )}
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    className={cn(
+                      "flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-md transition-colors group",
+                      isActive
+                        ? isAdminMode
+                          ? "bg-slate-800 text-slate-100 border border-slate-600"
+                          : "bg-primary text-primary-foreground"
+                        : isAdminMode
+                          ? "text-slate-300 hover:bg-slate-800/50 hover:text-slate-100"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                  >
+                    <LinkContent />
+                  </Link>
+                );
+              })}
+            </motion.div>
+          </AnimatePresence>
+        </nav>
+
+        {/* System Tools for Admin Mode */}
+        {isAdminMode && !collapsed && (
+          <>
+            <Separator className="my-4 bg-slate-700" />
+            <div className="pb-4">
+              <h3 className="px-3 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                🔧 Ferramentas do Sistema
+              </h3>
+              <nav className="space-y-1">
+                {systemTools.map((tool) => {
+                  const isActive = location.pathname === tool.href;
+
+                  return (
+                    <Link
+                      key={tool.href}
+                      to={tool.href}
+                      className={cn(
+                        "flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-md transition-colors",
+                        isActive
+                          ? "bg-slate-800 text-slate-100 border border-slate-600"
+                          : "text-slate-300 hover:bg-slate-800/50 hover:text-slate-100",
+                      )}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <tool.icon className="w-4 h-4 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="truncate">{tool.title}</div>
+                          <div className="text-xs text-slate-400 truncate">
+                            {tool.description}
+                          </div>
+                        </div>
+                      </div>
+                      {tool.badge && (
+                        <Badge
+                          className={cn(
+                            "text-xs",
+                            tool.badge === "2025" &&
+                              "bg-gradient-to-r from-blue-500 to-purple-600 text-white",
+                            tool.badge === "Live" &&
+                              "bg-gradient-to-r from-green-500 to-emerald-600 text-white animate-pulse",
+                          )}
+                        >
+                          {tool.badge}
                         </Badge>
                       )}
                     </Link>
                   );
                 })}
-              </motion.div>
-            </AnimatePresence>
-          </nav>
+              </nav>
+            </div>
+          </>
+        )}
+      </ScrollArea>
 
-          {/* System Tools for Admin Mode */}
-          {isAdminMode && (
-            <>
-              <Separator className="my-4 bg-slate-700" />
-              <div className="pb-4">
-                <h3 className="px-3 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  🔧 Ferramentas do Sistema
-                </h3>
-                <nav className="space-y-1">
-                  {systemTools.map((tool) => {
-                    const isActive = location.pathname === tool.href;
-
-                    return (
-                      <Link
-                        key={tool.href}
-                        to={tool.href}
-                        className={cn(
-                          "flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-md transition-colors",
-                          isActive
-                            ? "bg-slate-800 text-slate-100 border border-slate-600"
-                            : "text-slate-300 hover:bg-slate-800/50 hover:text-slate-100",
-                        )}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <tool.icon className="w-4 h-4 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <div className="truncate">{tool.title}</div>
-                            <div className="text-xs text-slate-400 truncate">
-                              {tool.description}
-                            </div>
-                          </div>
-                        </div>
-                        {tool.badge && (
-                          <Badge
-                            className={cn(
-                              "text-xs",
-                              tool.badge === "2025" &&
-                                "bg-gradient-to-r from-blue-500 to-purple-600 text-white",
-                              tool.badge === "Live" &&
-                                "bg-gradient-to-r from-green-500 to-emerald-600 text-white animate-pulse",
-                            )}
-                          >
-                            {tool.badge}
-                          </Badge>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </nav>
-              </div>
-            </>
-          )}
-        </ScrollArea>
-
-        {/* Footer */}
+      {/* Footer */}
+      {!collapsed && (
         <div
           className={cn(
             "p-4 border-t",
-            isAdminMode ? "border-slate-700" : "border-sidebar-border",
+            isAdminMode ? "border-slate-700" : "border-border",
           )}
         >
           <div className="text-center">
             <p
               className={cn(
                 "text-xs",
-                isAdminMode ? "text-slate-400" : "text-sidebar-foreground/50",
+                isAdminMode ? "text-slate-400" : "text-muted-foreground",
               )}
             >
               {brandingInfo.title} v2025.1
@@ -571,7 +635,7 @@ export function EnhancedSidebar({ open, onClose }: EnhancedSidebarProps) {
             <p
               className={cn(
                 "text-xs",
-                isAdminMode ? "text-slate-500" : "text-sidebar-foreground/40",
+                isAdminMode ? "text-slate-500" : "text-muted-foreground",
               )}
             >
               © 2025 -{" "}
@@ -590,7 +654,9 @@ export function EnhancedSidebar({ open, onClose }: EnhancedSidebarProps) {
             )}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
+
+  return <SidebarContent />;
 }
