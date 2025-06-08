@@ -179,7 +179,13 @@ class ActionPlanService {
       modulos_afetados: this.state.modulos.map((m) => m.modulo),
       total_tarefas_adicionadas: 0,
       total_tarefas_removidas: 0,
-      hash_conteudo: JSON.stringify(this.state.modulos).substring(0, 8),
+      hash_conteudo: (() => {
+        try {
+          return btoa(JSON.stringify(this.state.modulos)).substring(0, 8);
+        } catch (error) {
+          return "version";
+        }
+      })(),
     };
 
     // Archive current version
