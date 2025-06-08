@@ -103,7 +103,7 @@ interface ItemFormData {
   checklist: Omit<ChecklistItem, "id" | "data_criacao">[];
 }
 
-export default function BacklogKanban({
+function BacklogKanban({
   onItemSelect,
   onItemCreate,
   onItemUpdate,

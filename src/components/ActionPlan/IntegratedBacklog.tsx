@@ -113,7 +113,7 @@ interface BacklogItemForm {
   checklist: Array<{ texto: string; concluido: boolean }>;
 }
 
-export default function IntegratedBacklog({
+function IntegratedBacklog({
   onItemSelect,
   onTaskGenerated,
   isEmbedded = false,
@@ -1058,7 +1058,7 @@ export default function IntegratedBacklog({
               </div>
 
               <div>
-                <Label htmlFor="responsavel">Responsável</Label>
+                <Label htmlFor="responsavel">Respons��vel</Label>
                 <Input
                   id="responsavel"
                   value={itemForm.responsavel}
