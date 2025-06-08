@@ -100,25 +100,12 @@ const queryClient = new QueryClient({
   },
 });
 
-// Page wrapper with error boundary and loading - optimized for React 18
-const PageWrapper = ({ children }: { children: React.ReactNode }) => {
-  const [isPending, startTransition] = useTransition();
-  const [content, setContent] = useState<React.ReactNode>(null);
-
-  useEffect(() => {
-    startTransition(() => {
-      setContent(children);
-    });
-  }, [children]);
-
-  return (
-    <ErrorBoundary>
-      <Suspense fallback={<PageLoading />}>
-        {isPending ? <PageLoading /> : content || children}
-      </Suspense>
-    </ErrorBoundary>
-  );
-};
+// Page wrapper with error boundary and loading - simplified for React 18
+const PageWrapper = ({ children }: { children: React.ReactNode }) => (
+  <ErrorBoundary>
+    <Suspense fallback={<PageLoading />}>{children}</Suspense>
+  </ErrorBoundary>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
