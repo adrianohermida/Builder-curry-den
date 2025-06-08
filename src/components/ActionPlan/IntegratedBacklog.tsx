@@ -1152,3 +1152,9 @@ function IntegratedBacklog({
     </div>
   );
 }
+
+// Named export for destructuring imports
+export { IntegratedBacklog };
+
+// Default export for backward compatibility
+export default IntegratedBacklog;

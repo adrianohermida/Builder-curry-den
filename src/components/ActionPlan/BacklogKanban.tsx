@@ -1043,3 +1043,9 @@ function BacklogKanban({
     </div>
   );
 }
+
+// Named export for destructuring imports
+export { BacklogKanban };
+
+// Default export for backward compatibility
+export default BacklogKanban;
