@@ -96,7 +96,12 @@ class ActionPlanService {
     };
 
     // Generate hash after state is complete
-    state.versao_atual.hash_conteudo = JSON.stringify(state.modulos).substring(
+    try {
+      const content = JSON.stringify(state.modulos);
+      state.versao_atual.hash_conteudo = btoa(content).substring(0, 8);
+    } catch (error) {
+      state.versao_atual.hash_conteudo = "initial";
+    }
       0,
       8,
     );
