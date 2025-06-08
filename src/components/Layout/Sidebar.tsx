@@ -149,12 +149,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const { hasPermission, isAdmin, user } = usePermissions();
 
   // Filter menu items based on permissions
-  const menuItems = [
-    ...baseMenuItems.filter((item) =>
-      hasPermission(item.permission.module, item.permission.action),
-    ),
-    ...(isAdmin() ? adminMenuItems : []),
-  ];
+  const menuItems = baseMenuItems.filter((item) =>
+    hasPermission(item.permission.module, item.permission.action),
+  );
+
+  const adminItems = isAdmin() ? adminMenuItems : [];
+  const sistema2025ItemsFiltered = isAdmin() ? sistema2025Items : [];
 
   return (
     <div
