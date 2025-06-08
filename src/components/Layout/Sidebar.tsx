@@ -391,8 +391,21 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               Lawdesk CRM v2025.1
             </p>
             <p className="text-xs text-sidebar-foreground/40">
-              © 2025 - Sistema Jurídico Completo
+              © 2025 - Sistema Jurídico Inteligente
             </p>
+            {isAdmin() && (
+              <div className="mt-2 flex items-center justify-center gap-1">
+                <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
+                <span className="text-xs text-blue-600 font-medium">
+                  Update
+                </span>
+                <div className="w-1 h-1 bg-purple-500 rounded-full"></div>
+                <span className="text-xs text-purple-600 font-medium">
+                  Launch
+                </span>
+                <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
+              </div>
+            )}
           </div>
         </div>
       </div>
