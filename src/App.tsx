@@ -13,6 +13,7 @@ import { Layout } from "@/components/Layout/Layout";
 import { EnhancedLayout } from "@/components/Layout/EnhancedLayout";
 import { ResponsiveEnhancedLayout } from "@/components/Layout/ResponsiveEnhancedLayout";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { PageLoading } from "@/components/ui/simple-loading";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { RouteGuard } from "@/components/RouteGuard";
 import { EnhancedRouteGuard } from "@/components/Enhanced/EnhancedRouteGuard";
@@ -112,20 +113,8 @@ const PageWrapper = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <ErrorBoundary>
-      <Suspense
-        fallback={
-          <div className="flex items-center justify-center min-h-[400px]">
-            <LoadingSpinner />
-          </div>
-        }
-      >
-        {isPending ? (
-          <div className="flex items-center justify-center min-h-[400px]">
-            <LoadingSpinner />
-          </div>
-        ) : (
-          content || children
-        )}
+      <Suspense fallback={<PageLoading />}>
+        {isPending ? <PageLoading /> : content || children}
       </Suspense>
     </ErrorBoundary>
   );
