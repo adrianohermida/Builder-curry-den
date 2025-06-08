@@ -24,7 +24,9 @@ import EnhancedNotFound from "./pages/EnhancedNotFound";
 import "@/styles/themes.css";
 
 // Lazy load all pages for better performance
-const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Dashboard = lazy(() =>
+  import("./pages/Dashboard").catch(() => import("./pages/TestDashboard")),
+);
 const DashboardExecutivo = lazy(() => import("./pages/DashboardExecutivo"));
 const CRM = lazy(() => import("./pages/CRM"));
 const CRMEnhanced = lazy(() => import("./pages/CRMEnhanced"));
