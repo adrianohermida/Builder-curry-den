@@ -57,7 +57,7 @@ import {
   PieChart,
   Pie,
   Cell,
-} from "recharts";
+} from "@/components/ui/recharts-enhanced";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
