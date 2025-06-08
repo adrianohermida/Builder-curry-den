@@ -14,6 +14,7 @@ import { EnhancedLayout } from "@/components/Layout/EnhancedLayout";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { RouteGuard } from "@/components/RouteGuard";
+import { EnhancedRouteGuard } from "@/components/Enhanced/EnhancedRouteGuard";
 import NotFound from "./pages/NotFound";
 
 // Import the enhanced theme styles
@@ -227,7 +228,9 @@ const App = () => (
                           path="update"
                           element={
                             <PageWrapper>
-                              <Update />
+                              <EnhancedRouteGuard adminModeOnly requireAdmin>
+                                <Update />
+                              </EnhancedRouteGuard>
                             </PageWrapper>
                           }
                         />
@@ -235,20 +238,32 @@ const App = () => (
                           path="launch"
                           element={
                             <PageWrapper>
-                              <Launch />
+                              <EnhancedRouteGuard adminModeOnly requireAdmin>
+                                <Launch />
+                              </EnhancedRouteGuard>
                             </PageWrapper>
                           }
                         />
 
                         {/* Admin Routes */}
-                        <Route path="admin" element={<AdminLayout />}>
+                        <Route
+                          path="admin"
+                          element={
+                            <EnhancedRouteGuard adminModeOnly requireAdmin>
+                              <AdminLayout />
+                            </EnhancedRouteGuard>
+                          }
+                        >
                           <Route index element={<AdminDashboard />} />
                           <Route
                             path="executive"
                             element={
-                              <RouteGuard requireExecutive>
+                              <EnhancedRouteGuard
+                                requireExecutive
+                                adminModeOnly
+                              >
                                 <ExecutiveDashboard />
-                              </RouteGuard>
+                              </EnhancedRouteGuard>
                             }
                           />
                           <Route path="bi" element={<BIPage />} />
@@ -269,7 +284,9 @@ const App = () => (
                           path="system-health"
                           element={
                             <PageWrapper>
-                              <SystemHealth />
+                              <EnhancedRouteGuard adminModeOnly requireAdmin>
+                                <SystemHealth />
+                              </EnhancedRouteGuard>
                             </PageWrapper>
                           }
                         />
