@@ -43,6 +43,22 @@ const ConfiguracoesPrazosPage = lazy(
 const Update = lazy(() => import("./pages/Update"));
 const Launch = lazy(() => import("./pages/Launch"));
 
+// Admin modules (lazy loaded)
+const AdminLayout = lazy(() => import("./modules/LawdeskAdmin/AdminLayout"));
+const AdminDashboard = lazy(
+  () => import("./modules/LawdeskAdmin/AdminDashboard"),
+);
+const BIPage = lazy(() => import("./modules/LawdeskAdmin/BIPage"));
+const TeamPage = lazy(() => import("./modules/LawdeskAdmin/TeamPage"));
+const DevToolsPage = lazy(() => import("./modules/LawdeskAdmin/DevToolsPage"));
+const BillingPage = lazy(() => import("./modules/LawdeskAdmin/BillingPage"));
+const SupportPage = lazy(() => import("./modules/LawdeskAdmin/SupportPage"));
+const MarketingPage = lazy(
+  () => import("./modules/LawdeskAdmin/MarketingPage"),
+);
+const ProductsPage = lazy(() => import("./modules/LawdeskAdmin/ProductsPage"));
+const SecurityPage = lazy(() => import("./modules/LawdeskAdmin/SecurityPage"));
+
 // Test pages (lazy loaded)
 const ClienteDetalhesTest = lazy(() => import("./pages/ClienteDetalhesTest"));
 const TesteConfiguracaoStorage = lazy(
