@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useTransition, useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useViewMode } from "@/contexts/ViewModeContext";
@@ -36,11 +36,38 @@ export const EnhancedRouteGuard: React.FC<EnhancedRouteGuardProps> = ({
   const { isAdminMode, isClientMode, canSwitchToAdmin, switchMode } =
     useViewMode();
   const location = useLocation();
+  const [isPending, startTransition] = useTransition();
+  const [shouldRedirect, setShouldRedirect] = useState<string | null>(null);
 
-  // Check if user is logged in
+  // Use transition for any redirects that might happen
+  useEffect(() => {
+    if (shouldRedirect) {
+      startTransition(() => {
+        // Redirect will happen through state change
+      });
+    }
+  }, [shouldRedirect]);
+
+  // Check if user is logged in - use deferred check
   if (!user) {
-    toast.error("Acesso negado. Faça login para continuar.");
-    return <Navigate to="/login" replace />;
+    // Use useEffect to defer the navigation and toast
+    useEffect(() => {
+      startTransition(() => {
+        toast.error("Acesso negado. Faça login para continuar.");
+        setShouldRedirect("/login");
+      });
+    }, []);
+
+    if (shouldRedirect === "/login") {
+      return <Navigate to="/login" replace />;
+    }
+
+    // Show loading while transitioning
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   // Check mode restrictions
@@ -91,8 +118,24 @@ export const EnhancedRouteGuard: React.FC<EnhancedRouteGuardProps> = ({
         />
       );
     }
-    toast.error("Acesso negado. Esta área é restrita a administradores.");
-    return <Navigate to={fallbackPath} replace />;
+
+    // Use transition for redirect
+    useEffect(() => {
+      startTransition(() => {
+        toast.error("Acesso negado. Esta área é restrita a administradores.");
+        setShouldRedirect(fallbackPath);
+      });
+    }, []);
+
+    if (shouldRedirect === fallbackPath) {
+      return <Navigate to={fallbackPath} replace />;
+    }
+
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   // Check executive requirement (admin or specific executive permissions)
@@ -106,7 +149,6 @@ export const EnhancedRouteGuard: React.FC<EnhancedRouteGuardProps> = ({
         />
       );
     }
-    toast.error("Acesso negado. Esta área é restrita ao nível executivo.");
     return <Navigate to={fallbackPath} replace />;
   }
 
@@ -124,7 +166,6 @@ export const EnhancedRouteGuard: React.FC<EnhancedRouteGuardProps> = ({
           />
         );
       }
-      toast.error(`Acesso negado. Permissão necessária: ${requiredPermission}`);
       return <Navigate to={fallbackPath} replace />;
     }
   }
@@ -141,7 +182,6 @@ export const EnhancedRouteGuard: React.FC<EnhancedRouteGuardProps> = ({
         />
       );
     }
-    toast.error(`Acesso negado. Role necessário: ${requiredRole}`);
     return <Navigate to={fallbackPath} replace />;
   }
 
