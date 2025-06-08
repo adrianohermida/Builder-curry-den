@@ -238,6 +238,22 @@ const App = () => (
                           </PageWrapper>
                         }
                       />
+                      <Route
+                        path="update"
+                        element={
+                          <PageWrapper>
+                            <Update />
+                          </PageWrapper>
+                        }
+                      />
+                      <Route
+                        path="launch"
+                        element={
+                          <PageWrapper>
+                            <Launch />
+                          </PageWrapper>
+                        }
+                      />
 
                       {/* GED Routes */}
                       <Route
