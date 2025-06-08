@@ -47,6 +47,7 @@ const ConfiguracoesPrazosPage = lazy(
 const Update = lazy(() => import("./pages/Update"));
 const Launch = lazy(() => import("./pages/Launch"));
 const SystemHealth = lazy(() => import("./pages/SystemHealth"));
+const Login = lazy(() => import("./pages/Login"));
 
 // Admin modules (lazy loaded)
 const AdminLayout = lazy(() => import("./modules/LawdeskAdmin/AdminLayout"));
@@ -117,6 +118,17 @@ const App = () => (
                         path="/"
                         element={<Navigate to="/dashboard" replace />}
                       />
+
+                      {/* Authentication Route */}
+                      <Route
+                        path="/login"
+                        element={
+                          <PageWrapper>
+                            <Login />
+                          </PageWrapper>
+                        }
+                      />
+
                       <Route path="/" element={<EnhancedLayout />}>
                         {/* Core Application Routes */}
                         <Route
