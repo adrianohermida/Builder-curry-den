@@ -362,3 +362,6 @@ export const AIAnalyzer: React.FC<AIAnalyzerProps> = ({ onTaskGenerated }) => {
     </div>
   );
 };
+
+// Default export for backward compatibility
+export default AIAnalyzer;
