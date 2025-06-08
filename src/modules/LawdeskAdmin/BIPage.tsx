@@ -56,6 +56,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  ComposedChart,
 } from "@/components/ui/recharts-enhanced";
 
 interface KPIData {

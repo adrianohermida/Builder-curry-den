@@ -11,6 +11,7 @@ import {
   LineChart as RechartsLineChart,
   BarChart as RechartsBarChart,
   PieChart as RechartsPieChart,
+  ComposedChart as RechartsComposedChart,
   Line as RechartsLine,
   Area as RechartsArea,
   Bar as RechartsBar,
@@ -25,6 +26,7 @@ import {
   LineChartProps,
   BarChartProps,
   PieChartProps,
+  ComposedChartProps,
   LineProps,
   AreaProps,
   BarProps,
@@ -242,6 +244,26 @@ export const PieChart: React.FC<PieChartProps> = ({
   <RechartsPieChart width={width} height={height} margin={margin} {...props} />
 );
 
+// Enhanced ComposedChart with explicit defaults
+export const ComposedChart: React.FC<ComposedChartProps> = ({
+  layout = "horizontal",
+  syncId = undefined,
+  width = 0,
+  height = 0,
+  data = [],
+  margin = { top: 5, right: 5, bottom: 5, left: 5 },
+  ...props
+}) => (
+  <RechartsComposedChart
+    layout={layout}
+    syncId={syncId}
+    width={width}
+    height={height}
+    data={data}
+    margin={margin}
+    {...props}
+  />
+);
 // Enhanced Line with explicit defaults
 export const Line: React.FC<LineProps> = ({
   type = "linear",
