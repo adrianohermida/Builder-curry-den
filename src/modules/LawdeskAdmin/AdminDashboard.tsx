@@ -57,7 +57,7 @@ import {
   Cell,
   BarChart,
   Bar,
-} from "recharts";
+} from "@/components/ui/recharts-enhanced";
 
 const modules = [
   {
