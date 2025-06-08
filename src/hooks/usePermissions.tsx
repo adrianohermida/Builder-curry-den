@@ -52,6 +52,16 @@ const PermissionContext = createContext<PermissionContext | null>(null);
 const defaultPermissions: Record<UserRole, Permission[]> = {
   admin: [
     { module: "*", action: "manage" }, // Admin tem acesso total
+    { module: "executive", action: "read" },
+    { module: "executive", action: "manage" },
+    { module: "finance", action: "read" },
+    { module: "analytics", action: "read" },
+    { module: "clients", action: "read" },
+    { module: "satisfaction", action: "read" },
+    { module: "system", action: "read" },
+    { module: "marketing", action: "read" },
+    { module: "support", action: "read" },
+    { module: "contracts", action: "read" },
   ],
   advogado: [
     { module: "crm", action: "manage" },
