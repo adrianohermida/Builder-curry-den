@@ -200,46 +200,7 @@ const App = () => (
                           </PageWrapper>
                         }
                       />
-                      <Route
-                        path="plano-acao-ia"
-                        element={
-                          <PageWrapper>
-                            <PlanoDeAcaoIA />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="action-plan"
-                        element={
-                          <PageWrapper>
-                            <ActionPlan />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="plano-acao"
-                        element={
-                          <PageWrapper>
-                            <ActionPlan />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="enhanced-action-plan"
-                        element={
-                          <PageWrapper>
-                            <EnhancedActionPlan />
-                          </PageWrapper>
-                        }
-                      />
-                      <Route
-                        path="backlog-inteligente"
-                        element={
-                          <PageWrapper>
-                            <EnhancedActionPlan />
-                          </PageWrapper>
-                        }
-                      />
+
                       <Route
                         path="update"
                         element={
