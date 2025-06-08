@@ -28,7 +28,6 @@ import {
   Monitor,
   Play,
   Clock,
-  RefreshCw,
 } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -39,16 +38,16 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 
 // Import enhanced action plan components
-import EnhancedActionPlanDashboard from "@/components/ActionPlan/EnhancedActionPlanDashboard";
-import EnhancedModuleManager from "@/components/ActionPlan/EnhancedModuleManager";
-import VersionControl from "@/components/ActionPlan/VersionControl";
-import AIAnalyzer from "@/components/ActionPlan/AIAnalyzer";
-import LogViewer from "@/components/ActionPlan/LogViewer";
+import { EnhancedActionPlanDashboard } from "@/components/ActionPlan/EnhancedActionPlanDashboard";
+import { EnhancedModuleManager } from "@/components/ActionPlan/EnhancedModuleManager";
+import { VersionControl } from "@/components/ActionPlan/VersionControl";
+import { AIAnalyzer } from "@/components/ActionPlan/AIAnalyzer";
+import { LogViewer } from "@/components/ActionPlan/LogViewer";
 
 // Import new backlog components
-import BacklogKanban from "@/components/ActionPlan/BacklogKanban";
-import BacklogDashboard from "@/components/ActionPlan/BacklogDashboard";
-import IntegratedBacklog from "@/components/ActionPlan/IntegratedBacklog";
+import { BacklogKanban } from "@/components/ActionPlan/BacklogKanban";
+import { BacklogDashboard } from "@/components/ActionPlan/BacklogDashboard";
+import { IntegratedBacklog } from "@/components/ActionPlan/IntegratedBacklog";
 
 // Import intelligent system components
 import { IntelligentMonitor } from "@/components/ActionPlan/IntelligentMonitor";
@@ -59,8 +58,8 @@ import { ExecutionTrigger } from "@/components/ActionPlan/ExecutionTrigger";
 import { ReleaseFrameworkDashboard } from "@/components/ActionPlan/ReleaseFrameworkDashboard";
 
 // Import services, types, and hooks
-import ActionPlanService from "@/services/actionPlanService";
-import BacklogService from "@/services/backlogService";
+import { actionPlanService } from "@/services/actionPlanService";
+import { backlogService } from "@/services/backlogService";
 import { ActionPlanState, ModuleName } from "@/types/actionPlan";
 import { BacklogState, BacklogItem } from "@/types/backlog";
 import { useIntelligentActionPlan } from "@/hooks/useIntelligentActionPlan";
@@ -77,9 +76,6 @@ export default function EnhancedActionPlan() {
   const [notifications, setNotifications] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showHiddenModules, setShowHiddenModules] = useState(false);
-
-  const actionPlanService = ActionPlanService.getInstance();
-  const backlogService = BacklogService.getInstance();
 
   // Intelligent Action Plan integration
   const {
@@ -112,7 +108,7 @@ export default function EnhancedActionPlan() {
       unsubscribeActionPlan();
       unsubscribeBacklog();
     };
-  }, [actionPlanService, backlogService]);
+  }, []);
 
   // Handle navigation between tabs
   const handleNavigateToModule = (module: ModuleName) => {
@@ -720,7 +716,7 @@ export default function EnhancedActionPlan() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Target className="h-5 w-5 text-primary" />
-                  Gerenciamento de M��dulos Técnicos
+                  Gerenciamento de Módulos Técnicos
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -894,6 +890,13 @@ export default function EnhancedActionPlan() {
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
+                    <span className="text-sm">Release Framework</span>
+                    <Badge className="bg-green-100 text-green-800">
+                      <Rocket className="h-3 w-3 mr-1" />
+                      Ativo
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
                     <span className="text-sm">Backlog → Plano Técnico</span>
                     <Badge className="bg-green-100 text-green-800">
                       <CheckCircle className="h-3 w-3 mr-1" />
@@ -912,13 +915,6 @@ export default function EnhancedActionPlan() {
                     <Badge className="bg-blue-100 text-blue-800">
                       <Play className="h-3 w-3 mr-1" />
                       Monitorando
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Logs Centralizados</span>
-                    <Badge className="bg-blue-100 text-blue-800">
-                      <FileText className="h-3 w-3 mr-1" />
-                      Operacional
                     </Badge>
                   </div>
                 </div>
@@ -1063,11 +1059,24 @@ export default function EnhancedActionPlan() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-muted-foreground">
           <div>
             <h4 className="font-medium text-foreground mb-2">
+              🚀 Release Intelligence Framework
+            </h4>
+            <ul className="space-y-1">
+              <li>• Checklist dinâmica para módulos, funções e produtos</li>
+              <li>• Validação automática com IA integrada</li>
+              <li>• Sistema de monetização com Stripe</li>
+              <li>• Compliance LGPD e acessibilidade</li>
+              <li>• Planos de rollback automatizados</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-foreground mb-2">
               🧠 Sistema Inteligente 2025
             </h4>
             <ul className="space-y-1">
               <li>• Execução contínua e automatizada</li>
-              <li>• Análise de sistema em tempo real</li>
+              <li>• Análise preditiva de problemas</li>
               <li>• Geração automática de tarefas</li>
               <li>• Monitoramento inteligente 24/7</li>
               <li>• Aprendizado contínuo e adaptação</li>
@@ -1076,27 +1085,14 @@ export default function EnhancedActionPlan() {
 
           <div>
             <h4 className="font-medium text-foreground mb-2">
-              🤖 IA Avançada Integrada
-            </h4>
-            <ul className="space-y-1">
-              <li>• Análise preditiva de problemas</li>
-              <li>• Detecção automática de gargalos</li>
-              <li>• Otimização contínua de performance</li>
-              <li>• Classificação inteligente de prioridades</li>
-              <li>• Recomendações contextuais personalizadas</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-medium text-foreground mb-2">
-              📊 Governança Autônoma
+              📊 Governança Autônoma Completa
             </h4>
             <ul className="space-y-1">
               <li>• Dashboard executivo em tempo real</li>
               <li>• Métricas de ROI e eficiência automatizadas</li>
               <li>• Auditoria completa de todas as ações</li>
               <li>• Controle de versão inteligente</li>
-              <li>• Relatórios executivos automáticos</li>
+              <li>• Sistema de lançamento estruturado</li>
             </ul>
           </div>
         </div>
@@ -1109,8 +1105,8 @@ export default function EnhancedActionPlan() {
               actionPlanState.versao_atual.data_criacao,
             ).toLocaleString()}{" "}
             • Sistema desenvolvido com IA avançada para gestão autônoma
-            contínua, análise preditiva e otimização automática de processos
-            jurídicos
+            contínua, análise preditiva, Release Intelligence Framework e
+            otimização automática de processos jurídicos
           </p>
         </div>
       </div>
