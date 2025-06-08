@@ -43,6 +43,7 @@ import {
 import { DatePickerWithRange } from "@/components/ui/date-picker-range";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ChartWrapper } from "@/components/ui/chart-error-boundary";
 import {
   LineChart as RechartsLineChart,
   Line,
