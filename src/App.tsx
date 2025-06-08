@@ -39,9 +39,7 @@ const ConfiguracaoArmazenamento = lazy(
 const ConfiguracoesPrazosPage = lazy(
   () => import("./pages/ConfiguracoesPrazosPage"),
 );
-const PlanoDeAcaoIA = lazy(() => import("./components/System/PlanoDeAcaoIA"));
-const ActionPlan = lazy(() => import("./pages/ActionPlan"));
-const EnhancedActionPlan = lazy(() => import("./pages/EnhancedActionPlan"));
+
 const Update = lazy(() => import("./pages/Update"));
 const Launch = lazy(() => import("./pages/Launch"));
 
