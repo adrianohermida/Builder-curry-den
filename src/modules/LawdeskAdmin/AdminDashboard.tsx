@@ -33,6 +33,7 @@ import {
   Database,
   Cloud,
   RefreshCw,
+  Crown,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,6 +61,17 @@ import {
 } from "@/components/ui/recharts-enhanced";
 
 const modules = [
+  {
+    id: "executive",
+    title: "Dashboard Executivo",
+    description: "Visão estratégica completa do negócio",
+    icon: Crown,
+    href: "/admin/executive",
+    color: "from-purple-500 to-indigo-600",
+    stats: { value: "87%", label: "Metas Atingidas" },
+    status: "healthy",
+    growth: "Excelente",
+  },
   {
     id: "bi",
     title: "Business Intelligence",
@@ -648,13 +660,13 @@ export default function AdminDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Link to="/admin/desenvolvimento">
+            <Link to="/admin/executive">
               <Button
                 variant="outline"
-                className="w-full h-20 flex flex-col gap-2"
+                className="w-full h-20 flex flex-col gap-2 bg-purple-50 hover:bg-purple-100 border-purple-200"
               >
-                <Code className="w-6 h-6" />
-                <span className="text-xs">Deploy</span>
+                <Crown className="w-6 h-6 text-purple-600" />
+                <span className="text-xs">Executive</span>
               </Button>
             </Link>
             <Link to="/admin/bi">
