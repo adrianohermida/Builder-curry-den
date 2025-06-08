@@ -66,9 +66,7 @@ interface VersionControlProps {
   onVersionChange?: (version: ActionPlanVersionType) => void;
 }
 
-export default function VersionControl({
-  onVersionChange,
-}: VersionControlProps) {
+function VersionControl({ onVersionChange }: VersionControlProps) {
   const [state, setState] = useState<ActionPlanState | null>(null);
   const [isCreateVersionOpen, setIsCreateVersionOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);

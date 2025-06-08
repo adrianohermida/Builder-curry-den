@@ -78,7 +78,7 @@ interface LogFilter {
   };
 }
 
-export default function LogViewer() {
+function LogViewer() {
   const [state, setState] = useState<ActionPlanState | null>(null);
   const [selectedLog, setSelectedLog] = useState<ExecutionLog | null>(null);
   const [filter, setFilter] = useState<LogFilter>({
