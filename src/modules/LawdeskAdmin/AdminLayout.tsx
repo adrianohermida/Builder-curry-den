@@ -24,6 +24,15 @@ import { RouteGuard } from "@/components/RouteGuard";
 
 const adminModules = [
   {
+    id: "executive",
+    title: "Dashboard Executivo",
+    description: "Visão estratégica completa",
+    icon: Shield,
+    href: "/admin/executive",
+    color: "text-purple-600",
+    badge: "Executive",
+  },
+  {
     id: "bi",
     title: "Business Intelligence",
     description: "Gráficos, analytics e métricas",

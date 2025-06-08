@@ -49,6 +49,9 @@ const AdminLayout = lazy(() => import("./modules/LawdeskAdmin/AdminLayout"));
 const AdminDashboard = lazy(
   () => import("./modules/LawdeskAdmin/AdminDashboard"),
 );
+const ExecutiveDashboard = lazy(
+  () => import("./modules/LawdeskAdmin/ExecutiveDashboard"),
+);
 const BIPage = lazy(() => import("./modules/LawdeskAdmin/BIPage"));
 const TeamPage = lazy(() => import("./modules/LawdeskAdmin/TeamPage"));
 const DevToolsPage = lazy(() => import("./modules/LawdeskAdmin/DevToolsPage"));
@@ -236,6 +239,10 @@ const App = () => (
                       {/* Admin Routes */}
                       <Route path="admin" element={<AdminLayout />}>
                         <Route index element={<AdminDashboard />} />
+                        <Route
+                          path="executive"
+                          element={<ExecutiveDashboard />}
+                        />
                         <Route path="bi" element={<BIPage />} />
                         <Route path="equipe" element={<TeamPage />} />
                         <Route
