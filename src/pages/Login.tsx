@@ -42,28 +42,20 @@ export default function Login() {
   // Demo users for testing
   const demoUsers = [
     {
-      name: "Administrador",
-      email: "admin@lawdesk.com.br",
-      password: "admin123",
+      name: "Adriano Hermida",
+      email: "adrianohermida@gmail.com",
+      password: "admin",
       role: "admin" as const,
       badge: "Admin",
       color: "bg-red-100 text-red-800",
     },
     {
-      name: "Dr. Pedro Silva",
-      email: "pedro@lawdesk.com.br",
-      password: "advogado123",
-      role: "advogado" as const,
-      badge: "Advogado",
+      name: "Usuário Teste",
+      email: "teste@lawdesk.com.br",
+      password: "teste@123",
+      role: "cliente" as const,
+      badge: "Cliente",
       color: "bg-blue-100 text-blue-800",
-    },
-    {
-      name: "Maria Santos",
-      email: "maria@lawdesk.com.br",
-      password: "estagiario123",
-      role: "estagiario" as const,
-      badge: "Estagiário",
-      color: "bg-green-100 text-green-800",
     },
   ];
 
