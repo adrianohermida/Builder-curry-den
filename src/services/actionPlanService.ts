@@ -40,7 +40,7 @@ class ActionPlanService {
   private initializeState(): ActionPlanState {
     const now = new Date().toISOString();
 
-    return {
+    const state = {
       versao_atual: {
         versao: "v2.0",
         data_criacao: now,
@@ -60,7 +60,7 @@ class ActionPlanService {
         ],
         total_tarefas_adicionadas: 0,
         total_tarefas_removidas: 0,
-        hash_conteudo: this.generateHash(),
+        hash_conteudo: "", // Will be set after modulos are initialized
       },
       historico_versoes: [],
       modulos: this.initializeModules(),
