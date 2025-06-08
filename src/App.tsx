@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useTransition, useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -99,12 +99,37 @@ const queryClient = new QueryClient({
   },
 });
 
-// Page wrapper with error boundary and loading
-const PageWrapper = ({ children }: { children: React.ReactNode }) => (
-  <ErrorBoundary>
-    <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
-  </ErrorBoundary>
-);
+// Page wrapper with error boundary and loading - optimized for React 18
+const PageWrapper = ({ children }: { children: React.ReactNode }) => {
+  const [isPending, startTransition] = useTransition();
+  const [content, setContent] = useState<React.ReactNode>(null);
+
+  useEffect(() => {
+    startTransition(() => {
+      setContent(children);
+    });
+  }, [children]);
+
+  return (
+    <ErrorBoundary>
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center min-h-[400px]">
+            <LoadingSpinner />
+          </div>
+        }
+      >
+        {isPending ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <LoadingSpinner />
+          </div>
+        ) : (
+          content || children
+        )}
+      </Suspense>
+    </ErrorBoundary>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
