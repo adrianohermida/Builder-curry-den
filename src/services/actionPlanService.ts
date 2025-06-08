@@ -92,7 +92,16 @@ class ActionPlanService {
         roi_global_estimado: "R$ 0",
         ultima_atualizacao: now,
       },
+      modulos: this.initializeModules(),
     };
+
+    // Generate hash after state is complete
+    state.versao_atual.hash_conteudo = JSON.stringify(state.modulos).substring(
+      0,
+      8,
+    );
+
+    return state;
   }
 
   // Initialize modules with sample data
