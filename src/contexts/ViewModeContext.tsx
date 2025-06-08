@@ -51,7 +51,7 @@ const getAdminScopes = (userRole: string): string[] => {
   return [];
 };
 
-// Security logging function
+// Internal logging function for this context
 const logModeSwitch = (
   userId: string,
   fromMode: ViewMode,
