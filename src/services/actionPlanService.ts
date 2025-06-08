@@ -800,11 +800,6 @@ class ActionPlanService {
     return "v2.1";
   }
 
-  private generateHash(): string {
-    const content = JSON.stringify(this.state?.modulos || []);
-    return btoa(content).substr(0, 8);
-  }
-
   // Cleanup
   dispose(): void {
     this.stopAutoAnalysis();
