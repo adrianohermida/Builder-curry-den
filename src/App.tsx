@@ -11,6 +11,7 @@ import { PermissionProvider } from "@/hooks/usePermissions";
 import { Layout } from "@/components/Layout/Layout";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { RouteGuard } from "@/components/RouteGuard";
 import NotFound from "./pages/NotFound";
 
 // Import the enhanced theme styles
@@ -241,7 +242,11 @@ const App = () => (
                         <Route index element={<AdminDashboard />} />
                         <Route
                           path="executive"
-                          element={<ExecutiveDashboard />}
+                          element={
+                            <RouteGuard requireExecutive>
+                              <ExecutiveDashboard />
+                            </RouteGuard>
+                          }
                         />
                         <Route path="bi" element={<BIPage />} />
                         <Route path="equipe" element={<TeamPage />} />
