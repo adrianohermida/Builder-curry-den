@@ -45,25 +45,23 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ChartWrapper } from "@/components/ui/chart-error-boundary";
 import {
-  LineChart as RechartsLineChart,
+  LineChart,
   Line,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   BarChart,
   Bar,
-  PieChart as RechartsPieChart,
+  PieChart,
   Cell,
   AreaChart,
   Area,
-} from "recharts";
-import {
   XAxis,
   YAxis,
   Pie,
   formatCurrency,
-  ChartLegend,
-} from "@/components/ui/chart-components";
+} from "@/components/ui/recharts-enhanced";
+import { ChartLegend } from "@/components/ui/chart-components";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuditSystem } from "@/hooks/useAuditSystem";
 import { DateRange } from "react-day-picker";
