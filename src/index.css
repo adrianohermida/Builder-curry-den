@@ -186,17 +186,42 @@
 /* Admin mode specific styling */
 @layer base {
   .admin-mode {
-    --primary: 239 84% 67%;
-    --primary-foreground: 356 29% 15%;
-    --background: 220 14% 96%;
-    --foreground: 220 13% 9%;
+    --primary: 0 84% 60%; /* Red primary for admin */
+    --primary-foreground: 0 0% 100%;
+    --background: 222.2 84% 4.9%; /* Dark background */
+    --foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+
+    /* Sidebar specific */
+    --sidebar: 222.2 84% 4.9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
   }
 
   .admin-mode.dark {
-    --primary: 263 70% 50%;
-    --primary-foreground: 210 20% 98%;
+    /* Keep same dark theme for admin mode */
+    --primary: 0 84% 60%;
+    --primary-foreground: 0 0% 100%;
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
+  }
+
+  /* Client mode specific styling */
+  .client-mode {
+    --primary: 221.2 83.2% 53.3%; /* Blue primary for client */
+    --primary-foreground: 210 40% 98%;
+  }
+
+  .client-mode.dark {
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
   }
 }
 
@@ -219,6 +244,63 @@
     }
     100% {
       background-position: -200% 0;
+    }
+  }
+}
+
+/* Brand specific styling */
+@layer components {
+  .brand-lawdesk {
+    --brand-primary: 221.2 83.2% 53.3%; /* Blue */
+    --brand-secondary: 217.2 91.2% 59.8%;
+    --brand-accent: 210 40% 96%;
+  }
+
+  .brand-lawdesk-admin {
+    --brand-primary: 0 84% 60%; /* Red */
+    --brand-secondary: 0 72% 51%;
+    --brand-accent: 217.2 32.6% 17.5%;
+  }
+
+  /* Sidebar brand styling */
+  .sidebar-brand-client {
+    background: linear-gradient(135deg, rgb(59 130 246), rgb(37 99 235));
+    color: white;
+  }
+
+  .sidebar-brand-admin {
+    background: linear-gradient(135deg, rgb(239 68 68), rgb(220 38 38));
+    color: white;
+  }
+}
+
+/* Animation improvements */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(-10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
     }
   }
 }
