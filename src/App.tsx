@@ -25,11 +25,11 @@ import EnhancedNotFound from "./pages/EnhancedNotFound";
 import "@/styles/themes.css";
 
 // Lazy load all pages for better performance
-const Dashboard = lazy(() => import("./pages/Dashboard").catch(() => import("./pages/TestDashboard")));
-const MobileDashboard = lazy(() => import("./pages/MobileDashboard"));
-const MobileCRM = lazy(() => import("./pages/MobileCRM"));
+const Dashboard = lazy(() =>
   import("./pages/Dashboard").catch(() => import("./pages/TestDashboard")),
 );
+const MobileDashboard = lazy(() => import("./pages/MobileDashboard"));
+const MobileCRM = lazy(() => import("./pages/MobileCRM"));
 const DashboardExecutivo = lazy(() => import("./pages/DashboardExecutivo"));
 const CRM = lazy(() => import("./pages/CRM"));
 const CRMEnhanced = lazy(() => import("./pages/CRMEnhanced"));
