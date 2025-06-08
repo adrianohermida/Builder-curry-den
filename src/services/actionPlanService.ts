@@ -177,7 +177,7 @@ class ActionPlanService {
       modulos_afetados: this.state.modulos.map((m) => m.modulo),
       total_tarefas_adicionadas: 0,
       total_tarefas_removidas: 0,
-      hash_conteudo: this.generateHash(),
+      hash_conteudo: JSON.stringify(this.state.modulos).substring(0, 8),
     };
 
     // Archive current version
