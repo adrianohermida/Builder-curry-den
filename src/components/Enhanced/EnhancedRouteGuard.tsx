@@ -1,4 +1,4 @@
-import React, { useTransition, useEffect, useState } from "react";
+import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useViewMode } from "@/contexts/ViewModeContext";
@@ -36,38 +36,10 @@ export const EnhancedRouteGuard: React.FC<EnhancedRouteGuardProps> = ({
   const { isAdminMode, isClientMode, canSwitchToAdmin, switchMode } =
     useViewMode();
   const location = useLocation();
-  const [isPending, startTransition] = useTransition();
-  const [shouldRedirect, setShouldRedirect] = useState<string | null>(null);
 
-  // Use transition for any redirects that might happen
-  useEffect(() => {
-    if (shouldRedirect) {
-      startTransition(() => {
-        // Redirect will happen through state change
-      });
-    }
-  }, [shouldRedirect]);
-
-  // Check if user is logged in - use deferred check
+  // Check if user is logged in
   if (!user) {
-    // Use useEffect to defer the navigation and toast
-    useEffect(() => {
-      startTransition(() => {
-        toast.error("Acesso negado. Faça login para continuar.");
-        setShouldRedirect("/login");
-      });
-    }, []);
-
-    if (shouldRedirect === "/login") {
-      return <Navigate to="/login" replace />;
-    }
-
-    // Show loading while transitioning
-    return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <Navigate to="/login" replace />;
   }
 
   // Check mode restrictions
@@ -118,24 +90,7 @@ export const EnhancedRouteGuard: React.FC<EnhancedRouteGuardProps> = ({
         />
       );
     }
-
-    // Use transition for redirect
-    useEffect(() => {
-      startTransition(() => {
-        toast.error("Acesso negado. Esta área é restrita a administradores.");
-        setShouldRedirect(fallbackPath);
-      });
-    }, []);
-
-    if (shouldRedirect === fallbackPath) {
-      return <Navigate to={fallbackPath} replace />;
-    }
-
-    return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <Navigate to={fallbackPath} replace />;
   }
 
   // Check executive requirement (admin or specific executive permissions)
