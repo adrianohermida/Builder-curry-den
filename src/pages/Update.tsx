@@ -26,6 +26,7 @@ import { AutomatedPlanningDashboard } from "@/components/Update/AutomatedPlannin
 import { TechnicalActionManager } from "@/components/Update/TechnicalActionManager";
 import { UpdateAnalytics } from "@/components/Update/UpdateAnalytics";
 import { SystemUpdateMonitor } from "@/components/Update/SystemUpdateMonitor";
+import { ScoreDashboard } from "@/components/Update/ScoreDashboard";
 
 export default function Update() {
   const [activeTab, setActiveTab] = useState("planning");
@@ -158,7 +159,7 @@ export default function Update() {
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList className="grid grid-cols-4 w-full">
+        <TabsList className="grid grid-cols-5 w-full">
           <TabsTrigger value="planning" className="flex items-center gap-2">
             <Brain className="h-4 w-4" />
             Planejamento Automático
@@ -174,6 +175,10 @@ export default function Update() {
           <TabsTrigger value="monitor" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             Monitor Sistema
+          </TabsTrigger>
+          <TabsTrigger value="score" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Score
           </TabsTrigger>
         </TabsList>
 
@@ -256,6 +261,27 @@ export default function Update() {
               </CardHeader>
               <CardContent>
                 <SystemUpdateMonitor />
+              </CardContent>
+            </Card>
+          </motion.div>
+        </TabsContent>
+
+        {/* Score Tab */}
+        <TabsContent value="score" className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-indigo-500" />
+                  Escalabilidade & Go-to-Market Score
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScoreDashboard />
               </CardContent>
             </Card>
           </motion.div>
