@@ -264,7 +264,7 @@ export function EnhancedSidebar({ open, onClose }: EnhancedSidebarProps) {
         "w-72 h-full border-r transition-all duration-300 ease-in-out",
         "flex flex-col",
         // Responsive adjustments
-        "max-w-[85vw] sm:max-w-72"
+        "max-w-[85vw] sm:max-w-72",
       )}
     >
       <div className="flex flex-col h-full">
@@ -398,16 +398,17 @@ export function EnhancedSidebar({ open, onClose }: EnhancedSidebarProps) {
             />
             <input
               type="text"
-              placeholder={isAdminMode ? "Buscar no admin..." : "Buscar no sistema..."}
+              placeholder={
+                isAdminMode ? "Buscar no admin..." : "Buscar no sistema..."
+              }
               className={cn(
                 "w-full pl-10 pr-4 py-2 text-sm rounded-md border focus:outline-none focus:ring-2 focus:ring-primary/50",
                 "touch-manipulation", // Better touch handling on mobile
                 isAdminMode
                   ? "bg-slate-800 border-slate-600 text-slate-200 placeholder-slate-400"
-                  : "bg-sidebar-accent border-sidebar-border"
+                  : "bg-sidebar-accent border-sidebar-border",
               )}
-              style={{ fontSize: '16px' }} // Prevent zoom on iOS
-            />
+              style={{ fontSize: "16px" }} // Prevent zoom on iOS
             />
             <kbd
               className={cn(
