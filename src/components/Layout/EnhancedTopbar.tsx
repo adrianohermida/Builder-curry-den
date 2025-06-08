@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu,
   Bell,
@@ -15,6 +15,10 @@ import {
   Activity,
   Globe,
   Clock,
+  ToggleLeft,
+  ToggleRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -34,6 +38,7 @@ import { ViewModeToggle } from "./ViewModeToggle";
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useViewMode } from "@/contexts/ViewModeContext";
+import { toast } from "sonner";
 
 interface EnhancedTopbarProps {
   onMenuClick: () => void;
@@ -47,7 +52,8 @@ export function EnhancedTopbar({
   showMobileNav = false,
 }: EnhancedTopbarProps) {
   const { user, isAdmin, logout } = usePermissions();
-  const { isAdminMode, isClientMode } = useViewMode();
+  const { isAdminMode, isClientMode, canSwitchToAdmin, switchMode } =
+    useViewMode();
   const currentTime = new Date().toLocaleTimeString("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
@@ -57,17 +63,33 @@ export function EnhancedTopbar({
     title: isAdminMode ? "Lawdesk Admin" : "Lawdesk CRM",
     subtitle: isAdminMode ? "Painel Administrativo" : "Sistema Jurídico",
     icon: isAdminMode ? Shield : Scale,
-    iconColor: isAdminMode ? "text-red-600" : "text-blue-600",
-    bgColor: isAdminMode ? "bg-red-50" : "bg-blue-50",
+    iconColor: isAdminMode ? "text-red-500" : "text-blue-600",
+    bgColor: isAdminMode ? "bg-red-500" : "bg-blue-600",
+    textColor: "text-white",
+  };
+
+  // Admin Mode Quick Switcher - aparece só no modo admin
+  const handleQuickSwitch = () => {
+    if (isAdminMode) {
+      switchMode("client");
+      toast.success("Alternado para visualização de cliente", {
+        description: "⚖️ Agora você está vendo o sistema como um cliente",
+      });
+    } else if (canSwitchToAdmin) {
+      switchMode("admin");
+      toast.success("Alternado para modo administrativo", {
+        description: "🛡️ Acesso total às ferramentas administrativas",
+      });
+    }
   };
 
   return (
     <header
       className={cn(
-        "topbar sticky top-0 z-40",
+        "sticky top-0 z-40",
         isAdminMode
           ? "bg-slate-900/95 backdrop-blur border-slate-700 text-slate-100"
-          : "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-border",
+          : "bg-background/95 backdrop-blur border-border",
         "border-b",
         "px-4 sm:px-6 lg:px-8",
         "h-16 flex items-center justify-between",
@@ -82,12 +104,21 @@ export function EnhancedTopbar({
           size="sm"
           onClick={onMenuClick}
           className={cn(
-            "flex items-center gap-2 lg:hidden",
+            "flex items-center gap-2",
             isAdminMode &&
               "text-slate-200 hover:text-slate-100 hover:bg-slate-800",
           )}
         >
           <Menu className="h-5 w-5" />
+          {!showMobileNav && (
+            <span className="hidden sm:inline">
+              {sidebarOpen ? (
+                <ChevronLeft className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </span>
+          )}
         </Button>
 
         {/* Branding */}
@@ -106,7 +137,7 @@ export function EnhancedTopbar({
             )}
           >
             <brandingInfo.icon
-              className={cn("w-6 h-6", brandingInfo.iconColor)}
+              className={cn("w-6 h-6", brandingInfo.textColor)}
             />
           </motion.div>
           <div className="hidden sm:block">
@@ -130,21 +161,24 @@ export function EnhancedTopbar({
         </Link>
 
         {/* Admin Mode Indicator */}
-        {isAdminMode && (
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="hidden md:flex items-center gap-2"
-          >
-            <Badge
-              variant="destructive"
-              className="animate-pulse bg-red-600 text-white border-red-500"
+        <AnimatePresence>
+          {isAdminMode && (
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              className="hidden md:flex items-center gap-2"
             >
-              <Shield className="h-3 w-3 mr-1" />
-              ADMIN MODE
-            </Badge>
-          </motion.div>
-        )}
+              <Badge
+                variant="destructive"
+                className="animate-pulse bg-red-600 text-white border-red-500"
+              >
+                <Shield className="h-3 w-3 mr-1" />
+                ADMIN MODE
+              </Badge>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Real-time Clock for Admin Mode */}
         {isAdminMode && (
@@ -172,12 +206,12 @@ export function EnhancedTopbar({
             className={cn(
               "w-full pl-10 pr-4 py-2 text-sm rounded-lg border transition-colors",
               "focus:outline-none focus:ring-2 focus:ring-primary/50",
-              "touch-manipulation", // Better touch handling
+              "touch-manipulation",
               isAdminMode
                 ? "bg-slate-800 border-slate-600 text-slate-200 placeholder-slate-400 focus:border-slate-500"
                 : "bg-background border-input placeholder:text-muted-foreground focus:border-primary",
             )}
-            style={{ fontSize: "16px" }} // Prevent zoom on iOS
+            style={{ fontSize: "16px" }}
           />
         </div>
       </div>
@@ -192,6 +226,37 @@ export function EnhancedTopbar({
               <span>Sistema Operacional</span>
             </div>
           </div>
+        )}
+
+        {/* Quick Mode Switcher - só para admins */}
+        {isAdmin() && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleQuickSwitch}
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 rounded-lg transition-all",
+              isAdminMode
+                ? "bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600"
+                : "bg-muted hover:bg-muted/80 text-muted-foreground border border-border",
+            )}
+          >
+            {isAdminMode ? (
+              <>
+                <Scale className="h-4 w-4 text-blue-400" />
+                <span className="hidden sm:inline text-xs font-medium">
+                  Ver como Cliente
+                </span>
+              </>
+            ) : (
+              <>
+                <Shield className="h-4 w-4 text-red-400" />
+                <span className="hidden sm:inline text-xs font-medium">
+                  Modo Admin
+                </span>
+              </>
+            )}
+          </Button>
         )}
 
         {/* View Mode Toggle */}
@@ -286,6 +351,28 @@ export function EnhancedTopbar({
                   {isAdminMode ? "🛡️ Admin" : "⚖️ Cliente"}
                 </Badge>
               </div>
+
+              {/* Quick mode switch in menu */}
+              {isAdmin() && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleQuickSwitch}
+                  className="w-full mt-2 text-xs"
+                >
+                  {isAdminMode ? (
+                    <>
+                      <Scale className="h-3 w-3 mr-1" />
+                      Alternar para Cliente
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="h-3 w-3 mr-1" />
+                      Alternar para Admin
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
 
             <DropdownMenuSeparator />
@@ -306,6 +393,15 @@ export function EnhancedTopbar({
                   <Link to="/system-health" className="flex items-center gap-2">
                     <Activity className="h-4 w-4" />
                     System Health
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/configuracoes/widget-conversacao"
+                    className="flex items-center gap-2"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Config. Widget
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
