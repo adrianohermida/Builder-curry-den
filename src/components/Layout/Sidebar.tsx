@@ -318,6 +318,19 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                             )}
                           </div>
                         </div>
+                        {item.badge && (
+                          <Badge
+                            className={cn(
+                              "text-xs",
+                              item.badge === "2025" &&
+                                "bg-gradient-to-r from-blue-500 to-purple-600 text-white",
+                              item.badge === "Admin" &&
+                                "bg-gradient-to-r from-red-500 to-pink-600 text-white",
+                            )}
+                          >
+                            {item.badge}
+                          </Badge>
+                        )}
                       </Link>
                     );
                   })}
