@@ -103,7 +103,10 @@ export function ViewModeToggle() {
                 >
                   <CurrentIcon className={cn("h-4 w-4", currentConfig.color)} />
                   <span
-                    className={cn("text-sm font-medium", currentConfig.color)}
+                    className={cn(
+                      "text-sm font-medium hidden sm:inline",
+                      currentConfig.color,
+                    )}
                   >
                     {isAdminMode ? "Admin" : "Cliente"}
                   </span>
@@ -123,7 +126,10 @@ export function ViewModeToggle() {
               </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="w-80">
+            <DropdownMenuContent
+              align="end"
+              className="w-80 max-w-[calc(100vw-2rem)] mr-2"
+            >
               <DropdownMenuLabel className="flex items-center gap-2">
                 <RotateCcw className="h-4 w-4" />
                 Alternar Modo de Visualização
