@@ -792,7 +792,7 @@ class ActionPlanService {
   }
 
   private generateHash(): string {
-    const content = JSON.stringify(this.state.modulos);
+    const content = JSON.stringify(this.state?.modulos || []);
     return btoa(content).substr(0, 8);
   }
 
