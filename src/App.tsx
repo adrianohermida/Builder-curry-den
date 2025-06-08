@@ -232,6 +232,22 @@ const App = () => (
                         }
                       />
 
+                      {/* Admin Routes */}
+                      <Route path="admin" element={<AdminLayout />}>
+                        <Route index element={<AdminDashboard />} />
+                        <Route path="bi" element={<BIPage />} />
+                        <Route path="equipe" element={<TeamPage />} />
+                        <Route
+                          path="desenvolvimento"
+                          element={<DevToolsPage />}
+                        />
+                        <Route path="faturamento" element={<BillingPage />} />
+                        <Route path="suporte" element={<SupportPage />} />
+                        <Route path="marketing" element={<MarketingPage />} />
+                        <Route path="produtos" element={<ProductsPage />} />
+                        <Route path="seguranca" element={<SecurityPage />} />
+                      </Route>
+
                       {/* GED Routes */}
                       <Route
                         path="ged"
