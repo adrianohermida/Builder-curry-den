@@ -172,10 +172,12 @@ export function EnhancedTopbar({
             className={cn(
               "w-full pl-10 pr-4 py-2 text-sm rounded-lg border transition-colors",
               "focus:outline-none focus:ring-2 focus:ring-primary/50",
+              "touch-manipulation", // Better touch handling
               isAdminMode
                 ? "bg-slate-800 border-slate-600 text-slate-200 placeholder-slate-400 focus:border-slate-500"
                 : "bg-background border-input placeholder:text-muted-foreground focus:border-primary",
             )}
+            style={{ fontSize: "16px" }} // Prevent zoom on iOS
           />
         </div>
       </div>
@@ -250,7 +252,10 @@ export function EnhancedTopbar({
             </Button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" className="w-64">
+          <DropdownMenuContent
+            align="end"
+            className="w-64 max-w-[calc(100vw-2rem)] mr-2"
+          >
             <DropdownMenuLabel>
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
