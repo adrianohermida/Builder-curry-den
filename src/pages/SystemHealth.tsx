@@ -16,6 +16,7 @@ import {
   Zap,
   Shield,
   Eye,
+  EyeOff,
   RefreshCw,
   Download,
   Settings,
@@ -727,9 +728,7 @@ export default function SystemHealth() {
               <div className="text-center py-12 text-muted-foreground">
                 <FileText className="h-16 w-16 mx-auto mb-4 opacity-50" />
                 <h3 className="text-lg font-medium mb-2">Logs do Sistema</h3>
-                <p>
-                  Visualizaç��o de logs em tempo real será implementada aqui
-                </p>
+                <p>Visualização de logs em tempo real será implementada aqui</p>
               </div>
             </CardContent>
           </Card>

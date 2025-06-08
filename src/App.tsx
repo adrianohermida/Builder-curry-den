@@ -42,6 +42,7 @@ const ConfiguracoesPrazosPage = lazy(
 
 const Update = lazy(() => import("./pages/Update"));
 const Launch = lazy(() => import("./pages/Launch"));
+const SystemHealth = lazy(() => import("./pages/SystemHealth"));
 
 // Admin modules (lazy loaded)
 const AdminLayout = lazy(() => import("./modules/LawdeskAdmin/AdminLayout"));
@@ -247,6 +248,16 @@ const App = () => (
                         <Route path="produtos" element={<ProductsPage />} />
                         <Route path="seguranca" element={<SecurityPage />} />
                       </Route>
+
+                      {/* System Health (Admin Only) */}
+                      <Route
+                        path="system-health"
+                        element={
+                          <PageWrapper>
+                            <SystemHealth />
+                          </PageWrapper>
+                        }
+                      />
 
                       {/* GED Routes */}
                       <Route

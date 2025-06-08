@@ -121,6 +121,7 @@ const adminMenuItems = [
     description: "Visão Executiva Completa",
     permission: { module: "dashboard", action: "manage" },
     adminOnly: true,
+    badge: "Executive",
   },
   {
     title: "Painel Admin",
@@ -129,6 +130,15 @@ const adminMenuItems = [
     description: "Administração Interna Lawdesk",
     badge: "Admin",
     permission: { module: "admin", action: "manage" },
+    adminOnly: true,
+  },
+  {
+    title: "System Health",
+    href: "/system-health",
+    icon: Activity,
+    description: "Monitoramento do Sistema",
+    badge: "Live",
+    permission: { module: "admin", action: "read" },
     adminOnly: true,
   },
   {
@@ -326,6 +336,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                                 "bg-gradient-to-r from-blue-500 to-purple-600 text-white",
                               item.badge === "Admin" &&
                                 "bg-gradient-to-r from-red-500 to-pink-600 text-white",
+                              item.badge === "Executive" &&
+                                "bg-gradient-to-r from-purple-500 to-indigo-600 text-white",
+                              item.badge === "Live" &&
+                                "bg-gradient-to-r from-green-500 to-emerald-600 text-white",
                             )}
                           >
                             {item.badge}
@@ -334,20 +348,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                       </Link>
                     );
                   })}
-
-                  {/* System Health */}
-                  <Link
-                    to="/system-health"
-                    className={cn(
-                      "flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                      location.pathname === "/system-health"
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                    )}
-                  >
-                    <Activity className="w-4 h-4" />
-                    <span>System Health</span>
-                  </Link>
                 </nav>
               </div>
             </>
