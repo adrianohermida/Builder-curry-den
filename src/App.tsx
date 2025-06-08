@@ -12,6 +12,7 @@ import { ViewModeProvider } from "@/contexts/ViewModeContext";
 import { Layout } from "@/components/Layout/Layout";
 import { EnhancedLayout } from "@/components/Layout/EnhancedLayout";
 import { ResponsiveEnhancedLayout } from "@/components/Layout/ResponsiveEnhancedLayout";
+import { MobileOptimizedLayout } from "@/components/Layout/MobileOptimizedLayout";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { PageLoading } from "@/components/ui/simple-loading";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
@@ -24,7 +25,9 @@ import EnhancedNotFound from "./pages/EnhancedNotFound";
 import "@/styles/themes.css";
 
 // Lazy load all pages for better performance
-const Dashboard = lazy(() =>
+const Dashboard = lazy(() => import("./pages/Dashboard").catch(() => import("./pages/TestDashboard")));
+const MobileDashboard = lazy(() => import("./pages/MobileDashboard"));
+const MobileCRM = lazy(() => import("./pages/MobileCRM"));
   import("./pages/Dashboard").catch(() => import("./pages/TestDashboard")),
 );
 const DashboardExecutivo = lazy(() => import("./pages/DashboardExecutivo"));
@@ -137,7 +140,7 @@ const App = () => (
                         }
                       />
 
-                      <Route path="/" element={<ResponsiveEnhancedLayout />}>
+                      <Route path="/" element={<MobileOptimizedLayout />}>
                         {/* Core Application Routes */}
                         <Route
                           path="dashboard"
