@@ -159,7 +159,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   );
 
   const adminItems = isAdmin() ? adminMenuItems : [];
-  const sistema2025ItemsFiltered = isAdmin() ? sistema2025Items : [];
 
   return (
     <div
