@@ -803,4 +803,7 @@ class ActionPlanService {
   }
 }
 
+// Create singleton instance
+export const actionPlanService = ActionPlanService.getInstance();
+
 export default ActionPlanService;
