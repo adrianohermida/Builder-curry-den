@@ -34,6 +34,9 @@ const MobileCRM = lazy(() => import("./pages/MobileCRM"));
 const MobileAdminDashboard = lazy(() => import("./pages/MobileAdminDashboard"));
 const ResponsiveDashboard = lazy(() => import("./pages/ResponsiveDashboard"));
 const ResponsiveCRM = lazy(() => import("./pages/ResponsiveCRM"));
+const CompleteResponsiveDashboard = lazy(
+  () => import("./pages/CompleteResponsiveDashboard"),
+);
 const DashboardExecutivo = lazy(() => import("./pages/DashboardExecutivo"));
 const CRM = lazy(() => import("./pages/CRM"));
 const CRMEnhanced = lazy(() => import("./pages/CRMEnhanced"));
@@ -150,7 +153,7 @@ const App = () => (
                           path="dashboard"
                           element={
                             <PageWrapper>
-                              <ResponsiveDashboard />
+                              <CompleteResponsiveDashboard />
                             </PageWrapper>
                           }
                         />
