@@ -17,6 +17,7 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { RouteGuard } from "@/components/RouteGuard";
 import { EnhancedRouteGuard } from "@/components/Enhanced/EnhancedRouteGuard";
 import NotFound from "./pages/NotFound";
+import EnhancedNotFound from "./pages/EnhancedNotFound";
 
 // Import the enhanced theme styles
 import "@/styles/themes.css";
@@ -392,7 +393,7 @@ const App = () => (
                       </Route>
 
                       {/* Catch-all route for 404 */}
-                      <Route path="*" element={<NotFound />} />
+                      <Route path="*" element={<EnhancedNotFound />} />
                     </Routes>
                   </BrowserRouter>
                 </TooltipProvider>
