@@ -45,6 +45,9 @@ const ConfiguracaoArmazenamento = lazy(
 const ConfiguracoesPrazosPage = lazy(
   () => import("./pages/ConfiguracoesPrazosPage"),
 );
+const WidgetConversacao = lazy(
+  () => import("./pages/Configuracoes/WidgetConversacao"),
+);
 
 const Update = lazy(() => import("./pages/Update"));
 const Launch = lazy(() => import("./pages/Launch"));
@@ -354,6 +357,16 @@ const App = () => (
                             element={
                               <PageWrapper>
                                 <ConfiguracoesPrazosPage />
+                              </PageWrapper>
+                            }
+                          />
+                          <Route
+                            path="widget-conversacao"
+                            element={
+                              <PageWrapper>
+                                <EnhancedRouteGuard requireAdmin>
+                                  <WidgetConversacao />
+                                </EnhancedRouteGuard>
                               </PageWrapper>
                             }
                           />
