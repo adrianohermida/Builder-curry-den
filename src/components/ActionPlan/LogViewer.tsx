@@ -1055,3 +1055,9 @@ function LogViewer() {
     </div>
   );
 }
+
+// Named export for destructuring imports
+export { LogViewer };
+
+// Default export for backward compatibility
+export default LogViewer;

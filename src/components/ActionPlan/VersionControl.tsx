@@ -803,3 +803,9 @@ function VersionControl({ onVersionChange }: VersionControlProps) {
     </div>
   );
 }
+
+// Named export for destructuring imports
+export { VersionControl };
+
+// Default export for backward compatibility
+export default VersionControl;
