@@ -1216,4 +1216,7 @@ class BacklogService {
   }
 }
 
+// Create singleton instance
+export const backlogService = BacklogService.getInstance();
+
 export default BacklogService;
