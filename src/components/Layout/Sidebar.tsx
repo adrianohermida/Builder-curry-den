@@ -138,24 +138,6 @@ const adminMenuItems = [
     badge: "2025",
     permission: { module: "admin", action: "read" },
   },
-  {
-    title: "Plano de Ação IA",
-    href: "/plano-acao-ia",
-    icon: Brain,
-    description: "Análise e Planejamento Automático",
-    permission: { module: "dashboard", action: "manage" },
-    adminOnly: true,
-    badge: "AI",
-  },
-  {
-    title: "Plano de Ação",
-    href: "/plano-acao",
-    icon: Target,
-    description: "Gestão de Ações Técnicas",
-    permission: { module: "dashboard", action: "manage" },
-    adminOnly: true,
-    badge: "Legacy",
-  },
 ];
 
 export function Sidebar({ open, onClose }: SidebarProps) {
