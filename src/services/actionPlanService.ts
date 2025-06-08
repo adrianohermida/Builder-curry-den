@@ -102,9 +102,6 @@ class ActionPlanService {
     } catch (error) {
       state.versao_atual.hash_conteudo = "initial";
     }
-      0,
-      8,
-    );
 
     return state;
   }
