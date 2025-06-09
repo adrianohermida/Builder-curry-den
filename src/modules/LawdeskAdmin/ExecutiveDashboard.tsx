@@ -36,8 +36,8 @@ import {
   Lock,
   Unlock,
   PieChart,
-  LineChart,
-  BarChart,
+  LineChart as LineChartIcon,
+  BarChart as BarChartIcon,
   Gauge,
   MonitorCheck,
   Code,
@@ -79,7 +79,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import {
-  LineChart,
+  LineChart as RechartsLineChart,
   Line,
   AreaChart,
   Area,
