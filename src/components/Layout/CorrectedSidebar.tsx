@@ -53,7 +53,7 @@ interface CorrectedSidebarProps {
 const clientMenuItems = [
   {
     title: "Painel",
-    href: "/dashboard",
+    href: "/painel",
     icon: BarChart3,
     permission: { module: "dashboard", action: "read" },
     description: "Visão geral e métricas",
