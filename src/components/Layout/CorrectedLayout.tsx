@@ -119,7 +119,6 @@ export function CorrectedLayout() {
             sidebarOpen={sidebarOpen}
             isMobile={isMobile}
           />
-          />
 
           {/* Page Content */}
           <main
