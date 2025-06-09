@@ -1434,21 +1434,25 @@ const ProcessosModule: React.FC = () => {
                       const newColumns = { ...visibleColumns, [key]: checked };
                       setVisibleColumns(newColumns);
                       // Salvar preferência do usuário
-                      localStorage.setItem('crm-processos-columns', JSON.stringify(newColumns));
+                      localStorage.setItem(
+                        "crm-processos-columns",
+                        JSON.stringify(newColumns),
+                      );
                       toast.success("Preferência de colunas salva!");
                     }}
                     className="cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      {key === 'numero' && <Scale className="h-3 w-3" />}
-                      {key === 'cliente' && <User className="h-3 w-3" />}
-                      {key === 'area' && <Building className="h-3 w-3" />}
-                      {key === 'status' && <Activity className="h-3 w-3" />}
-                      {key === 'risco' && <AlertTriangle className="h-3 w-3" />}
-                      {key === 'valor' && <DollarSign className="h-3 w-3" />}
-                      {key === 'audiencia' && <Calendar className="h-3 w-3" />}
-                      {key === 'responsavel' && <Users className="h-3 w-3" />}
-                      {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
+                      {key === "numero" && <Scale className="h-3 w-3" />}
+                      {key === "cliente" && <User className="h-3 w-3" />}
+                      {key === "area" && <Building className="h-3 w-3" />}
+                      {key === "status" && <Activity className="h-3 w-3" />}
+                      {key === "risco" && <AlertTriangle className="h-3 w-3" />}
+                      {key === "valor" && <DollarSign className="h-3 w-3" />}
+                      {key === "audiencia" && <Calendar className="h-3 w-3" />}
+                      {key === "responsavel" && <Users className="h-3 w-3" />}
+                      {key.charAt(0).toUpperCase() +
+                        key.slice(1).replace(/([A-Z])/g, " $1")}
                     </div>
                   </DropdownMenuCheckboxItem>
                 ))}
@@ -1466,7 +1470,7 @@ const ProcessosModule: React.FC = () => {
                       responsavel: true,
                     };
                     setVisibleColumns(defaultColumns);
-                    localStorage.removeItem('crm-processos-columns');
+                    localStorage.removeItem("crm-processos-columns");
                     toast.success("Colunas restauradas ao padrão!");
                   }}
                   className="cursor-pointer text-xs"
@@ -1476,7 +1480,6 @@ const ProcessosModule: React.FC = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
           )}
         </div>
       </div>
