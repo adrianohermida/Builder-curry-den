@@ -115,6 +115,7 @@ const TestContratosEnhanced = createLazyComponent(
 const TestProcessos = createLazyComponent(
   () => import("./pages/TestProcessos"),
 );
+const TestAgenda = createLazyComponent(() => import("./pages/TestAgenda"));
 const Financeiro = createLazyComponent(() => import("./pages/Financeiro"));
 const GEDJuridico = createLazyComponent(() => import("./pages/GEDJuridico"));
 const GEDJuridicoV2 = createLazyComponent(
@@ -830,6 +831,18 @@ const App = () => (
                               element={
                                 <PageWrapper>
                                   <TestProcessos />
+                                </PageWrapper>
+                              }
+                            />
+                          }
+                        />
+                        <Route
+                          path="teste-agenda"
+                          element={
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <TestAgenda />
                                 </PageWrapper>
                               }
                             />
