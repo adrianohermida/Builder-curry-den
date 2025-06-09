@@ -14,6 +14,7 @@ import { EnhancedLayout } from "@/components/Layout/EnhancedLayout";
 import { ResponsiveEnhancedLayout } from "@/components/Layout/ResponsiveEnhancedLayout";
 import { MobileOptimizedLayout } from "@/components/Layout/MobileOptimizedLayout";
 import { FinalOptimizedLayout } from "@/components/Layout/FinalOptimizedLayout";
+import { CorrectedLayout } from "@/components/Layout/CorrectedLayout";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { PageLoading } from "@/components/ui/simple-loading";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
@@ -147,7 +148,7 @@ const App = () => (
                         }
                       />
 
-                      <Route path="/" element={<FinalOptimizedLayout />}>
+                      <Route path="/" element={<CorrectedLayout />}>
                         {/* Core Application Routes */}
                         <Route
                           path="dashboard"
