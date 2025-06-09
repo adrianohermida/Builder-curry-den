@@ -80,7 +80,7 @@ export interface Contrato {
 }
 
 export type ViewMode = "lista" | "kanban";
-export type ModuloCRM = "clientes" | "processos" | "contratos";
+export type ModuloCRM = "clientes" | "processos" | "contratos" | "agenda";
 
 interface UseCRMReturn {
   // Estado
