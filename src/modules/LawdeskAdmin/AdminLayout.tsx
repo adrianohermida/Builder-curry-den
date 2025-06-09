@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useTransition, Suspense } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -33,6 +33,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { PageLoading } from "@/components/ui/simple-loading";
 
 const adminModules = [
   {
@@ -137,6 +138,7 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const { theme, isDark } = useTheme();
   const { switchMode } = useViewMode();
 
@@ -435,7 +437,21 @@ export default function AdminLayout() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <Outlet />
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center min-h-[400px]">
+                    <PageLoading />
+                  </div>
+                }
+              >
+                {isPending ? (
+                  <div className="flex items-center justify-center min-h-[400px]">
+                    <PageLoading />
+                  </div>
+                ) : (
+                  <Outlet />
+                )}
+              </Suspense>
             </motion.div>
           </div>
         </div>
