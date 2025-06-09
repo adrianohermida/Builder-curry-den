@@ -121,40 +121,22 @@ const SystemHealth = createLazyComponent(() => import("./pages/SystemHealth"));
 const Login = createLazyComponent(() => import("./pages/Login"));
 const Painel = createLazyComponent(() => import("./pages/Painel"));
 
-// Admin modules (lazy loaded)
+// Admin modules - Only lazy load the layout, not individual pages to prevent nested suspension
 const AdminLayout = createLazyComponent(
   () => import("./modules/LawdeskAdmin/AdminLayout"),
 );
-const AdminDashboard = createLazyComponent(
-  () => import("./modules/LawdeskAdmin/AdminDashboard"),
-);
-const ExecutiveDashboard = createLazyComponent(
-  () => import("./modules/LawdeskAdmin/ExecutiveDashboard"),
-);
-const BIPage = createLazyComponent(
-  () => import("./modules/LawdeskAdmin/BIPage"),
-);
-const TeamPage = createLazyComponent(
-  () => import("./modules/LawdeskAdmin/TeamPage"),
-);
-const DevToolsPage = createLazyComponent(
-  () => import("./modules/LawdeskAdmin/DevToolsPage"),
-);
-const BillingPage = createLazyComponent(
-  () => import("./modules/LawdeskAdmin/BillingPage"),
-);
-const SupportPage = createLazyComponent(
-  () => import("./modules/LawdeskAdmin/SupportPage"),
-);
-const MarketingPage = createLazyComponent(
-  () => import("./modules/LawdeskAdmin/MarketingPage"),
-);
-const ProductsPage = createLazyComponent(
-  () => import("./modules/LawdeskAdmin/ProductsPage"),
-);
-const SecurityPage = createLazyComponent(
-  () => import("./modules/LawdeskAdmin/SecurityPage"),
-);
+
+// Import admin pages directly to avoid nested lazy loading
+import AdminDashboard from "./modules/LawdeskAdmin/AdminDashboard";
+import ExecutiveDashboard from "./modules/LawdeskAdmin/ExecutiveDashboard";
+import BIPage from "./modules/LawdeskAdmin/BIPage";
+import TeamPage from "./modules/LawdeskAdmin/TeamPage";
+import DevToolsPage from "./modules/LawdeskAdmin/DevToolsPage";
+import BillingPage from "./modules/LawdeskAdmin/BillingPage";
+import SupportPage from "./modules/LawdeskAdmin/SupportPage";
+import MarketingPage from "./modules/LawdeskAdmin/MarketingPage";
+import ProductsPage from "./modules/LawdeskAdmin/ProductsPage";
+import SecurityPage from "./modules/LawdeskAdmin/SecurityPage";
 
 // Test pages (lazy loaded)
 const ClienteDetalhesTest = createLazyComponent(
@@ -493,29 +475,91 @@ const App = () => (
                             />
                           }
                         >
-                          <Route index element={<AdminDashboard />} />
+                          <Route
+                            index
+                            element={
+                              <Suspense fallback={<PageLoading />}>
+                                <AdminDashboard />
+                              </Suspense>
+                            }
+                          />
                           <Route
                             path="executive"
                             element={
-                              <EnhancedRouteGuard
-                                requireExecutive
-                                adminModeOnly
-                              >
-                                <ExecutiveDashboard />
-                              </EnhancedRouteGuard>
+                              <Suspense fallback={<PageLoading />}>
+                                <EnhancedRouteGuard
+                                  requireExecutive
+                                  adminModeOnly
+                                >
+                                  <ExecutiveDashboard />
+                                </EnhancedRouteGuard>
+                              </Suspense>
                             }
                           />
-                          <Route path="bi" element={<BIPage />} />
-                          <Route path="equipe" element={<TeamPage />} />
+                          <Route
+                            path="bi"
+                            element={
+                              <Suspense fallback={<PageLoading />}>
+                                <BIPage />
+                              </Suspense>
+                            }
+                          />
+                          <Route
+                            path="equipe"
+                            element={
+                              <Suspense fallback={<PageLoading />}>
+                                <TeamPage />
+                              </Suspense>
+                            }
+                          />
                           <Route
                             path="desenvolvimento"
-                            element={<DevToolsPage />}
+                            element={
+                              <Suspense fallback={<PageLoading />}>
+                                <DevToolsPage />
+                              </Suspense>
+                            }
                           />
-                          <Route path="faturamento" element={<BillingPage />} />
-                          <Route path="suporte" element={<SupportPage />} />
-                          <Route path="marketing" element={<MarketingPage />} />
-                          <Route path="produtos" element={<ProductsPage />} />
-                          <Route path="seguranca" element={<SecurityPage />} />
+                          <Route
+                            path="faturamento"
+                            element={
+                              <Suspense fallback={<PageLoading />}>
+                                <BillingPage />
+                              </Suspense>
+                            }
+                          />
+                          <Route
+                            path="suporte"
+                            element={
+                              <Suspense fallback={<PageLoading />}>
+                                <SupportPage />
+                              </Suspense>
+                            }
+                          />
+                          <Route
+                            path="marketing"
+                            element={
+                              <Suspense fallback={<PageLoading />}>
+                                <MarketingPage />
+                              </Suspense>
+                            }
+                          />
+                          <Route
+                            path="produtos"
+                            element={
+                              <Suspense fallback={<PageLoading />}>
+                                <ProductsPage />
+                              </Suspense>
+                            }
+                          />
+                          <Route
+                            path="seguranca"
+                            element={
+                              <Suspense fallback={<PageLoading />}>
+                                <SecurityPage />
+                              </Suspense>
+                            }
+                          />
                         </Route>
 
                         {/* System Health (Admin Only) */}
