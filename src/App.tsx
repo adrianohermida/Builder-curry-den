@@ -379,7 +379,7 @@ const App: React.FC = () => {
                             }
                           />
 
-                          {/* CRM Routes */}
+                          {/* CRM Unicorn Routes */}
                           <Route path="crm/*">
                             <Route
                               index
@@ -387,7 +387,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <CRM />
+                                      <CRMUnicorn />
                                     </PageWrapper>
                                   }
                                 />
@@ -399,7 +399,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <CRM />
+                                      <CRMUnicorn defaultModule="clientes" />
                                     </PageWrapper>
                                   }
                                 />
@@ -411,7 +411,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <CRM />
+                                      <CRMUnicorn defaultModule="processos" />
                                     </PageWrapper>
                                   }
                                 />
@@ -423,14 +423,51 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <CRM />
+                                      <CRMUnicorn defaultModule="contratos" />
                                     </PageWrapper>
                                   }
                                 />
                               }
                             />
                             <Route
-                              path="agenda"
+                              path="tarefas"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <CRMUnicorn defaultModule="tarefas" />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="financeiro"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <CRMUnicorn defaultModule="financeiro" />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="ged"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <CRMUnicorn defaultModule="ged" />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            {/* Legacy CRM route for compatibility */}
+                            <Route
+                              path="legacy"
                               element={
                                 <SafeRoute
                                   element={
