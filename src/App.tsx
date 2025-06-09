@@ -31,8 +31,8 @@ import { EnhancedRouteGuard } from "@/components/Enhanced/EnhancedRouteGuard";
 import NotFound from "./pages/NotFound";
 import EnhancedNotFound from "./pages/EnhancedNotFound";
 
-// Import the enhanced theme styles
-import "@/styles/themes.css";
+// Import the modern global styles and design system
+import "@/styles/globals.css";
 
 // Import monitoring services (auto-start)
 import { performanceMonitor } from "@/services/performanceMonitor";
