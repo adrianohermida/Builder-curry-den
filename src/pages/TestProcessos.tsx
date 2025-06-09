@@ -1,4 +1,3 @@
-Processos">
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -48,6 +47,13 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useCRM } from "@/hooks/useCRM";
 import { useProcessoApi } from "@/services/ProcessoApiService";
 import { toast } from "sonner";
@@ -305,7 +311,7 @@ const TestProcessos: React.FC = () => {
       id: "processo-api",
       name: "ProcessoApiService",
       file: "src/services/ProcessoApiService.tsx",
-      description: "Servi��o de integração com APIs externas",
+      description: "Serviço de integração com APIs externas",
       functions: [
         "Consulta TJSP",
         "Consulta CNJ",
@@ -321,22 +327,25 @@ const TestProcessos: React.FC = () => {
   ];
 
   // Simular execução de testes
-  const runTest = async (testId: string, categoryKey: string): Promise<void> => {
+  const runTest = async (
+    testId: string,
+    categoryKey: string,
+  ): Promise<void> => {
     const category = testCategories[categoryKey as keyof typeof testCategories];
     const test = category.tests.find((t) => t.id === testId);
-    
+
     if (!test) return;
 
     setCurrentTest(testId);
-    
+
     // Simular tempo de execução do teste
     const testDuration = Math.random() * 2000 + 500; // 0.5s a 2.5s
-    
+
     await new Promise((resolve) => setTimeout(resolve, testDuration));
 
     // Simular resultado (90% de chance de sucesso)
     const success = Math.random() > 0.1;
-    
+
     const result: TestResult = {
       id: testId,
       name: test.name,
@@ -344,15 +353,17 @@ const TestProcessos: React.FC = () => {
       description: test.description,
       duration: testDuration,
       error: success ? undefined : "Erro simulado para demonstração",
-      details: success ? [
-        "✅ Componente carregado corretamente",
-        "✅ Estados gerenciados adequadamente",
-        "✅ Props validadas",
-        "✅ Eventos funcionando",
-      ] : [
-        "❌ Erro na validação de props",
-        "⚠️ Performance abaixo do esperado",
-      ],
+      details: success
+        ? [
+            "✅ Componente carregado corretamente",
+            "✅ Estados gerenciados adequadamente",
+            "✅ Props validadas",
+            "✅ Eventos funcionando",
+          ]
+        : [
+            "❌ Erro na validação de props",
+            "⚠️ Performance abaixo do esperado",
+          ],
     };
 
     setTestResults((prev) => {
@@ -372,15 +383,15 @@ const TestProcessos: React.FC = () => {
   const runCategoryTests = async (categoryKey: string) => {
     setIsRunningTests(true);
     setTestProgress(0);
-    
+
     const category = testCategories[categoryKey as keyof typeof testCategories];
     const tests = category.tests;
-    
+
     for (let i = 0; i < tests.length; i++) {
       await runTest(tests[i].id, categoryKey);
       setTestProgress(((i + 1) / tests.length) * 100);
     }
-    
+
     setCurrentTest(null);
     setIsRunningTests(false);
     toast.success(`🎉 Todos os testes de ${category.name} concluídos!`);
@@ -390,13 +401,13 @@ const TestProcessos: React.FC = () => {
   const runAllTests = async () => {
     setIsRunningTests(true);
     setTestResults([]);
-    
+
     const allCategories = Object.keys(testCategories);
-    
+
     for (const categoryKey of allCategories) {
       await runCategoryTests(categoryKey);
     }
-    
+
     setIsRunningTests(false);
     toast.success("🚀 Todos os testes executados com sucesso!");
   };
@@ -414,7 +425,7 @@ const TestProcessos: React.FC = () => {
   const testStats = {
     total: Object.values(testCategories).reduce(
       (acc, cat) => acc + cat.tests.length,
-      0
+      0,
     ),
     passed: testResults.filter((r) => r.status === "success").length,
     failed: testResults.filter((r) => r.status === "failed").length,
@@ -480,7 +491,9 @@ const TestProcessos: React.FC = () => {
             <Separator orientation="vertical" className="h-8" />
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Dispositivo:</span>
+              <span className="text-sm text-muted-foreground">
+                Dispositivo:
+              </span>
               <Select value={deviceTest} onValueChange={setDeviceTest}>
                 <SelectTrigger className="w-32">
                   <SelectValue />
@@ -597,7 +610,11 @@ const TestProcessos: React.FC = () => {
           {Object.entries(testCategories).map(([key, category]) => {
             const Icon = category.icon;
             return (
-              <TabsTrigger key={key} value={key} className="flex items-center gap-2">
+              <TabsTrigger
+                key={key}
+                value={key}
+                className="flex items-center gap-2"
+              >
                 <Icon className="h-4 w-4" />
                 {category.name}
               </TabsTrigger>
@@ -606,7 +623,11 @@ const TestProcessos: React.FC = () => {
         </TabsList>
 
         {Object.entries(testCategories).map(([categoryKey, category]) => (
-          <TabsContent key={categoryKey} value={categoryKey} className="space-y-6">
+          <TabsContent
+            key={categoryKey}
+            value={categoryKey}
+            className="space-y-6"
+          >
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <category.icon className={`h-5 w-5 ${category.color}`} />
@@ -690,13 +711,18 @@ const TestProcessos: React.FC = () => {
                               {result.error && (
                                 <Alert>
                                   <AlertTriangle className="h-4 w-4" />
-                                  <AlertDescription>{result.error}</AlertDescription>
+                                  <AlertDescription>
+                                    {result.error}
+                                  </AlertDescription>
                                 </Alert>
                               )}
                               {result.details && (
                                 <div className="space-y-1">
                                   {result.details.map((detail, index) => (
-                                    <p key={index} className="text-xs text-muted-foreground">
+                                    <p
+                                      key={index}
+                                      className="text-xs text-muted-foreground"
+                                    >
                                       {detail}
                                     </p>
                                   ))}
@@ -753,10 +779,16 @@ const TestProcessos: React.FC = () => {
                             {component.file}
                           </code>
                           <div className="mt-3">
-                            <p className="text-sm font-medium mb-2">Funcionalidades:</p>
+                            <p className="text-sm font-medium mb-2">
+                              Funcionalidades:
+                            </p>
                             <div className="flex flex-wrap gap-1">
                               {component.functions.map((func, index) => (
-                                <Badge key={index} variant="outline" className="text-xs">
+                                <Badge
+                                  key={index}
+                                  variant="outline"
+                                  className="text-xs"
+                                >
                                   {func}
                                 </Badge>
                               ))}
