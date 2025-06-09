@@ -21,6 +21,13 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* CRITICAL: Force light mode globally */
+html,
+body {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
 body {
   font-family:
     "Inter",
@@ -35,14 +42,11 @@ body {
   line-height: 1.6;
   letter-spacing: -0.01em;
   overflow-x: hidden;
-  /* FIXED: Force light background by default */
-  background-color: #ffffff !important;
-  color: #0f172a !important;
 }
 
-/* ===== LIGHT MODE CSS CUSTOM PROPERTIES (DEFAULT) ===== */
+/* ===== LIGHT MODE CSS CUSTOM PROPERTIES (FORCED) ===== */
 :root {
-  /* FIXED: Force light mode as default */
+  /* CRITICAL: Always light mode */
   --background: 0 0% 100%; /* Pure white */
   --foreground: 222.2 84% 4.9%; /* Dark text */
   --card: 0 0% 100%; /* White cards */
@@ -50,14 +54,13 @@ body {
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
 
-  /* CLIENT MODE COLORS (Blue Theme) */
+  /* CLIENT MODE COLORS (Default Blue) */
   --primary: 221.2 83.2% 53.3%; /* Professional blue */
   --primary-foreground: 210 40% 98%; /* Light text on blue */
 
   --secondary: 210 40% 96%; /* Light gray */
   --secondary-foreground: 222.2 84% 4.9%; /* Dark text */
 
-  /* FIXED: Light gray instead of black backgrounds */
   --muted: 210 40% 98%; /* Very light gray backgrounds */
   --muted-foreground: 215.4 16.3% 46.9%; /* Medium gray text */
 
@@ -114,7 +117,7 @@ body {
   --radius-lg: 0.75rem; /* 12px */
   --radius-xl: 1rem; /* 16px */
 
-  /* FIXED: Light mode shadows */
+  /* Light mode shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -140,89 +143,94 @@ body {
 }
 
 /* ===== ADMIN MODE THEME COLORS ===== */
-.admin-mode {
-  /* ADMIN USES RED THEME */
+.admin-mode,
+body.admin-mode,
+html.admin-mode {
+  /* ADMIN USES RED THEME but keeps light background */
   --primary: 0 84% 60% !important; /* Red for admin */
   --primary-foreground: 210 40% 98% !important;
   --accent: 0 84% 60% !important;
   --accent-foreground: 210 40% 98% !important;
   --destructive: 0 84% 60% !important;
   --ring: 0 84% 60% !important;
+
+  /* Keep light background in admin mode */
+  --background: 0 0% 100% !important;
+  --foreground: 222.2 84% 4.9% !important;
+  --card: 0 0% 100% !important;
+  --card-foreground: 222.2 84% 4.9% !important;
 }
 
 /* CLIENT MODE (DEFAULT BLUE) */
-.client-mode {
+.client-mode,
+body.client-mode,
+html.client-mode {
   --primary: 221.2 83.2% 53.3% !important; /* Blue for client */
   --primary-foreground: 210 40% 98% !important;
   --accent: 221.2 83.2% 53.3% !important;
   --accent-foreground: 210 40% 98% !important;
   --ring: 221.2 83.2% 53.3% !important;
+
+  /* Keep light background in client mode */
+  --background: 0 0% 100% !important;
+  --foreground: 222.2 84% 4.9% !important;
+  --card: 0 0% 100% !important;
+  --card-foreground: 222.2 84% 4.9% !important;
 }
 
-/* Ensure admin mode applies to body as well */
-body.admin-mode {
-  --primary: 0 84% 60% !important;
-  --accent: 0 84% 60% !important;
+/* ===== OVERRIDE DARK MODE CLASSES ===== */
+.dark,
+html.dark,
+body.dark {
+  /* Force light mode even if dark class is present */
+  --background: 0 0% 100% !important;
+  --foreground: 222.2 84% 4.9% !important;
+  --card: 0 0% 100% !important;
+  --card-foreground: 222.2 84% 4.9% !important;
+  --popover: 0 0% 100% !important;
+  --popover-foreground: 222.2 84% 4.9% !important;
+  --secondary: 210 40% 96% !important;
+  --secondary-foreground: 222.2 84% 4.9% !important;
+  --muted: 210 40% 98% !important;
+  --muted-foreground: 215.4 16.3% 46.9% !important;
+  --accent: 210 40% 98% !important;
+  --accent-foreground: 222.2 84% 4.9% !important;
+  --border: 214.3 31.8% 91.4% !important;
+  --input: 214.3 31.8% 91.4% !important;
+
+  background-color: #ffffff !important;
+  color: #0f172a !important;
 }
 
-body.client-mode {
-  --primary: 221.2 83.2% 53.3% !important;
-  --accent: 221.2 83.2% 53.3% !important;
+/* ===== FORCE LIGHT BACKGROUNDS ===== */
+* {
+  background-color: inherit;
 }
 
-/* ===== DARK THEME (Only when explicitly enabled) ===== */
-.dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 217.2 91.2% 59.8%;
-  --primary-foreground: 222.2 84% 4.9%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 94.1%;
+/* Override any dark classes */
+.bg-gray-900,
+.dark\:bg-gray-900,
+.bg-slate-900,
+.dark\:bg-slate-900,
+.bg-black {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
 }
 
-/* ===== HIGH CONTRAST MODE ===== */
-.high-contrast {
-  --background: 0 0% 100%;
-  --foreground: 0 0% 0%;
-  --border: 0 0% 0%;
-  --muted: 0 0% 95%;
-  --muted-foreground: 0 0% 20%;
-  --primary: 0 0% 0%;
-  --primary-foreground: 0 0% 100%;
+/* Force light text */
+.text-white,
+.dark\:text-white,
+.text-gray-100,
+.dark\:text-gray-100 {
+  color: #0f172a !important;
 }
 
-.high-contrast.dark {
-  --background: 0 0% 0%;
-  --foreground: 0 0% 100%;
-  --border: 0 0% 100%;
-  --muted: 0 0% 10%;
-  --muted-foreground: 0 0% 80%;
-  --primary: 0 0% 100%;
-  --primary-foreground: 0 0% 0%;
-}
-
-/* ===== FORCE LIGHT MODE DEFAULTS ===== */
-html {
-  color-scheme: light;
-  background-color: #ffffff;
-}
-
-html.dark {
-  color-scheme: dark;
-  background-color: #0f172a;
+/* Force light borders */
+.border-gray-700,
+.dark\:border-gray-700,
+.border-gray-800,
+.dark\:border-gray-800 {
+  border-color: rgb(214.3 31.8% 91.4%) !important;
 }
 
 /* ===== MODERN SCROLLBAR DESIGN ===== */
@@ -338,7 +346,7 @@ html.dark {
 
 /* ===== MODERN COMPONENT STYLES ===== */
 
-/* FIXED: Modern Card Component */
+/* Modern Card Component */
 .modern-card {
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
@@ -352,7 +360,7 @@ html.dark {
   transform: translateY(-1px);
 }
 
-/* FIXED: Modern Button Component */
+/* Modern Button Component */
 .modern-button {
   border-radius: var(--radius);
   font-weight: 500;
@@ -417,7 +425,7 @@ html.dark {
   color: hsl(var(--accent-foreground));
 }
 
-/* FIXED: Modern Input Component */
+/* Modern Input Component */
 .modern-input {
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
@@ -439,7 +447,7 @@ html.dark {
   color: hsl(var(--muted-foreground));
 }
 
-/* FIXED: Modern Modal/Dialog with light backdrop */
+/* Modern Modal/Dialog with light backdrop */
 .modern-modal {
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
@@ -451,7 +459,7 @@ html.dark {
 }
 
 .modern-modal-backdrop {
-  background: rgb(0 0 0 / 0.3); /* FIXED: Lighter backdrop instead of black */
+  background: rgb(255 255 255 / 0.8) !important; /* Light backdrop */
   backdrop-filter: blur(4px);
   z-index: var(--z-modal-backdrop);
 }
@@ -460,7 +468,7 @@ html.dark {
   z-index: var(--z-modal);
 }
 
-/* FIXED: Modern Navigation */
+/* Modern Navigation */
 .modern-nav-item {
   border-radius: var(--radius);
   transition: all var(--animation-duration-normal) ease;
@@ -489,7 +497,7 @@ html.dark {
   color: hsl(0 84% 60%);
 }
 
-/* FIXED: Modern Table */
+/* Modern Table */
 .modern-table {
   border-collapse: separate;
   border-spacing: 0;
@@ -598,21 +606,20 @@ html.dark {
   text-wrap: pretty;
 }
 
-/* FIXED: Visual utilities - NO GRADIENTS */
+/* Visual utilities - no gradients */
 .glass-effect {
   background: hsl(var(--background) / 0.8);
   backdrop-filter: blur(20px);
   border: 1px solid hsl(var(--border) / 0.5);
 }
 
-/* REMOVED: Gradient border - using solid border instead */
 .modern-border {
   background: hsl(var(--background));
   border: 2px solid hsl(var(--primary));
   border-radius: var(--radius);
 }
 
-/* FIXED: Status indicators - solid colors, no gradients */
+/* Status indicators - solid colors */
 .status-online {
   background: hsl(142.1 76.2% 36.3%);
   color: white;
@@ -633,9 +640,8 @@ html.dark {
   color: hsl(222.2 84% 4.9%);
 }
 
-/* ===== FIXED TAB SYSTEM - NO BLACK BACKGROUNDS ===== */
+/* ===== TAB SYSTEM - LIGHT COLORS ONLY ===== */
 
-/* Override default tab styles to use light colors */
 .tabs-list-light {
   background: hsl(var(--muted)) !important;
   border: 1px solid hsl(var(--border));
@@ -737,7 +743,7 @@ html.dark {
   contain: strict;
 }
 
-/* ===== MODERN LOADING STATES - NO GRADIENTS ===== */
+/* ===== LOADING STATES - NO GRADIENTS ===== */
 .skeleton {
   background: hsl(var(--muted));
   animation: skeleton-pulse 1.5s infinite;
@@ -768,7 +774,7 @@ html.dark {
   }
 }
 
-/* ===== MODERN ERROR STATES ===== */
+/* ===== ERROR STATES ===== */
 .error-boundary {
   background: hsl(var(--destructive) / 0.1);
   border: 1px solid hsl(var(--destructive) / 0.2);
@@ -793,7 +799,7 @@ html.dark {
   color: hsl(var(--primary));
 }
 
-/* ===== FIXED Z-INDEX LAYERS ===== */
+/* ===== Z-INDEX LAYERS ===== */
 .z-dropdown {
   z-index: var(--z-dropdown);
 }
@@ -819,7 +825,7 @@ html.dark {
   z-index: var(--z-toast);
 }
 
-/* FIXED: Ensure proper stacking context */
+/* Ensure proper stacking context */
 .sidebar-container {
   z-index: var(--z-fixed);
 }
@@ -887,11 +893,11 @@ html.dark {
   }
 }
 
-/* ===== MODERNIZED COMPONENT OVERRIDES ===== */
+/* ===== COMPONENT OVERRIDES FOR CONSISTENCY ===== */
 
 /* Fix for dialog/modal backdrops */
 [data-radix-portal] .fixed.inset-0 {
-  background: hsl(var(--background) / 0.8) !important;
+  background: rgb(255 255 255 / 0.8) !important;
   backdrop-filter: blur(8px);
 }
 
@@ -907,4 +913,32 @@ html.dark {
   background: hsl(var(--background)) !important;
   border: 1px solid hsl(var(--border)) !important;
   color: hsl(var(--foreground)) !important;
+}
+
+/* CRITICAL: Override any remaining dark styles */
+.dark\:bg-gray-900,
+.dark\:bg-slate-900,
+.dark\:bg-stone-900,
+.dark\:bg-zinc-900,
+.dark\:bg-neutral-900,
+.dark\:bg-gray-800,
+.dark\:bg-slate-800 {
+  background-color: #ffffff !important;
+}
+
+.dark\:text-gray-100,
+.dark\:text-slate-100,
+.dark\:text-stone-100,
+.dark\:text-zinc-100,
+.dark\:text-neutral-100,
+.dark\:text-white {
+  color: #0f172a !important;
+}
+
+.dark\:border-gray-700,
+.dark\:border-slate-700,
+.dark\:border-stone-700,
+.dark\:border-zinc-700,
+.dark\:border-neutral-700 {
+  border-color: rgb(214 211 209) !important;
 }

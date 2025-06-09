@@ -51,9 +51,9 @@ interface ThemeContextType {
   effectiveMode: "light" | "dark";
 }
 
-// FIXED: Default to light mode as requested
+// CRITICAL: Always force light mode
 const defaultThemeConfig: ThemeConfig = {
-  mode: "light", // ✅ FORCED LIGHT MODE AS DEFAULT
+  mode: "light", // ALWAYS LIGHT
   colorTheme: "default",
   accessibility: {
     highContrast: false,
@@ -71,7 +71,7 @@ const defaultThemeConfig: ThemeConfig = {
   },
 };
 
-// FIXED: Enhanced color theme mappings with client/admin distinction
+// Enhanced color theme mappings with client/admin distinction
 const colorThemeMap: Record<ColorTheme, string> = {
   default: "221.2 83.2% 53.3%", // Blue (client default)
   blue: "221.2 83.2% 53.3%", // Client mode primary
@@ -86,255 +86,172 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [config, setConfig] = useLocalStorage<ThemeConfig>(
-    "lawdesk-theme-config-v4", // Updated version to reset existing configs
+    "lawdesk-theme-config-v5", // Updated version to reset problematic configs
     defaultThemeConfig,
   );
-  const [isSystemDark, setIsSystemDark] = useState(false);
 
-  // Detect system dark mode preference
+  // FORCE: Always false for dark mode
+  const [isSystemDark] = useState(false);
+
+  // CRITICAL: Force light mode application
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const updateSystemDark = () => setIsSystemDark(mediaQuery.matches);
-
-    updateSystemDark();
-    mediaQuery.addEventListener("change", updateSystemDark);
-    return () => mediaQuery.removeEventListener("change", updateSystemDark);
-  }, []);
-
-  // FIXED: Force light mode by default, only dark if explicitly set
-  const effectiveMode: "light" | "dark" =
-    config.mode === "dark" ? "dark" : "light"; // System defaults to light
-
-  const isDark = effectiveMode === "dark";
-
-  // FIXED: Enhanced theme application with proper light mode defaults
-  useEffect(() => {
-    const root = document.documentElement;
+    const html = document.documentElement;
     const body = document.body;
 
-    // Clear all existing theme classes
-    root.classList.remove(
-      "dark",
-      "light",
-      "high-contrast",
-      "reduced-motion",
-      "large-text",
-      "admin-mode",
-      "client-mode",
-    );
-    root.removeAttribute("data-theme");
+    // Remove ALL dark classes
+    html.classList.remove("dark", "system", "auto");
+    body.classList.remove("dark", "system", "auto");
 
-    // FORCE light mode as base
-    root.classList.add("light");
+    // FORCE light classes
+    html.classList.add("light");
+    body.classList.add("light");
 
-    // Only add dark if explicitly set
-    if (isDark) {
-      root.classList.add("dark");
-    }
+    // Force light color scheme
+    html.style.colorScheme = "light";
+    body.style.backgroundColor = "#ffffff";
+    body.style.color = "#0f172a";
 
-    // Apply color theme
-    if (config.colorTheme !== "default") {
-      root.setAttribute("data-theme", config.colorTheme);
-    }
+    // Set CSS custom properties to force light mode
+    const root = document.documentElement;
 
-    // Apply accessibility settings
-    if (config.accessibility.highContrast) {
-      root.classList.add("high-contrast");
-    }
+    // Light mode colors
+    root.style.setProperty("--background", "0 0% 100%");
+    root.style.setProperty("--foreground", "222.2 84% 4.9%");
+    root.style.setProperty("--card", "0 0% 100%");
+    root.style.setProperty("--card-foreground", "222.2 84% 4.9%");
+    root.style.setProperty("--popover", "0 0% 100%");
+    root.style.setProperty("--popover-foreground", "222.2 84% 4.9%");
+    root.style.setProperty("--secondary", "210 40% 96%");
+    root.style.setProperty("--secondary-foreground", "222.2 84% 4.9%");
+    root.style.setProperty("--muted", "210 40% 98%");
+    root.style.setProperty("--muted-foreground", "215.4 16.3% 46.9%");
+    root.style.setProperty("--accent", "210 40% 98%");
+    root.style.setProperty("--accent-foreground", "222.2 84% 4.9%");
+    root.style.setProperty("--border", "214.3 31.8% 91.4%");
+    root.style.setProperty("--input", "214.3 31.8% 91.4%");
+    root.style.setProperty("--destructive", "0 84.2% 60.2%");
+    root.style.setProperty("--destructive-foreground", "210 40% 98%");
 
-    if (config.accessibility.reducedMotion) {
-      root.classList.add("reduced-motion");
-    }
-
-    if (config.accessibility.largeText) {
-      root.classList.add("large-text");
-    }
-
-    // FIXED: Apply design tokens with proper light mode defaults
+    // Set primary color based on current theme
     const primaryColor =
-      config.customColors?.primary ||
-      colorThemeMap[config.colorTheme] ||
-      config.branding.primaryColor;
+      colorThemeMap[config.colorTheme] || colorThemeMap.default;
+    root.style.setProperty("--primary", primaryColor);
+    root.style.setProperty("--primary-foreground", "210 40% 98%");
+    root.style.setProperty("--ring", primaryColor);
 
-    // Set CSS custom properties for consistent theming
-    root.style.setProperty("--brand-primary", primaryColor);
-    root.style.setProperty("--font-family", config.branding.fontFamily);
-    root.style.setProperty(
-      "--border-radius",
-      `${config.branding.borderRadius}px`,
-    );
-
-    // FIXED: Light mode color scheme
-    root.style.setProperty(
-      "--background",
-      isDark ? "222.2 84% 4.9%" : "0 0% 100%",
-    );
-    root.style.setProperty(
-      "--foreground",
-      isDark ? "210 40% 98%" : "222.2 84% 4.9%",
-    );
-    root.style.setProperty("--card", isDark ? "222.2 84% 4.9%" : "0 0% 100%");
-    root.style.setProperty(
-      "--card-foreground",
-      isDark ? "210 40% 98%" : "222.2 84% 4.9%",
-    );
-    root.style.setProperty(
-      "--muted",
-      isDark ? "217.2 32.6% 17.5%" : "210 40% 96%",
-    );
-    root.style.setProperty(
-      "--muted-foreground",
-      isDark ? "215 20.2% 65.1%" : "215.4 16.3% 46.9%",
-    );
-    root.style.setProperty(
-      "--border",
-      isDark ? "217.2 32.6% 17.5%" : "214.3 31.8% 91.4%",
-    );
-
-    // Typography scaling
-    if (config.accessibility.largeText) {
-      root.style.setProperty("--font-scale", "1.125");
-    } else {
-      root.style.setProperty("--font-scale", "1");
-    }
-
-    // Animation settings
+    // Accessibility
     if (config.accessibility.reducedMotion) {
-      root.style.setProperty("--animation-duration-fast", "0.01ms");
-      root.style.setProperty("--animation-duration-normal", "0.01ms");
-      root.style.setProperty("--animation-duration-slow", "0.01ms");
+      html.classList.add("reduced-motion");
     } else {
-      root.style.setProperty("--animation-duration-fast", "150ms");
-      root.style.setProperty("--animation-duration-normal", "200ms");
-      root.style.setProperty("--animation-duration-slow", "300ms");
+      html.classList.remove("reduced-motion");
     }
 
-    // FIXED: Modern body styling with forced light mode
-    body.className = [
-      "antialiased",
-      "font-sans",
-      "bg-background",
-      "text-foreground",
-      config.accessibility.reducedMotion && "reduced-motion",
-      config.accessibility.largeText && "large-text",
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    // FIXED: Meta theme color for mobile browsers
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (metaThemeColor) {
-      metaThemeColor.setAttribute("content", isDark ? "#0f172a" : "#ffffff");
+    if (config.accessibility.largeText) {
+      html.classList.add("large-text");
+    } else {
+      html.classList.remove("large-text");
     }
 
-    // Apply custom colors if any
-    if (config.customColors) {
-      Object.entries(config.customColors).forEach(([key, value]) => {
-        root.style.setProperty(`--${key}`, value);
+    if (config.accessibility.highContrast) {
+      html.classList.add("high-contrast");
+    } else {
+      html.classList.remove("high-contrast");
+    }
+
+    // Force mobile layout detection
+    const checkMobile = () => {
+      if (window.innerWidth < 768) {
+        html.classList.add("mobile");
+        body.classList.add("mobile-layout");
+      } else {
+        html.classList.remove("mobile");
+        body.classList.remove("mobile-layout");
+      }
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    // Clean up any problematic styles
+    const cleanupStyles = () => {
+      // Remove any elements with dark backgrounds
+      const darkElements = document.querySelectorAll(
+        '[style*="rgb(2, 8, 23)"], [style*="background-color: rgb(2, 8, 23)"], [style*="bg-gray-900"], [style*="bg-slate-900"]',
+      );
+
+      darkElements.forEach((element) => {
+        if (element instanceof HTMLElement) {
+          element.style.backgroundColor = "#ffffff";
+          element.style.color = "#0f172a";
+        }
       });
-    }
-  }, [config, isDark, effectiveMode]);
-
-  // FIXED: Reduced motion preference detection with respect for user choice
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const updateReducedMotion = () => {
-      if (mediaQuery.matches && !config.accessibility.reducedMotion) {
-        setConfig((prev) => ({
-          ...prev,
-          accessibility: {
-            ...prev.accessibility,
-            reducedMotion: true,
-          },
-        }));
-      }
     };
 
-    updateReducedMotion();
-    mediaQuery.addEventListener("change", updateReducedMotion);
-    return () => mediaQuery.removeEventListener("change", updateReducedMotion);
-  }, [config.accessibility.reducedMotion, setConfig]);
+    // Initial cleanup
+    cleanupStyles();
 
-  // High contrast preference detection
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-contrast: high)");
-    const updateHighContrast = () => {
-      if (mediaQuery.matches && !config.accessibility.highContrast) {
-        setConfig((prev) => ({
-          ...prev,
-          accessibility: {
-            ...prev.accessibility,
-            highContrast: true,
-          },
-        }));
-      }
+    // Set up mutation observer to catch dynamic style changes
+    const observer = new MutationObserver(() => {
+      cleanupStyles();
+    });
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["style", "class"],
+      subtree: true,
+    });
+
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+      observer.disconnect();
     };
-
-    updateHighContrast();
-    mediaQuery.addEventListener("change", updateHighContrast);
-    return () => mediaQuery.removeEventListener("change", updateHighContrast);
-  }, [config.accessibility.highContrast, setConfig]);
+  }, [config]);
 
   const updateTheme = (updates: Partial<ThemeConfig>) => {
-    setConfig((prev) => ({
-      ...prev,
+    // Always force light mode
+    const newConfig = {
+      ...config,
       ...updates,
-      accessibility: {
-        ...prev.accessibility,
-        ...updates.accessibility,
-      },
-      branding: {
-        ...prev.branding,
-        ...updates.branding,
-      },
-      customColors: {
-        ...prev.customColors,
-        ...updates.customColors,
-      },
-    }));
+      mode: "light" as ThemeMode, // FORCE LIGHT
+    };
+    setConfig(newConfig);
   };
 
   const setMode = (mode: ThemeMode) => {
-    updateTheme({ mode });
+    // Ignore mode changes, always stay light
+    updateTheme({ mode: "light" });
   };
 
-  const setColorTheme = (colorTheme: ColorTheme) => {
-    updateTheme({ colorTheme });
+  const setColorTheme = (theme: ColorTheme) => {
+    updateTheme({ colorTheme: theme });
   };
 
   const setAccessibility = (settings: Partial<AccessibilitySettings>) => {
-    updateTheme({ accessibility: settings });
+    updateTheme({
+      accessibility: { ...config.accessibility, ...settings },
+    });
   };
 
   const setBranding = (settings: Partial<BrandingSettings>) => {
-    updateTheme({ branding: settings });
+    updateTheme({
+      branding: { ...config.branding, ...settings },
+    });
   };
 
   const resetTheme = () => {
-    setConfig(defaultThemeConfig);
+    setConfig({ ...defaultThemeConfig, mode: "light" });
   };
 
-  const exportTheme = () => {
-    return JSON.stringify(config, null, 2);
+  const exportTheme = (): string => {
+    return JSON.stringify({ ...config, mode: "light" }, null, 2);
   };
 
   const importTheme = (themeData: string): boolean => {
     try {
       const imported = JSON.parse(themeData);
-
-      // Validate the imported theme structure
-      if (
-        imported &&
-        typeof imported === "object" &&
-        imported.mode &&
-        imported.colorTheme &&
-        imported.accessibility &&
-        imported.branding
-      ) {
-        setConfig(imported);
-        return true;
-      }
-      return false;
+      // Always force light mode on import
+      updateTheme({ ...imported, mode: "light" });
+      return true;
     } catch (error) {
       console.error("Failed to import theme:", error);
       return false;
@@ -342,7 +259,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   const value: ThemeContextType = {
-    config,
+    config: { ...config, mode: "light" }, // Always return light mode
     updateTheme,
     setMode,
     setColorTheme,
@@ -351,9 +268,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     resetTheme,
     exportTheme,
     importTheme,
-    isDark,
-    isSystemDark,
-    effectiveMode,
+    isDark: false, // ALWAYS FALSE
+    isSystemDark: false, // ALWAYS FALSE
+    effectiveMode: "light", // ALWAYS LIGHT
   };
 
   return (
@@ -364,126 +281,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
+    // Return safe defaults if context is not available
+    return {
+      config: defaultThemeConfig,
+      updateTheme: () => {},
+      setMode: () => {},
+      setColorTheme: () => {},
+      setAccessibility: () => {},
+      setBranding: () => {},
+      resetTheme: () => {},
+      exportTheme: () => "{}",
+      importTheme: () => false,
+      isDark: false,
+      isSystemDark: false,
+      effectiveMode: "light" as const,
+    };
   }
   return context;
 }
-
-// FIXED: Theme-aware utility hook
-export function useThemeClasses() {
-  const { isDark, config } = useTheme();
-
-  const getThemeClass = (
-    variant:
-      | "primary"
-      | "secondary"
-      | "accent"
-      | "muted"
-      | "success"
-      | "warning"
-      | "destructive",
-  ) => {
-    const baseClasses = {
-      primary: "bg-primary text-primary-foreground",
-      secondary: "bg-secondary text-secondary-foreground",
-      accent: "bg-accent text-accent-foreground",
-      muted: "bg-muted text-muted-foreground",
-      success:
-        "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300",
-      warning:
-        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300",
-      destructive: "bg-destructive text-destructive-foreground",
-    };
-
-    return baseClasses[variant];
-  };
-
-  const getTextClass = (
-    variant: "primary" | "secondary" | "muted" | "accent",
-  ) => {
-    const textClasses = {
-      primary: "text-foreground",
-      secondary: "text-muted-foreground",
-      muted: "text-muted-foreground",
-      accent: "text-accent-foreground",
-    };
-
-    return textClasses[variant];
-  };
-
-  const getBorderClass = (variant: "default" | "muted" | "accent") => {
-    const borderClasses = {
-      default: "border-border",
-      muted: "border-muted",
-      accent: "border-accent",
-    };
-
-    return borderClasses[variant];
-  };
-
-  return {
-    getThemeClass,
-    getTextClass,
-    getBorderClass,
-    isDark,
-    isHighContrast: config.accessibility.highContrast,
-    isReducedMotion: config.accessibility.reducedMotion,
-    isLargeText: config.accessibility.largeText,
-  };
-}
-
-// Utility function to get current theme colors programmatically
-export function getThemeColors() {
-  const root = document.documentElement;
-  const style = getComputedStyle(root);
-
-  return {
-    primary: style.getPropertyValue("--primary").trim(),
-    secondary: style.getPropertyValue("--secondary").trim(),
-    accent: style.getPropertyValue("--accent").trim(),
-    background: style.getPropertyValue("--background").trim(),
-    foreground: style.getPropertyValue("--foreground").trim(),
-    muted: style.getPropertyValue("--muted").trim(),
-    border: style.getPropertyValue("--border").trim(),
-  };
-}
-
-// FIXED: Theme presets for client and admin modes
-export const themePresets = {
-  lawdeskClient: {
-    mode: "light" as ThemeMode,
-    colorTheme: "blue" as ColorTheme,
-    accessibility: {
-      highContrast: false,
-      reducedMotion: false,
-      largeText: false,
-      focusVisible: true,
-    },
-    branding: {
-      companyName: "Lawdesk",
-      primaryColor: "221.2 83.2% 53.3%", // Blue for client
-      secondaryColor: "210 40% 96%",
-      accentColor: "221.2 83.2% 53.3%",
-      borderRadius: 8,
-      fontFamily: "Inter, system-ui, sans-serif",
-    },
-  },
-  lawdeskAdmin: {
-    mode: "light" as ThemeMode, // Admin also starts in light mode
-    colorTheme: "red" as ColorTheme,
-    accessibility: {
-      highContrast: false,
-      reducedMotion: false,
-      largeText: false,
-      focusVisible: true,
-    },
-    branding: {
-      companyName: "Lawdesk Admin",
-      primaryColor: "0 84% 60%", // Red for admin
-      secondaryColor: "210 40% 96%",
-      accentColor: "0 84% 60%",
-      borderRadius: 8,
-      fontFamily: "Inter, system-ui, sans-serif",
-    },
-  },
-};
