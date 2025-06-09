@@ -328,7 +328,7 @@ export default function ProcessoDetalhes() {
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {processo.assunto}
                   </p>
-                </nav>
+                </div>
               </div>
 
               <div className="flex items-center gap-2">
