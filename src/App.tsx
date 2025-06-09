@@ -140,6 +140,52 @@ const TestContratosEnhanced = createLazyComponent(
   "Test Contratos Enhanced",
 );
 
+// Admin Module Components
+const AdminDashboard = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/AdminDashboard"),
+  "Admin Dashboard",
+);
+const AdminLayout = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/AdminLayout"),
+  "Admin Layout",
+);
+const ExecutiveDashboard = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/ExecutiveDashboard"),
+  "Executive Dashboard",
+);
+const BIPage = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/BIPage"),
+  "BI Dashboard",
+);
+const TeamPage = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/TeamPage"),
+  "Team Management",
+);
+const DevToolsPage = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/DevToolsPage"),
+  "Development Tools",
+);
+const BillingPage = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/BillingPage"),
+  "Billing Management",
+);
+const SupportPage = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/SupportPage"),
+  "Support Dashboard",
+);
+const MarketingPage = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/MarketingPage"),
+  "Marketing Dashboard",
+);
+const ProductsPage = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/ProductsPage"),
+  "Products Management",
+);
+const SecurityPage = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/SecurityPage"),
+  "Security Dashboard",
+);
+
 // ConfiguracoesPrazos from the correct path (components, not pages)
 const ConfiguracoesPrazosPage = createLazyComponent(
   () => import("./components/Publicacoes/ConfiguracoesPrazos"),
