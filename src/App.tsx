@@ -272,11 +272,11 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
         <ThemeProvider>
-          <ThemeInitializer />
           <StorageProvider>
             <RegrasProcessuaisProvider>
               <PermissionProvider>
                 <ViewModeProvider>
+                  <ThemeInitializer />
                   <TooltipProvider>
                     <Toaster />
                     <Sonner />
