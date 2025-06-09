@@ -1,7 +1,7 @@
 import * as React from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
 import { ptBR } from "date-fns/locale";
+import { Calendar as CalendarIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -14,16 +14,18 @@ import {
 
 interface DatePickerProps {
   date?: Date;
-  onDateChange?: (date: Date | undefined) => void;
+  onSelect?: (date: Date | undefined) => void;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export function DatePicker({
   date,
-  onDateChange,
+  onSelect,
   placeholder = "Selecione uma data",
   className,
+  disabled = false,
 }: DatePickerProps) {
   return (
     <Popover>
@@ -35,10 +37,11 @@ export function DatePicker({
             !date && "text-muted-foreground",
             className,
           )}
+          disabled={disabled}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {date ? (
-            format(date, "dd/MM/yyyy", { locale: ptBR })
+            format(date, "PPP", { locale: ptBR })
           ) : (
             <span>{placeholder}</span>
           )}
@@ -48,7 +51,7 @@ export function DatePicker({
         <Calendar
           mode="single"
           selected={date}
-          onSelect={onDateChange}
+          onSelect={onSelect}
           initialFocus
           locale={ptBR}
         />
