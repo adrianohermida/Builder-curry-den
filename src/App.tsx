@@ -34,6 +34,11 @@ import EnhancedNotFound from "./pages/EnhancedNotFound";
 // Import the enhanced theme styles
 import "@/styles/themes.css";
 
+// Import monitoring services (auto-start)
+import { performanceMonitor } from "@/services/performanceMonitor";
+import { healthChecker } from "@/services/healthCheck";
+import { automaticDiagnostics } from "@/services/automaticDiagnostics";
+
 // Lazy load all pages for better performance with error boundaries
 const createLazyComponent = (importFunc: () => Promise<any>) => {
   return lazy(() => {
