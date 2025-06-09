@@ -1323,19 +1323,26 @@ const ProcessosModule: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => setShowImportDialog(true)}
+            className="border-dashed border-2 hover:border-blue-500 hover:text-blue-600 transition-colors"
+            title="Importar processos via planilha CSV ou XLSX"
           >
             <Upload className="h-4 w-4 mr-2" />
-            Importar
+            Importar Processos
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => exportarDados("processos")}
+            title="Exportar processos filtrados para CSV"
           >
             <Download className="h-4 w-4 mr-2" />
-            Exportar
+            Exportar ({processosFiltrados.length})
           </Button>
-          <Button size="sm" onClick={() => setShowProcessoForm(true)}>
+          <Button
+            size="sm"
+            onClick={() => setShowProcessoForm(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Novo Processo
           </Button>
