@@ -40,6 +40,7 @@ import {
   Share2,
   Bookmark,
   Target,
+  Copy,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1343,15 +1344,32 @@ const ProcessosModule: React.FC = () => {
 
       {/* Controles de visualização e filtros */}
       <div className="flex flex-col sm:flex-row gap-4">
-        {/* Busca */}
+        {/* Busca inteligente com debounce */}
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Buscar por número, cliente, assunto..."
-            className="pl-10"
+            placeholder="Buscar por número, cliente, assunto, área..."
+            className="pl-10 pr-10"
             value={filtros.busca}
-            onChange={(e) => atualizarFiltros({ busca: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Debounce para melhor performance
+              clearTimeout(window.searchTimeout);
+              window.searchTimeout = setTimeout(() => {
+                atualizarFiltros({ busca: value });
+              }, 300);
+            }}
           />
+          {filtros.busca && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+              onClick={() => atualizarFiltros({ busca: "" })}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
         </div>
 
         {/* Filtros rápidos */}
@@ -1367,49 +1385,98 @@ const ProcessosModule: React.FC = () => {
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* Modo de visualização */}
-          <div className="flex items-center border rounded-lg">
+          {/* Modo de visualização melhorado */}
+          <div className="flex items-center border rounded-lg bg-gray-50 dark:bg-gray-800 p-1">
             <Button
               variant={viewMode === "kanban" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("kanban")}
-              className="rounded-r-none"
+              className="rounded-r-none h-8 text-xs"
+              title="Visualização Kanban"
             >
-              <Grid3X3 className="h-4 w-4" />
+              <Grid3X3 className="h-3 w-3 mr-1" />
+              Kanban
             </Button>
             <Button
               variant={viewMode === "lista" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("lista")}
-              className="rounded-l-none"
+              className="rounded-l-none h-8 text-xs"
+              title="Visualização em Lista"
             >
-              <List className="h-4 w-4" />
+              <List className="h-3 w-3 mr-1" />
+              Lista
             </Button>
           </div>
 
-          {/* Configuração de colunas (só para lista) */}
+          {/* Configuração de colunas visíveis */}
           {viewMode === "lista" && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Settings className="h-4 w-4 mr-2" />
+                <Button variant="outline" size="sm" className="h-8">
+                  <Settings className="h-3 w-3 mr-2" />
                   Colunas
+                  <Badge variant="secondary" className="ml-2 text-xs">
+                    {Object.values(visibleColumns).filter(Boolean).length}
+                  </Badge>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-2 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                  Personalizar Colunas Visíveis
+                </div>
+                <DropdownMenuSeparator />
                 {Object.entries(visibleColumns).map(([key, visible]) => (
                   <DropdownMenuCheckboxItem
                     key={key}
                     checked={visible}
-                    onCheckedChange={(checked) =>
-                      setVisibleColumns((prev) => ({ ...prev, [key]: checked }))
-                    }
+                    onCheckedChange={(checked) => {
+                      const newColumns = { ...visibleColumns, [key]: checked };
+                      setVisibleColumns(newColumns);
+                      // Salvar preferência do usuário
+                      localStorage.setItem('crm-processos-columns', JSON.stringify(newColumns));
+                      toast.success("Preferência de colunas salva!");
+                    }}
+                    className="cursor-pointer"
                   >
-                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                    <div className="flex items-center gap-2">
+                      {key === 'numero' && <Scale className="h-3 w-3" />}
+                      {key === 'cliente' && <User className="h-3 w-3" />}
+                      {key === 'area' && <Building className="h-3 w-3" />}
+                      {key === 'status' && <Activity className="h-3 w-3" />}
+                      {key === 'risco' && <AlertTriangle className="h-3 w-3" />}
+                      {key === 'valor' && <DollarSign className="h-3 w-3" />}
+                      {key === 'audiencia' && <Calendar className="h-3 w-3" />}
+                      {key === 'responsavel' && <Users className="h-3 w-3" />}
+                      {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
+                    </div>
                   </DropdownMenuCheckboxItem>
                 ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    const defaultColumns = {
+                      numero: true,
+                      cliente: true,
+                      area: true,
+                      status: true,
+                      risco: true,
+                      valor: true,
+                      audiencia: true,
+                      responsavel: true,
+                    };
+                    setVisibleColumns(defaultColumns);
+                    localStorage.removeItem('crm-processos-columns');
+                    toast.success("Colunas restauradas ao padrão!");
+                  }}
+                  className="cursor-pointer text-xs"
+                >
+                  <RefreshCw className="h-3 w-3 mr-2" />
+                  Restaurar Padrão
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
           )}
         </div>
       </div>
