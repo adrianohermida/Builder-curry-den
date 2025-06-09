@@ -232,18 +232,45 @@ export function CorrectedSidebar({
   collapsed = false,
 }: CorrectedSidebarProps) {
   const location = useLocation();
-  const { user, hasPermission, isAdmin } = usePermissions();
-  const { currentMode, isAdminMode, isClientMode } = useViewMode();
+
+  // Safe hooks with fallbacks
+  let user = null;
+  let hasPermission = () => true;
+  let isAdmin = () => false;
+  let isAdminMode = false;
+  let currentMode = "client";
+
+  try {
+    const permissions = usePermissions();
+    user = permissions.user;
+    hasPermission = permissions.hasPermission;
+    isAdmin = permissions.isAdmin;
+  } catch (error) {
+    console.warn("Permission context not available, using defaults");
+  }
+
+  try {
+    const viewMode = useViewMode();
+    isAdminMode = viewMode.isAdminMode || false;
+    currentMode = viewMode.currentMode || "client";
+  } catch (error) {
+    console.warn("ViewMode context not available, using defaults");
+  }
 
   // Get menu items based on current mode
   const menuItems = isAdminMode ? adminMenuItems : clientMenuItems;
 
-  // Filter menu items based on permissions
-  const filteredMenuItems = menuItems.filter(
-    (item) =>
-      isAdmin() ||
-      hasPermission(item.permission.module, item.permission.action),
-  );
+  // Filter menu items based on permissions with safe fallback
+  const filteredMenuItems = menuItems.filter((item) => {
+    try {
+      return (
+        isAdmin() ||
+        hasPermission(item.permission.module, item.permission.action)
+      );
+    } catch (error) {
+      return true; // Fallback to showing all items if permission check fails
+    }
+  });
 
   const brandingInfo = {
     title: isAdminMode ? "Lawdesk Admin" : "Lawdesk CRM",
@@ -264,7 +291,7 @@ export function CorrectedSidebar({
         collapsed ? "w-16" : "w-72",
       )}
     >
-      {/* Header - SEM logo redundante quando collapsed */}
+      {/* Header */}
       <div
         className={cn(
           "flex items-center p-4 border-b",
@@ -322,11 +349,49 @@ export function CorrectedSidebar({
         )}
       </div>
 
-      {/* Mode Indicator removido - já aparece no header */}
+      {/* User Info */}
+      {user && !collapsed && (
+        <div
+          className={cn(
+            "p-3 border-b",
+            isAdminMode ? "border-slate-700" : "border-border",
+          )}
+        >
+          <div className="flex items-center space-x-2">
+            <div
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
+                isAdminMode
+                  ? "bg-slate-700 text-slate-200"
+                  : "bg-primary/10 text-primary",
+              )}
+            >
+              {user.name?.charAt(0) || "U"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{user.name}</p>
+              <p
+                className={cn(
+                  "text-xs truncate",
+                  isAdminMode ? "text-slate-400" : "text-muted-foreground",
+                )}
+              >
+                {user.role}
+              </p>
+            </div>
+            {isAdminMode && (
+              <Badge
+                variant="destructive"
+                className="text-xs bg-red-600 text-white"
+              >
+                ADMIN
+              </Badge>
+            )}
+          </div>
+        </div>
+      )}
 
-      {/* Search - removido para evitar redundância */}
-
-      {/* Navigation - CORRIGIDA */}
+      {/* Navigation */}
       <ScrollArea className="flex-1 px-2">
         <nav className="space-y-1 py-3">
           <AnimatePresence mode="wait">
@@ -340,9 +405,9 @@ export function CorrectedSidebar({
             >
               {filteredMenuItems.map((item) => {
                 const isActive = location.pathname === item.href;
+                const IconComponent = item.icon;
 
                 if (collapsed) {
-                  const IconComponent = item.icon;
                   return (
                     <Tooltip key={item.href}>
                       <TooltipTrigger asChild>
@@ -374,7 +439,6 @@ export function CorrectedSidebar({
                   );
                 }
 
-                const IconComponent = item.icon;
                 return (
                   <Link
                     key={item.href}
@@ -437,7 +501,7 @@ export function CorrectedSidebar({
           </AnimatePresence>
         </nav>
 
-        {/* System Tools for Admin Mode - ROTAS CORRIGIDAS */}
+        {/* System Tools for Admin Mode */}
         {isAdminMode && !collapsed && (
           <>
             <Separator className="my-3 bg-slate-700" />
@@ -492,7 +556,7 @@ export function CorrectedSidebar({
         )}
       </ScrollArea>
 
-      {/* Footer - compacto */}
+      {/* Footer */}
       {!collapsed && (
         <div
           className={cn(
