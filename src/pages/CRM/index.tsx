@@ -423,7 +423,7 @@ const CRMJuridicoModerno: React.FC = () => {
                   </TabsContent>
 
                   <TabsContent value="contratos" className="mt-0">
-                    <ContratosModule />
+                    <ContratosEnhanced />
                   </TabsContent>
                 </motion.div>
               </AnimatePresence>
