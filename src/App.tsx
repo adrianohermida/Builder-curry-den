@@ -118,6 +118,10 @@ const Login = createLazyComponent(() => import("./pages/Login"), "Login");
 const Painel = createLazyComponent(() => import("./pages/Painel"), "Painel");
 const Index = createLazyComponent(() => import("./pages/Index"), "Index");
 const CRM = createLazyComponent(() => import("./pages/CRM"), "CRM");
+const CRMUnicorn = createLazyComponent(
+  () => import("./pages/CRM/CRMUnicorn"),
+  "CRM Unicorn",
+);
 const Tarefas = createLazyComponent(() => import("./pages/Tarefas"), "Tarefas");
 const Contratos = createLazyComponent(
   () => import("./pages/Contratos"),
