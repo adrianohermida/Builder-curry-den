@@ -142,9 +142,19 @@ interface UseCRMReturn {
     totalProcessos: number;
     totalContratos: number;
     receitaTotal: number;
+    receitaMensal: number;
     clientesAtivos: number;
     processosAtivos: number;
     contratosVigentes: number;
+    clientesNovos: number;
+    clientesProspecto: number;
+    processosEncerrados: number;
+    processosArquivados: number;
+    contratosCancelados: number;
+    contratosVencidos: number;
+    ticketMedio: number;
+    taxaConversao: number;
+    crescimentoMensal: number;
   };
 }
 
@@ -237,6 +247,51 @@ const clientesMock: Cliente[] = [
     valorTotal: 65000,
     tags: ["Criminal", "Complexo"],
     responsavel: "Dra. Maria Oliveira",
+    origem: "Indicação",
+  },
+  {
+    id: "cli-005",
+    nome: "Tech Solutions Ltda",
+    documento: "98.765.432/0001-10",
+    tipo: "PJ",
+    email: "contato@techsolutions.com",
+    telefone: "(11) 99999-0005",
+    endereco: {
+      cep: "05678-901",
+      logradouro: "Rua da Tecnologia",
+      numero: "500",
+      bairro: "Vila Olímpia",
+      cidade: "São Paulo",
+      uf: "SP",
+    },
+    status: "novo",
+    dataCadastro: new Date("2024-01-28"),
+    valorTotal: 120000,
+    tags: ["Tecnologia", "Empresarial"],
+    responsavel: "Dr. Pedro Santos",
+    origem: "LinkedIn",
+  },
+  {
+    id: "cli-006",
+    nome: "Ana Rodrigues",
+    documento: "321.654.987-00",
+    tipo: "PF",
+    email: "ana.rodrigues@email.com",
+    telefone: "(11) 99999-0006",
+    endereco: {
+      cep: "03456-789",
+      logradouro: "Av. das Nações",
+      numero: "200",
+      bairro: "Moema",
+      cidade: "São Paulo",
+      uf: "SP",
+    },
+    status: "inativo",
+    dataCadastro: new Date("2023-11-15"),
+    ultimoContato: new Date("2023-12-20"),
+    valorTotal: 35000,
+    tags: ["Civil", "Imobiliário"],
+    responsavel: "Dra. Ana Costa",
     origem: "Indicação",
   },
 ];
@@ -401,6 +456,38 @@ const processosMock: Processo[] = [
     classeJudicial: "Ação de Cobrança",
     competencia: "Direito Civil",
   },
+  {
+    id: "proc-006",
+    numero: "8888888-88.2024.8.26.0600",
+    clienteId: "cli-005",
+    cliente: "Tech Solutions Ltda",
+    area: "Empresarial",
+    status: "ativo",
+    valor: 120000,
+    dataInicio: new Date("2024-01-28"),
+    responsavel: "Dr. Pedro Santos",
+    tribunal: "TJSP - Tribunal de Justiça de São Paulo",
+    vara: "2ª Vara Empresarial",
+    assunto: "Ação de dissolução parcial de sociedade",
+    observacoes:
+      "Sócio minoritário deseja sair da sociedade. Avaliação patrimonial em andamento.",
+    tags: ["Empresarial", "Sociedade", "Avaliação"],
+    proximaAudiencia: new Date("2024-03-10T10:00:00"),
+    risco: "medio",
+    prioridade: "alta",
+    instancia: "primeira",
+    rito: "comum",
+    segredoJustica: false,
+    valorCausa: 500000,
+    custas: 12000,
+    honorarios: 120000,
+    enderecoTribunal: "Praça da Sé, s/n - Centro, São Paulo - SP",
+    telefoneCartorio: "(11) 3241-5002",
+    emailCartorio: "2varaempresarial@tjsp.jus.br",
+    numeroDistribuicao: "2024-0600-28",
+    classeJudicial: "Ação de Dissolução Parcial",
+    competencia: "Direito Empresarial",
+  },
 ];
 
 const contratosMock: Contrato[] = [
@@ -443,6 +530,85 @@ const contratosMock: Contrato[] = [
     tags: ["Trimestral", "PJ", "Premium"],
     observacoes:
       "Contrato corporativo. Inclui todos os serviços do escritório.",
+  },
+  {
+    id: "cont-003",
+    numero: "CONT-2024-003",
+    clienteId: "cli-003",
+    cliente: "Maria Santos",
+    tipo: "Honorários por Êxito",
+    status: "vigente",
+    valor: 25000,
+    dataInicio: new Date("2024-01-22"),
+    dataVencimento: new Date("2024-07-22"),
+    responsavel: "Dr. Carlos Silva",
+    clausulas: [
+      "Pagamento somente em caso de êxito",
+      "30% do valor obtido",
+      "Custas por conta do cliente",
+    ],
+    tags: ["Êxito", "Trabalhista", "Condicional"],
+    observacoes: "Contrato de êxito para ação trabalhista de assédio moral.",
+  },
+  {
+    id: "cont-004",
+    numero: "CONT-2023-045",
+    clienteId: "cli-004",
+    cliente: "Carlos Pereira",
+    tipo: "Defesa Criminal",
+    status: "vigente",
+    valor: 65000,
+    dataInicio: new Date("2023-12-10"),
+    dataVencimento: new Date("2024-06-10"),
+    responsavel: "Dra. Maria Oliveira",
+    clausulas: [
+      "Pagamento em 6 parcelas",
+      "Inclui todas as instâncias",
+      "Recursos inclusos no valor",
+    ],
+    tags: ["Criminal", "Parcelado", "Completo"],
+    observacoes:
+      "Defesa completa em processo criminal. Valor fixo para todas as fases.",
+  },
+  {
+    id: "cont-005",
+    numero: "CONT-2024-005",
+    clienteId: "cli-005",
+    cliente: "Tech Solutions Ltda",
+    tipo: "Consultoria Empresarial",
+    status: "vigente",
+    valor: 120000,
+    dataInicio: new Date("2024-01-28"),
+    dataVencimento: new Date("2024-12-28"),
+    responsavel: "Dr. Pedro Santos",
+    clausulas: [
+      "Consultoria mensal de 20 horas",
+      "Atendimento presencial e remoto",
+      "Relatórios trimestrais",
+      "Suporte em devido legal",
+    ],
+    tags: ["Consultoria", "Tecnologia", "Mensal"],
+    observacoes:
+      "Empresa de tecnologia em crescimento. Foco em compliance e contratos.",
+  },
+  {
+    id: "cont-006",
+    numero: "CONT-2023-012",
+    clienteId: "cli-006",
+    cliente: "Ana Rodrigues",
+    tipo: "Honorários",
+    status: "vencido",
+    valor: 35000,
+    dataInicio: new Date("2023-11-15"),
+    dataVencimento: new Date("2024-01-15"),
+    responsavel: "Dra. Ana Costa",
+    clausulas: [
+      "Pagamento à vista",
+      "Desconto de 10% para pagamento antecipado",
+      "Inclui despesas processuais",
+    ],
+    tags: ["Civil", "Imobiliário", "Vencido"],
+    observacoes: "Contrato vencido. Cliente não renovou. Processo finalizado.",
   },
 ];
 
@@ -868,31 +1034,81 @@ export function useCRM(): UseCRMReturn {
     document.body.removeChild(link);
   };
 
-  // Estatísticas
+  // Estatísticas detalhadas
   const estatisticas = useMemo(() => {
     const totalClientes = clientes.length;
     const totalProcessos = processos.length;
     const totalContratos = contratos.length;
+
     const receitaTotal = [...processos, ...contratos].reduce(
       (total, item) => total + item.valor,
       0,
     );
+
+    // Receita mensal (simulada - últimos 30 dias)
+    const agora = new Date();
+    const trintaDiasAtras = new Date(
+      agora.getTime() - 30 * 24 * 60 * 60 * 1000,
+    );
+    const receitaMensal = [...processos, ...contratos]
+      .filter((item) => new Date(item.dataInicio) >= trintaDiasAtras)
+      .reduce((total, item) => total + item.valor, 0);
+
     const clientesAtivos = clientes.filter((c) => c.status === "ativo").length;
+    const clientesNovos = clientes.filter((c) => c.status === "novo").length;
+    const clientesProspecto = clientes.filter(
+      (c) => c.status === "prospecto",
+    ).length;
+
     const processosAtivos = processos.filter(
       (p) => p.status === "ativo",
     ).length;
+    const processosEncerrados = processos.filter(
+      (p) => p.status === "encerrado",
+    ).length;
+    const processosArquivados = processos.filter(
+      (p) => p.status === "arquivado",
+    ).length;
+
     const contratosVigentes = contratos.filter(
       (c) => c.status === "vigente",
     ).length;
+    const contratosCancelados = contratos.filter(
+      (c) => c.status === "cancelado",
+    ).length;
+    const contratosVencidos = contratos.filter(
+      (c) => c.status === "vencido",
+    ).length;
+
+    // Ticket médio
+    const ticketMedio = totalClientes > 0 ? receitaTotal / totalClientes : 0;
+
+    // Taxa de conversão (prospectos para ativos)
+    const totalProspectos = clientesProspecto + clientesAtivos;
+    const taxaConversao =
+      totalProspectos > 0 ? (clientesAtivos / totalProspectos) * 100 : 0;
+
+    // Crescimento mensal (simulado)
+    const crescimentoMensal = 15.2; // Seria calculado comparando com mês anterior
 
     return {
       totalClientes,
       totalProcessos,
       totalContratos,
       receitaTotal,
+      receitaMensal,
       clientesAtivos,
       processosAtivos,
       contratosVigentes,
+      clientesNovos,
+      clientesProspecto,
+      processosEncerrados,
+      processosArquivados,
+      contratosCancelados,
+      contratosVencidos,
+      ticketMedio,
+      taxaConversao,
+      crescimentoMensal,
     };
   }, [clientes, processos, contratos]);
 
