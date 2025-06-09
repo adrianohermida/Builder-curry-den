@@ -109,7 +109,8 @@ const Contratos = createLazyComponent(() => import("./pages/Contratos"));
 const ContratosEnhanced = createLazyComponent(
   () => import("./pages/CRM/Contratos/ContratosEnhanced"),
 );
-const TestContratosEnhanced = createLazyComponent(
+const TestContratosEnhanced = createLazyComponent(() => import("./pages/TestContratosEnhanced"));
+const TestProcessos = createLazyComponent(() => import("./pages/TestProcessos"));
   () => import("./pages/TestContratosEnhanced"),
 );
 const Financeiro = createLazyComponent(() => import("./pages/Financeiro"));
@@ -815,6 +816,18 @@ const App = () => (
                               element={
                                 <PageWrapper>
                                   <TestContratosEnhanced />
+                                </PageWrapper>
+                              }
+                            />
+                          }
+                        />
+                        <Route
+                          path="teste-processos"
+                          element={
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <TestProcessos />
                                 </PageWrapper>
                               }
                             />
