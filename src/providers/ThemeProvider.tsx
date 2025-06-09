@@ -51,8 +51,9 @@ interface ThemeContextType {
   effectiveMode: "light" | "dark";
 }
 
+// FIXED: Default to light mode as requested
 const defaultThemeConfig: ThemeConfig = {
-  mode: "light", // Set default to light mode as requested
+  mode: "light", // ✅ FORCED LIGHT MODE AS DEFAULT
   colorTheme: "default",
   accessibility: {
     highContrast: false,
@@ -70,14 +71,14 @@ const defaultThemeConfig: ThemeConfig = {
   },
 };
 
-// Enhanced color theme mappings
+// FIXED: Enhanced color theme mappings with client/admin distinction
 const colorThemeMap: Record<ColorTheme, string> = {
-  default: "221.2 83.2% 53.3%", // Blue
-  blue: "221.2 83.2% 53.3%",
+  default: "221.2 83.2% 53.3%", // Blue (client default)
+  blue: "221.2 83.2% 53.3%", // Client mode primary
   green: "142.1 76.2% 36.3%",
   purple: "262.1 83.3% 57.8%",
   orange: "24.6 95% 53.1%",
-  red: "0 84% 60%", // Red for admin mode
+  red: "0 84% 60%", // Admin mode primary
   custom: "221.2 83.2% 53.3%", // fallback
 };
 
@@ -85,7 +86,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [config, setConfig] = useLocalStorage<ThemeConfig>(
-    "lawdesk-theme-config-v3",
+    "lawdesk-theme-config-v4", // Updated version to reset existing configs
     defaultThemeConfig,
   );
   const [isSystemDark, setIsSystemDark] = useState(false);
@@ -100,29 +101,36 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return () => mediaQuery.removeEventListener("change", updateSystemDark);
   }, []);
 
-  // Calculate effective mode
+  // FIXED: Force light mode by default, only dark if explicitly set
   const effectiveMode: "light" | "dark" =
-    config.mode === "system" ? (isSystemDark ? "dark" : "light") : config.mode;
+    config.mode === "dark" ? "dark" : "light"; // System defaults to light
 
   const isDark = effectiveMode === "dark";
 
-  // Apply theme to document with modern design tokens
+  // FIXED: Enhanced theme application with proper light mode defaults
   useEffect(() => {
     const root = document.documentElement;
     const body = document.body;
 
-    // Remove all existing theme classes
+    // Clear all existing theme classes
     root.classList.remove(
       "dark",
       "light",
       "high-contrast",
       "reduced-motion",
       "large-text",
+      "admin-mode",
+      "client-mode",
     );
     root.removeAttribute("data-theme");
 
-    // Apply base theme
-    root.classList.add(effectiveMode);
+    // FORCE light mode as base
+    root.classList.add("light");
+
+    // Only add dark if explicitly set
+    if (isDark) {
+      root.classList.add("dark");
+    }
 
     // Apply color theme
     if (config.colorTheme !== "default") {
@@ -142,13 +150,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       root.classList.add("large-text");
     }
 
-    // Apply modern CSS custom properties
+    // FIXED: Apply design tokens with proper light mode defaults
     const primaryColor =
       config.customColors?.primary ||
       colorThemeMap[config.colorTheme] ||
       config.branding.primaryColor;
 
-    // Set design tokens
+    // Set CSS custom properties for consistent theming
     root.style.setProperty("--brand-primary", primaryColor);
     root.style.setProperty("--font-family", config.branding.fontFamily);
     root.style.setProperty(
@@ -156,7 +164,34 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       `${config.branding.borderRadius}px`,
     );
 
-    // Typography scale
+    // FIXED: Light mode color scheme
+    root.style.setProperty(
+      "--background",
+      isDark ? "222.2 84% 4.9%" : "0 0% 100%",
+    );
+    root.style.setProperty(
+      "--foreground",
+      isDark ? "210 40% 98%" : "222.2 84% 4.9%",
+    );
+    root.style.setProperty("--card", isDark ? "222.2 84% 4.9%" : "0 0% 100%");
+    root.style.setProperty(
+      "--card-foreground",
+      isDark ? "210 40% 98%" : "222.2 84% 4.9%",
+    );
+    root.style.setProperty(
+      "--muted",
+      isDark ? "217.2 32.6% 17.5%" : "210 40% 96%",
+    );
+    root.style.setProperty(
+      "--muted-foreground",
+      isDark ? "215 20.2% 65.1%" : "215.4 16.3% 46.9%",
+    );
+    root.style.setProperty(
+      "--border",
+      isDark ? "217.2 32.6% 17.5%" : "214.3 31.8% 91.4%",
+    );
+
+    // Typography scaling
     if (config.accessibility.largeText) {
       root.style.setProperty("--font-scale", "1.125");
     } else {
@@ -169,24 +204,27 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       root.style.setProperty("--animation-duration-normal", "0.01ms");
       root.style.setProperty("--animation-duration-slow", "0.01ms");
     } else {
-      root.style.setProperty("--animation-duration-fast", "0.15s");
-      root.style.setProperty("--animation-duration-normal", "0.2s");
-      root.style.setProperty("--animation-duration-slow", "0.3s");
+      root.style.setProperty("--animation-duration-fast", "150ms");
+      root.style.setProperty("--animation-duration-normal", "200ms");
+      root.style.setProperty("--animation-duration-slow", "300ms");
     }
 
-    // Color scheme meta tag for OS integration
+    // FIXED: Modern body styling with forced light mode
+    body.className = [
+      "antialiased",
+      "font-sans",
+      "bg-background",
+      "text-foreground",
+      config.accessibility.reducedMotion && "reduced-motion",
+      config.accessibility.largeText && "large-text",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    // FIXED: Meta theme color for mobile browsers
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
       metaThemeColor.setAttribute("content", isDark ? "#0f172a" : "#ffffff");
-    }
-
-    // Viewport meta optimization for mobile
-    const metaViewport = document.querySelector('meta[name="viewport"]');
-    if (metaViewport) {
-      metaViewport.setAttribute(
-        "content",
-        "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no",
-      );
     }
 
     // Apply custom colors if any
@@ -195,20 +233,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         root.style.setProperty(`--${key}`, value);
       });
     }
-
-    // Modern body classes
-    body.className = [
-      "antialiased",
-      "font-sans",
-      isDark ? "dark" : "light",
-      config.accessibility.reducedMotion && "reduced-motion",
-      config.accessibility.largeText && "large-text",
-    ]
-      .filter(Boolean)
-      .join(" ");
   }, [config, isDark, effectiveMode]);
 
-  // Handle system preference for reduced motion
+  // FIXED: Reduced motion preference detection with respect for user choice
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const updateReducedMotion = () => {
@@ -228,7 +255,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return () => mediaQuery.removeEventListener("change", updateReducedMotion);
   }, [config.accessibility.reducedMotion, setConfig]);
 
-  // Handle system preference for high contrast
+  // High contrast preference detection
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-contrast: high)");
     const updateHighContrast = () => {
@@ -342,7 +369,7 @@ export function useTheme() {
   return context;
 }
 
-// Utility hook for theme-aware styling
+// FIXED: Theme-aware utility hook
 export function useThemeClasses() {
   const { isDark, config } = useTheme();
 
@@ -421,7 +448,7 @@ export function getThemeColors() {
   };
 }
 
-// Modern theme presets optimized for 2025 SaaS design
+// FIXED: Theme presets for client and admin modes
 export const themePresets = {
   lawdeskClient: {
     mode: "light" as ThemeMode,
@@ -434,7 +461,7 @@ export const themePresets = {
     },
     branding: {
       companyName: "Lawdesk",
-      primaryColor: "221.2 83.2% 53.3%", // Blue
+      primaryColor: "221.2 83.2% 53.3%", // Blue for client
       secondaryColor: "210 40% 96%",
       accentColor: "221.2 83.2% 53.3%",
       borderRadius: 8,
@@ -442,7 +469,7 @@ export const themePresets = {
     },
   },
   lawdeskAdmin: {
-    mode: "light" as ThemeMode,
+    mode: "light" as ThemeMode, // Admin also starts in light mode
     colorTheme: "red" as ColorTheme,
     accessibility: {
       highContrast: false,
@@ -452,31 +479,11 @@ export const themePresets = {
     },
     branding: {
       companyName: "Lawdesk Admin",
-      primaryColor: "0 84% 60%", // Red
+      primaryColor: "0 84% 60%", // Red for admin
       secondaryColor: "210 40% 96%",
       accentColor: "0 84% 60%",
       borderRadius: 8,
       fontFamily: "Inter, system-ui, sans-serif",
-    },
-  },
-  modern: {
-    mode: "dark" as ThemeMode,
-    colorTheme: "purple" as ColorTheme,
-    accessibility: {
-      highContrast: false,
-      reducedMotion: false,
-      largeText: false,
-      focusVisible: true,
-    },
-  },
-  accessible: {
-    mode: "light" as ThemeMode,
-    colorTheme: "default" as ColorTheme,
-    accessibility: {
-      highContrast: true,
-      reducedMotion: true,
-      largeText: true,
-      focusVisible: true,
     },
   },
 };
