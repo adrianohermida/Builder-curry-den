@@ -838,19 +838,31 @@ export default function ExecutiveDashboard() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={businessData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="period" />
-                    <YAxis />
+                  <RechartsLineChart data={businessData}>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      className="opacity-30"
+                    />
+                    <XAxis
+                      dataKey="mes"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: "#6B7280" }}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: "#6B7280" }}
+                      tickFormatter={(value) => `${value}%`}
+                    />
                     <Tooltip />
                     <Line
                       type="monotone"
-                      dataKey="nps"
+                      dataKey="valor"
                       stroke="#8B5CF6"
                       strokeWidth={3}
-                      dot={{ fill: "#8B5CF6", strokeWidth: 2, r: 6 }}
                     />
-                  </LineChart>
+                  </RechartsLineChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
@@ -1001,31 +1013,26 @@ export default function ExecutiveDashboard() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={businessData}>
+                  <RechartsLineChart data={businessData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="period" />
-                    <YAxis />
+                    <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
+                    <YAxis
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => `${value}%`}
+                    />
                     <Tooltip
-                      formatter={(value: number, name: string) => [
-                        `R$ ${value.toLocaleString()}`,
-                        name === "cac" ? "CAC" : "LTV",
-                      ]}
+                      formatter={(value) => [`${value}%`, "Performance"]}
+                      labelFormatter={(label) => `Mês: ${label}`}
                     />
                     <Line
                       type="monotone"
-                      dataKey="cac"
-                      stroke="#EF4444"
+                      dataKey="valor"
+                      stroke="#8B5CF6"
                       strokeWidth={2}
-                      name="cac"
+                      dot={{ r: 4 }}
+                      activeDot={{ r: 6 }}
                     />
-                    <Line
-                      type="monotone"
-                      dataKey="ltv"
-                      stroke="#10B981"
-                      strokeWidth={2}
-                      name="ltv"
-                    />
-                  </LineChart>
+                  </RechartsLineChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
