@@ -288,9 +288,13 @@ export default function ProcessoDetalhes() {
       {/* Header */}
       <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
         <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
               <div className="flex items-center gap-4">
-                <Button variant="ghost" onClick={() => navigate("/crm/processos")}>
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate("/crm/processos")}
+                >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Voltar aos Processos
                 </Button>
@@ -312,12 +316,13 @@ export default function ProcessoDetalhes() {
                   </button>
                   <span>/</span>
                   <span className="text-gray-900 dark:text-white font-medium">
-                    {processo?.numero}
+                    {processo.numero}
                   </span>
                 </nav>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
                   <Scale className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
 
@@ -330,48 +335,52 @@ export default function ProcessoDetalhes() {
                   </p>
                 </div>
               </div>
+            </div>
 
-              <div className="flex items-center gap-2">
-                <Badge className={getStatusColor(processo.status)}>
-                  {processo.status}
-                </Badge>
+            <div className="flex items-center gap-2">
+              <Badge className={getStatusColor(processo.status)}>
+                {processo.status}
+              </Badge>
 
-                <div className={`flex items-center gap-1 ${getRiscoColor(processo.risco)}`}>
-                  {getRiscoIcon(processo.risco)}
-                  <span className="text-sm font-medium capitalize">{processo.risco}</span>
-                </div>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setShowEditForm(true)}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Editar Processo
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Download className="h-4 w-4 mr-2" />
-                      Exportar PDF
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Share2 className="h-4 w-4 mr-2" />
-                      Compartilhar
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <Bell className="h-4 w-4 mr-2" />
-                      Configurar Alertas
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600">
-                      <X className="h-4 w-4 mr-2" />
-                      Arquivar Processo
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              <div
+                className={`flex items-center gap-1 ${getRiscoColor(processo.risco)}`}
+              >
+                {getRiscoIcon(processo.risco)}
+                <span className="text-sm font-medium capitalize">
+                  {processo.risco}
+                </span>
               </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setShowEditForm(true)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar Processo
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Download className="h-4 w-4 mr-2" />
+                    Exportar PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Compartilhar
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <Bell className="h-4 w-4 mr-2" />
+                    Configurar Alertas
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-red-600">
+                    <X className="h-4 w-4 mr-2" />
+                    Arquivar Processo
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
