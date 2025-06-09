@@ -514,6 +514,143 @@ const App: React.FC = () => {
                             }
                           />
 
+                          {/* Admin Routes */}
+                          <Route path="admin/*">
+                            {/* Admin Dashboard as main route */}
+                            <Route
+                              index
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <AdminLayout />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="dashboard"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <AdminDashboard />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="executive"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <ExecutiveDashboard />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="bi"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <BIPage />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="equipe"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <TeamPage />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="desenvolvimento"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <DevToolsPage />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="faturamento"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <BillingPage />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="suporte"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <SupportPage />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="marketing"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <MarketingPage />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="produtos"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <ProductsPage />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="seguranca"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <SecurityPage />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                          </Route>
+
                           {/* Configuration Routes */}
                           <Route
                             path="configuracoes-prazos"
