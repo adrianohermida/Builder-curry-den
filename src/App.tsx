@@ -25,6 +25,7 @@ import { CorrectedLayout } from "@/components/Layout/CorrectedLayout";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { PageLoading } from "@/components/ui/simple-loading";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { AdminErrorBoundary } from "@/components/ui/admin-error-boundary";
 import { RouteGuard } from "@/components/RouteGuard";
 import { EnhancedRouteGuard } from "@/components/Enhanced/EnhancedRouteGuard";
 import NotFound from "./pages/NotFound";
@@ -468,9 +469,14 @@ const App = () => (
                           element={
                             <SafeRoute
                               element={
-                                <EnhancedRouteGuard adminModeOnly requireAdmin>
-                                  <AdminLayout />
-                                </EnhancedRouteGuard>
+                                <AdminErrorBoundary>
+                                  <EnhancedRouteGuard
+                                    adminModeOnly
+                                    requireAdmin
+                                  >
+                                    <AdminLayout />
+                                  </EnhancedRouteGuard>
+                                </AdminErrorBoundary>
                               }
                             />
                           }
