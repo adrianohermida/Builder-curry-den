@@ -454,7 +454,7 @@ const App = () => (
                             <SafeRoute
                               element={
                                 <PageWrapper>
-                                  <Contratos />
+                                  <ContratosEnhanced />
                                 </PageWrapper>
                               }
                             />
