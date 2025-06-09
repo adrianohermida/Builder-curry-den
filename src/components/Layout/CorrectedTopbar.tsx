@@ -1,17 +1,29 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 import {
-  Search,
   Menu,
+  Search,
   Bell,
-  Settings,
   User,
+  Settings,
   LogOut,
+  Moon,
+  Sun,
+  Monitor,
   Shield,
-  X,
-  Clock,
+  Crown,
+  ChevronDown,
+  Keyboard,
+  HelpCircle,
+  Zap,
+  Building,
+  Palette,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -20,13 +32,29 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel,
+  DropdownMenuGroup,
+  DropdownMenuShortcut,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { usePermissions } from "@/hooks/usePermissions";
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+import { useTheme } from "@/providers/ThemeProvider";
 import { useViewMode } from "@/contexts/ViewModeContext";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface CorrectedTopbarProps {
   onMenuClick: () => void;
@@ -39,388 +67,435 @@ export function CorrectedTopbar({
   sidebarOpen,
   isMobile,
 }: CorrectedTopbarProps) {
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const location = useLocation();
   const navigate = useNavigate();
-  const [showSearch, setShowSearch] = useState(false);
 
-  // Safe hooks with fallbacks
-  let user = null;
-  let isAdmin = () => false;
-  let logout = () => {};
-  let isAdminMode = false;
-  let canSwitchToAdmin = false;
-  let switchMode = () => {};
+  // Theme and mode hooks with fallbacks
+  let isDark = false;
+  let setMode = () => {};
+  let effectiveMode = "light";
 
   try {
-    const permissions = usePermissions();
-    user = permissions.user;
-    isAdmin = permissions.isAdmin;
-    logout = permissions.logout;
+    const theme = useTheme();
+    isDark = theme.isDark;
+    setMode = theme.setMode;
+    effectiveMode = theme.effectiveMode;
   } catch (error) {
-    console.warn("Permission context not available for header");
+    console.warn("Theme context not available");
   }
+
+  let isAdminMode = false;
+  let toggleMode = () => {};
+  let currentMode = "client";
 
   try {
     const viewMode = useViewMode();
-    isAdminMode = viewMode.isAdminMode || false;
-    canSwitchToAdmin = viewMode.canSwitchToAdmin || false;
-    switchMode = viewMode.switchMode || (() => {});
+    isAdminMode = viewMode.isAdminMode;
+    toggleMode = viewMode.toggleMode;
+    currentMode = viewMode.currentMode;
   } catch (error) {
-    console.warn("ViewMode context not available for header");
+    console.warn("ViewMode context not available");
   }
 
-  const handleLogout = async () => {
-    try {
-      logout();
-      toast.success("Logout realizado", {
-        description: "Você foi desconectado com sucesso",
-      });
-      navigate("/login");
-    } catch (error) {
-      // Log apenas em desenvolvimento
-      if (process.env.NODE_ENV === "development") {
-        console.error("Erro ao fazer logout:", error);
-      }
-      toast.error("Erro no logout", {
-        description: "Tente novamente",
-      });
+  let user = { name: "Usuário", email: "usuario@lawdesk.com" };
+  let isAdmin = () => false;
+
+  try {
+    const permissions = usePermissions();
+    user = permissions.user || user;
+    isAdmin = permissions.isAdmin;
+  } catch (error) {
+    console.warn("Permissions context not available");
+  }
+
+  // Search command suggestions
+  const searchSuggestions = [
+    { label: "Buscar clientes", value: "clientes", href: "/crm/clientes" },
+    { label: "Buscar processos", value: "processos", href: "/crm/processos" },
+    { label: "Buscar contratos", value: "contratos", href: "/crm/contratos" },
+    { label: "Agenda", value: "agenda", href: "/agenda" },
+    { label: "Documentos", value: "documentos", href: "/ged-juridico" },
+    { label: "IA Jurídico", value: "ia", href: "/ai-enhanced" },
+    { label: "Configurações", value: "configuracoes", href: "/settings" },
+  ];
+
+  // Get page title from current route
+  const getPageTitle = () => {
+    const path = location.pathname;
+    const titles: Record<string, string> = {
+      "/painel": "Painel de Controle",
+      "/crm": "CRM Jurídico",
+      "/crm/clientes": "Gestão de Clientes",
+      "/crm/processos": "Processos Jurídicos",
+      "/crm/contratos": "Contratos",
+      "/agenda": "Agenda Jurídica",
+      "/ged-juridico": "GED Jurídico",
+      "/ai-enhanced": "IA Jurídico",
+      "/tarefas": "Gestão de Tarefas",
+      "/publicacoes": "Publicações",
+      "/financeiro": "Financeiro",
+      "/atendimento": "Atendimento",
+      "/settings": "Configurações",
+      "/admin": "Administração",
+      "/admin/executive": "Dashboard Executivo",
+      "/admin/bi": "Business Intelligence",
+      "/admin/equipe": "Gestão de Equipe",
+      "/admin/desenvolvimento": "Desenvolvimento",
+      "/admin/faturamento": "Faturamento",
+      "/admin/suporte": "Suporte B2B",
+      "/admin/marketing": "Marketing",
+      "/admin/produtos": "Produtos",
+      "/admin/seguranca": "Segurança",
+      "/system-health": "System Health",
+      "/update": "Update Manager",
+      "/launch": "Launch Control",
+    };
+
+    return titles[path] || "Lawdesk";
+  };
+
+  const handleSearch = (value: string) => {
+    const suggestion = searchSuggestions.find((s) => s.value === value);
+    if (suggestion) {
+      navigate(suggestion.href);
+      setSearchOpen(false);
+      setSearchQuery("");
     }
   };
 
-  const handleQuickSwitch = () => {
-    try {
-      if (isAdminMode) {
-        switchMode("client");
-        toast.success("Modo Cliente", {
-          description: "⚖️ Visualização de cliente ativa",
-        });
-      } else if (canSwitchToAdmin) {
-        switchMode("admin");
-        toast.success("Modo Admin", {
-          description: "🛡️ Acesso administrativo ativo",
-        });
-      }
-    } catch (error) {
-      console.error("Erro ao trocar modo:", error);
-      toast.error("Erro ao trocar modo");
-    }
+  const handleLogout = () => {
+    // Implement logout logic
+    console.log("Logout");
   };
-
-  const currentTime = new Intl.DateTimeFormat("pt-BR", {
-    weekday: "short",
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date());
 
   return (
     <>
       <header
         className={cn(
-          "sticky top-0 z-40 w-full border-b backdrop-blur-md",
-          isAdminMode
-            ? "bg-slate-900/90 border-slate-700 text-slate-100"
-            : "bg-background/90 border-border",
+          "sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
           "transition-all duration-200",
         )}
       >
-        {/* Mobile Header */}
-        {isMobile ? (
-          <div className="flex items-center justify-between px-4 h-14">
-            {/* Left: Menu + Brand */}
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onMenuClick}
-                className={cn(
-                  "h-9 w-9 p-0",
-                  isAdminMode && "text-slate-200 hover:bg-slate-800",
-                )}
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
+        <div className="flex h-16 items-center justify-between px-4 lg:px-6">
+          {/* Left Section */}
+          <div className="flex items-center gap-4">
+            {/* Menu Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onMenuClick}
+              className="h-9 w-9 p-0"
+            >
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
 
-              <Link to={isAdminMode ? "/admin" : "/painel"}>
-                <span
-                  className={cn(
-                    "font-bold text-lg",
-                    isAdminMode ? "text-slate-100" : "text-foreground",
-                  )}
-                >
-                  {isAdminMode ? "Admin" : "Lawdesk"}
-                </span>
-              </Link>
-            </div>
-
-            {/* Right: Search + User */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowSearch(!showSearch)}
-                className={cn(
-                  "h-9 w-9 p-0",
-                  isAdminMode && "text-slate-200 hover:bg-slate-800",
-                )}
-              >
-                {showSearch ? (
-                  <X className="h-4 w-4" />
-                ) : (
-                  <Search className="h-4 w-4" />
-                )}
-              </Button>
-
-              {user && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-9 w-9 p-0 relative"
-                    >
-                      <Avatar className="h-7 w-7">
-                        <AvatarImage src={user.avatar} alt={user.name} />
-                        <AvatarFallback className="text-xs">
-                          {user.name?.charAt(0) || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      {isAdminMode && (
-                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
-                      )}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64">
-                    <DropdownMenuLabel>
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium">{user.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {user.email}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant={isAdminMode ? "destructive" : "default"}
-                            className="text-xs"
-                          >
-                            {user.role}
-                          </Badge>
-                          {isAdminMode && (
-                            <Badge variant="destructive" className="text-xs">
-                              ADMIN
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-
-                    {canSwitchToAdmin && (
-                      <>
-                        <DropdownMenuItem onClick={handleQuickSwitch}>
-                          <Shield className="h-4 w-4 mr-2" />
-                          {isAdminMode ? "Modo Cliente" : "Modo Admin"}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                      </>
-                    )}
-
-                    <DropdownMenuItem onClick={() => navigate("/settings")}>
-                      <Settings className="h-4 w-4 mr-2" />
-                      Configurações
-                    </DropdownMenuItem>
-
-                    <DropdownMenuSeparator />
-
-                    <DropdownMenuItem
-                      onClick={handleLogout}
-                      className="text-red-600 focus:text-red-600"
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Sair
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          </div>
-        ) : (
-          /* Desktop Header */
-          <div className="flex items-center justify-between px-6 h-16">
-            {/* Left: Menu + Search */}
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onMenuClick}
-                className={cn(
-                  "h-10 w-10 p-0",
-                  isAdminMode && "text-slate-200 hover:bg-slate-800",
-                )}
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-
-              {/* Search */}
-              <div className="relative w-80">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Buscar clientes, processos, documentos..."
-                  className={cn(
-                    "pl-10 w-full",
-                    isAdminMode &&
-                      "bg-slate-800 border-slate-600 text-slate-100 placeholder:text-slate-400",
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Right: Actions + User */}
-            <div className="flex items-center gap-4">
-              {/* Time Display for Admin */}
+            {/* Page Title */}
+            <div className="hidden md:block">
+              <h1 className="text-lg font-semibold text-foreground">
+                {getPageTitle()}
+              </h1>
               {isAdminMode && (
-                <div className="hidden lg:flex items-center gap-2 text-slate-300">
-                  <Clock className="h-4 w-4" />
-                  <span className="text-sm font-mono">{currentTime}</span>
-                </div>
-              )}
-
-              {/* Quick Switch */}
-              {canSwitchToAdmin && (
-                <Button
-                  variant={isAdminMode ? "destructive" : "default"}
-                  size="sm"
-                  onClick={handleQuickSwitch}
-                  className="hidden lg:flex"
-                >
-                  <Shield className="h-4 w-4 mr-2" />
-                  {isAdminMode ? "Cliente" : "Admin"}
-                </Button>
-              )}
-
-              {/* Notifications */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "h-10 w-10 p-0 relative",
-                  isAdminMode && "text-slate-200 hover:bg-slate-800",
-                )}
-              >
-                <Bell className="h-5 w-5" />
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
-              </Button>
-
-              {/* User Menu */}
-              {user && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="h-10 px-3 gap-2 hover:bg-muted"
-                    >
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.avatar} alt={user.name} />
-                        <AvatarFallback>
-                          {user.name?.charAt(0) || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="hidden lg:block text-left">
-                        <p className="text-sm font-medium">{user.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {user.role}
-                        </p>
-                      </div>
-                      {isAdminMode && (
-                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                      )}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64">
-                    <DropdownMenuLabel>
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium">{user.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {user.email}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant={isAdminMode ? "destructive" : "default"}
-                            className="text-xs"
-                          >
-                            {user.role}
-                          </Badge>
-                          {isAdminMode && (
-                            <Badge variant="destructive" className="text-xs">
-                              ADMIN
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-
-                    <DropdownMenuItem onClick={() => navigate("/profile")}>
-                      <User className="h-4 w-4 mr-2" />
-                      Meu Perfil
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem onClick={() => navigate("/settings")}>
-                      <Settings className="h-4 w-4 mr-2" />
-                      Configurações
-                    </DropdownMenuItem>
-
-                    {canSwitchToAdmin && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={handleQuickSwitch}>
-                          <Shield className="h-4 w-4 mr-2" />
-                          {isAdminMode ? "Modo Cliente" : "Modo Admin"}
-                        </DropdownMenuItem>
-                      </>
-                    )}
-
-                    <DropdownMenuSeparator />
-
-                    <DropdownMenuItem
-                      onClick={handleLogout}
-                      className="text-red-600 focus:text-red-600"
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Sair
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <p className="text-sm text-muted-foreground">
+                  Modo Administrativo
+                </p>
               )}
             </div>
-          </div>
-        )}
-      </header>
 
-      {/* Mobile Search Overlay */}
-      {isMobile && showSearch && (
-        <div
-          className={cn(
-            "absolute top-14 left-0 right-0 z-50 p-4 border-b backdrop-blur-md",
-            isAdminMode
-              ? "bg-slate-900/95 border-slate-700"
-              : "bg-background/95 border-border",
-          )}
-        >
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Buscar..."
-              className={cn(
-                "pl-10 w-full",
-                isAdminMode &&
-                  "bg-slate-800 border-slate-600 text-slate-100 placeholder:text-slate-400",
-              )}
-              autoFocus
-            />
+            {/* Mode Badge */}
+            {isAdminMode && (
+              <Badge
+                variant="destructive"
+                className="hidden sm:inline-flex items-center gap-1"
+              >
+                <Shield className="h-3 w-3" />
+                Admin
+              </Badge>
+            )}
+          </div>
+
+          {/* Center Section - Search */}
+          <div className="flex-1 max-w-lg mx-4">
+            <div className="relative">
+              <Button
+                variant="outline"
+                onClick={() => setSearchOpen(true)}
+                className={cn(
+                  "w-full justify-start text-muted-foreground",
+                  "hover:bg-muted/50 transition-colors",
+                )}
+              >
+                <Search className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline-flex">
+                  Buscar em todo o sistema...
+                </span>
+                <span className="sm:hidden">Buscar...</span>
+                <div className="ml-auto">
+                  <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                    <span className="text-xs">⌘</span>K
+                  </kbd>
+                </div>
+              </Button>
+            </div>
+          </div>
+
+          {/* Right Section */}
+          <div className="flex items-center gap-2">
+            {/* Theme Toggle */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMode(isDark ? "light" : "dark")}
+                  className="h-9 w-9 p-0"
+                >
+                  {isDark ? (
+                    <Sun className="h-4 w-4" />
+                  ) : (
+                    <Moon className="h-4 w-4" />
+                  )}
+                  <span className="sr-only">Toggle theme</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Alternar tema ({isDark ? "Claro" : "Escuro"})
+              </TooltipContent>
+            </Tooltip>
+
+            {/* Notifications */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 w-9 p-0 relative"
+                >
+                  <Bell className="h-4 w-4" />
+                  <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full" />
+                  <span className="sr-only">Notifications</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Notificações (3 novas)</TooltipContent>
+            </Tooltip>
+
+            {/* Mode Toggle for Admin */}
+            {isAdmin() && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={isAdminMode ? "destructive" : "outline"}
+                    size="sm"
+                    onClick={toggleMode}
+                    className="hidden sm:inline-flex items-center gap-2 h-9"
+                  >
+                    {isAdminMode ? (
+                      <>
+                        <Shield className="h-4 w-4" />
+                        <span className="hidden lg:inline">Admin</span>
+                      </>
+                    ) : (
+                      <>
+                        <Crown className="h-4 w-4" />
+                        <span className="hidden lg:inline">Cliente</span>
+                      </>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Alternar modo ({isAdminMode ? "Cliente" : "Admin"})
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {/* User Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative h-9 w-9 rounded-full p-0"
+                >
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage
+                      src={`https://avatar.vercel.sh/${user.name}`}
+                      alt={user.name}
+                    />
+                    <AvatarFallback>
+                      {user.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {user.name}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user.email}
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge
+                        variant={isAdminMode ? "destructive" : "secondary"}
+                        className="text-xs"
+                      >
+                        {isAdminMode ? "Admin" : "Cliente"}
+                      </Badge>
+                      {isAdmin() && (
+                        <Badge variant="outline" className="text-xs">
+                          Administrador
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={() => navigate("/settings")}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Perfil</span>
+                    <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/settings")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Configurações</span>
+                    <DropdownMenuShortcut>⌘,</DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Palette className="mr-2 h-4 w-4" />
+                    <span>Personalizar</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    <Keyboard className="mr-2 h-4 w-4" />
+                    <span>Atalhos</span>
+                    <DropdownMenuShortcut>⌘K</DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    <span>Ajuda</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Zap className="mr-2 h-4 w-4" />
+                    <span>Novidades</span>
+                    <Badge variant="secondary" className="ml-auto text-xs">
+                      v2025
+                    </Badge>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                {isAdmin() && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem onClick={toggleMode}>
+                        {isAdminMode ? (
+                          <>
+                            <User className="mr-2 h-4 w-4" />
+                            <span>Modo Cliente</span>
+                          </>
+                        ) : (
+                          <>
+                            <Shield className="mr-2 h-4 w-4" />
+                            <span>Modo Admin</span>
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/admin")}>
+                        <Building className="mr-2 h-4 w-4" />
+                        <span>Painel Admin</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sair</span>
+                  <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-      )}
+      </header>
+
+      {/* Command Search Dialog */}
+      <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
+        <CommandInput
+          placeholder="Digite um comando ou busque..."
+          value={searchQuery}
+          onValueChange={setSearchQuery}
+        />
+        <CommandList>
+          <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
+          <CommandGroup heading="Navegação">
+            {searchSuggestions.map((suggestion) => (
+              <CommandItem
+                key={suggestion.value}
+                value={suggestion.value}
+                onSelect={handleSearch}
+              >
+                <Search className="mr-2 h-4 w-4" />
+                <span>{suggestion.label}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          <CommandSeparator />
+          <CommandGroup heading="Ações">
+            <CommandItem onSelect={() => setMode(isDark ? "light" : "dark")}>
+              {isDark ? (
+                <Sun className="mr-2 h-4 w-4" />
+              ) : (
+                <Moon className="mr-2 h-4 w-4" />
+              )}
+              <span>Alternar tema</span>
+            </CommandItem>
+            {isAdmin() && (
+              <CommandItem onSelect={toggleMode}>
+                {isAdminMode ? (
+                  <User className="mr-2 h-4 w-4" />
+                ) : (
+                  <Shield className="mr-2 h-4 w-4" />
+                )}
+                <span>
+                  Alternar para modo {isAdminMode ? "Cliente" : "Admin"}
+                </span>
+              </CommandItem>
+            )}
+            <CommandItem onSelect={() => navigate("/settings")}>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Abrir configurações</span>
+            </CommandItem>
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
+
+      {/* Global Keyboard Shortcuts */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            document.addEventListener('keydown', function(e) {
+              if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                window.dispatchEvent(new CustomEvent('open-search'));
+              }
+            });
+            
+            window.addEventListener('open-search', function() {
+              setSearchOpen(true);
+            });
+          `,
+        }}
+      />
     </>
   );
 }
