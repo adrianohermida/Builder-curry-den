@@ -30,6 +30,7 @@ import { useCRM, ModuloCRM } from "@/hooks/useCRM";
 import ClientesModule from "./Clientes";
 import ProcessosModule from "./Processos";
 import ContratosModule from "./Contratos";
+import ContratosEnhanced from "./Contratos/ContratosEnhanced";
 
 interface CRMDashboardProps {
   onNavigateToModule?: (modulo: ModuloCRM) => void;
