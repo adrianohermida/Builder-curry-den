@@ -263,7 +263,7 @@ export function useAuditSystem(): UseAuditSystemReturn {
           URL.revokeObjectURL(url);
         }
 
-        // TODO: Implement Excel and PDF export
+        // Excel e PDF export será implementado na próxima versão
       } catch (err) {
         const error =
           err instanceof Error ? err.message : "Failed to export logs";

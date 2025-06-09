@@ -76,7 +76,10 @@ export function CorrectedTopbar({
       });
       navigate("/login");
     } catch (error) {
-      console.error("Erro ao fazer logout:", error);
+      // Log apenas em desenvolvimento
+      if (process.env.NODE_ENV === "development") {
+        console.error("Erro ao fazer logout:", error);
+      }
       toast.error("Erro no logout", {
         description: "Tente novamente",
       });

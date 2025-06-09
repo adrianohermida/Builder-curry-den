@@ -234,8 +234,8 @@ export function useModuleIntegration() {
 
     return {
       title: `Analisar publicação: ${publicacao.tipo}`,
-      description: `Publicação do ${publicacao.tribunal} sobre ${publicacao.assunto || "processo judicial"}. 
-      
+      description: `Publicação do ${publicacao.tribunal} sobre ${publicacao.assunto || "processo judicial"}.
+
 Número do processo: ${publicacao.numeroProcesso || "Não informado"}
 Data da publicação: ${new Date(publicacao.data).toLocaleDateString("pt-BR")}
 
@@ -295,7 +295,7 @@ ${publicacao.numeroProcesso ? `**Processo:** ${publicacao.numeroProcesso}` : ""}
 O que você gostaria de saber sobre esta publicação? Posso:
 
 • Fazer um resumo detalhado
-• Sugerir prazos e ações necessárias  
+• Sugerir prazos e ações necessárias
 • Gerar uma minuta de petição
 • Explicar as implicações jurídicas
 • Identificar riscos e oportunidades
@@ -337,7 +337,10 @@ Como posso ajudá-lo?`,
         localStorage.setItem(moduleKey, JSON.stringify(updatedData));
       });
 
-      console.log(`Sincronização completa para ${entityType}:${entityId}`);
+      // Log apenas em desenvolvimento
+      if (process.env.NODE_ENV === "development") {
+        console.log(`Sincronização completa para ${entityType}:${entityId}`);
+      }
     } catch (error) {
       console.error("Erro na sincronização entre módulos:", error);
     }
