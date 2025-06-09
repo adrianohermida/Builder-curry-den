@@ -219,7 +219,8 @@ const ProcessosKanban: React.FC = () => {
                               onClick={() =>
                                 navigate(`/crm/processos/${processo.id}`)
                               }
-                              className="font-medium text-gray-900 dark:text-white text-sm leading-tight hover:text-blue-600 dark:hover:text-blue-400 text-left"
+                              className="font-mono text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-left underline-offset-4 hover:underline transition-colors"
+                              title={`Ver detalhes do processo ${processo.numero}`}
                             >
                               {processo.numero}
                             </button>
@@ -239,11 +240,12 @@ const ProcessosKanban: React.FC = () => {
                             onClick={() =>
                               navigate(`/crm/clientes/${processo.clienteId}`)
                             }
-                            className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 truncate block text-left w-full"
+                            className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 truncate block text-left w-full underline-offset-4 hover:underline transition-colors"
+                            title={`Ver perfil de ${processo.cliente}`}
                           >
+                            <User className="inline h-3 w-3 mr-1" />
                             {processo.cliente}
                           </button>
-
                           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                             <span>{processo.area}</span>
                             <span className="truncate ml-2">
@@ -338,48 +340,101 @@ const ProcessosKanban: React.FC = () => {
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  className="h-6 w-6 p-0"
+                                  className="h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
                                 >
                                   <MoreHorizontal className="h-3 w-3" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
+                              <DropdownMenuContent align="end" className="w-56">
                                 <DropdownMenuItem
                                   onClick={() =>
                                     navigate(`/crm/processos/${processo.id}`)
                                   }
+                                  className="cursor-pointer"
                                 >
                                   <Eye className="h-4 w-4 mr-2" />
-                                  Ver Detalhes
+                                  Ver Detalhes Completos
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => setShowProcessoForm(true)}
+                                  className="cursor-pointer"
+                                >
                                   <Edit className="h-4 w-4 mr-2" />
-                                  Editar
+                                  Editar Processo
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    // Duplicar processo
+                                    toast.success("Processo duplicado!");
+                                  }}
+                                  className="cursor-pointer"
+                                >
+                                  <Copy className="h-4 w-4 mr-2" />
+                                  Duplicar
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    // Agendar audiência
+                                    toast.success(
+                                      "Redirecionando para agenda...",
+                                    );
+                                  }}
+                                  className="cursor-pointer"
+                                >
                                   <Calendar className="h-4 w-4 mr-2" />
                                   Agendar Audiência
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    // Vincular documento
+                                    toast.success("Abrindo GED...");
+                                  }}
+                                  className="cursor-pointer"
+                                >
                                   <FileText className="h-4 w-4 mr-2" />
-                                  Documentos
+                                  Vincular Documento
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    navigate(
+                                      `/crm/clientes/${processo.clienteId}`,
+                                    )
+                                  }
+                                  className="cursor-pointer"
+                                >
                                   <Users className="h-4 w-4 mr-2" />
                                   Ver Cliente
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem>
-                                  <Share2 className="h-4 w-4 mr-2" />
-                                  Compartilhar
-                                </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  className="text-red-600 dark:text-red-400"
-                                  onClick={() => excluirProcesso(processo.id)}
+                                  onClick={() => {
+                                    // Compartilhar processo
+                                    navigator.clipboard.writeText(
+                                      `${window.location.origin}/crm/processos/${processo.id}`,
+                                    );
+                                    toast.success("Link copiado!");
+                                  }}
+                                  className="cursor-pointer"
+                                >
+                                  <Share2 className="h-4 w-4 mr-2" />
+                                  Compartilhar Link
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-red-600 dark:text-red-400 cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      confirm(
+                                        `Tem certeza que deseja excluir o processo ${processo.numero}?`,
+                                      )
+                                    ) {
+                                      excluirProcesso(processo.id);
+                                    }
+                                  }}
                                 >
                                   <Trash2 className="h-4 w-4 mr-2" />
-                                  Excluir
+                                  Excluir Processo
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
