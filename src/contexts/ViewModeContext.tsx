@@ -6,210 +6,172 @@ import React, {
   ReactNode,
 } from "react";
 import { usePermissions } from "@/hooks/usePermissions";
-import { toast } from "sonner";
 
 export type ViewMode = "client" | "admin";
 
-export interface ViewModeContextType {
+interface ViewModeContextType {
   currentMode: ViewMode;
-  switchMode: (mode: ViewMode) => void;
-  canSwitchToAdmin: boolean;
   isAdminMode: boolean;
   isClientMode: boolean;
+  canSwitchToAdmin: boolean;
   adminScopes: string[];
+  switchMode: (mode: ViewMode) => void;
+  toggleMode: () => void;
 }
+
+const ViewModeContext = createContext<ViewModeContextType | null>(null);
 
 interface ViewModeProviderProps {
   children: ReactNode;
 }
 
-const ViewModeContext = createContext<ViewModeContextType | null>(null);
-
-// Admin scopes for granular permission control
-const ADMIN_SCOPES = [
-  "admin:access",
-  "admin:dashboard",
-  "admin:bi",
-  "admin:team",
-  "admin:development",
-  "admin:billing",
-  "admin:support",
-  "admin:marketing",
-  "admin:products",
-  "admin:security",
-  "admin:system",
-  "admin:logs",
-  "admin:blueprints",
-  "admin:executive",
-] as const;
-
-// Default admin permissions for admin users
-const getAdminScopes = (userRole: string): string[] => {
-  if (userRole === "admin") {
-    return ADMIN_SCOPES as unknown as string[];
-  }
-  return [];
-};
-
-// Internal logging function for this context
-const logModeSwitch = (
-  userId: string,
-  fromMode: ViewMode,
-  toMode: ViewMode,
-  userAgent: string,
-  timestamp: string,
-) => {
-  const logEntry = {
-    type: "VIEW_MODE_SWITCH",
-    userId,
-    fromMode,
-    toMode,
-    userAgent,
-    timestamp,
-    ip: "127.0.0.1", // In production, get from server
-    sessionId: localStorage.getItem("sessionId") || "unknown",
+// Admin scopes by role
+const getAdminScopes = (role: string): string[] => {
+  const scopes = {
+    admin: [
+      "executive",
+      "bi",
+      "marketing",
+      "finance",
+      "security",
+      "products",
+      "team",
+      "support",
+    ],
+    superadmin: ["*"], // Full access
   };
-
-  // Store in localStorage for now (in production, send to backend)
-  const existingLogs = JSON.parse(
-    localStorage.getItem("security_logs") || "[]",
-  );
-  existingLogs.push(logEntry);
-  localStorage.setItem("security_logs", JSON.stringify(existingLogs));
-
-  console.log("🔒 Security Log:", logEntry);
+  return scopes[role as keyof typeof scopes] || [];
 };
 
 export function ViewModeProvider({ children }: ViewModeProviderProps) {
-  const { user, isAdmin, hasPermission } = usePermissions();
   const [currentMode, setCurrentMode] = useState<ViewMode>("client");
+
+  // Safe permission hooks with fallbacks
+  let user = null;
+  let isAdmin = () => false;
+  let hasPermission = () => false;
+
+  try {
+    const permissions = usePermissions();
+    user = permissions.user;
+    isAdmin = permissions.isAdmin;
+    hasPermission = permissions.hasPermission;
+  } catch (error) {
+    console.warn(
+      "Permission context not available in ViewMode, using defaults",
+    );
+  }
 
   // Check if user can switch to admin mode
   const canSwitchToAdmin = React.useMemo(() => {
     if (!user) return false;
 
-    // Only admin, superadmin, or dev can switch to admin mode
-    const allowedRoles = ["admin"];
-    const hasAdminRole = allowedRoles.includes(user.role);
+    try {
+      // Only admin can switch to admin mode
+      const hasAdminRole = user.role === "admin";
+      const hasAdminAccess = isAdmin() || hasPermission("admin", "read");
 
-    // Additional scope check
-    const hasAdminAccess = isAdmin() || hasPermission("admin", "read");
+      // Environment check (in development, be more permissive)
+      const isDevEnvironment = process.env.NODE_ENV === "development";
+      const isAdminDomain =
+        window.location.hostname.includes("admin") ||
+        window.location.hostname.includes("dev") ||
+        window.location.hostname.includes("localhost");
 
-    // Environment check (in production, check if in admin subdomain or dev environment)
-    const isDevEnvironment = process.env.NODE_ENV === "development";
-    const isAdminDomain =
-      window.location.hostname.includes("admin") ||
-      window.location.hostname.includes("dev") ||
-      window.location.hostname.includes("localhost");
-
-    return (
-      hasAdminRole && hasAdminAccess && (isDevEnvironment || isAdminDomain)
-    );
+      return (
+        hasAdminRole && hasAdminAccess && (isDevEnvironment || isAdminDomain)
+      );
+    } catch (error) {
+      console.warn("Error checking admin access:", error);
+      return false;
+    }
   }, [user, isAdmin, hasPermission]);
 
   // Get user's admin scopes
   const adminScopes = React.useMemo(() => {
     if (!user || !canSwitchToAdmin) return [];
-    return getAdminScopes(user.role);
+    try {
+      return getAdminScopes(user.role);
+    } catch (error) {
+      console.warn("Error getting admin scopes:", error);
+      return [];
+    }
   }, [user, canSwitchToAdmin]);
 
   // Load saved mode from localStorage
   useEffect(() => {
     if (!user) return;
 
-    const savedMode = localStorage.getItem(`viewMode_${user.id}`) as ViewMode;
-    if (
-      savedMode &&
-      (savedMode === "client" || (savedMode === "admin" && canSwitchToAdmin))
-    ) {
-      setCurrentMode(savedMode);
+    try {
+      const savedMode = localStorage.getItem("viewMode") as ViewMode;
+      if (savedMode && (savedMode === "client" || savedMode === "admin")) {
+        // Only allow admin mode if user can switch to it
+        if (savedMode === "admin" && !canSwitchToAdmin) {
+          setCurrentMode("client");
+          localStorage.setItem("viewMode", "client");
+        } else {
+          setCurrentMode(savedMode);
+        }
+      }
+    } catch (error) {
+      console.warn("Error loading saved view mode:", error);
+      setCurrentMode("client");
     }
   }, [user, canSwitchToAdmin]);
 
-  // Switch mode function with security logging
+  // Switch mode function
   const switchMode = React.useCallback(
-    (newMode: ViewMode) => {
-      if (!user) {
-        toast.error("Usuário não autenticado");
-        return;
-      }
+    (mode: ViewMode) => {
+      try {
+        // Validate mode switch
+        if (mode === "admin" && !canSwitchToAdmin) {
+          console.warn("Cannot switch to admin mode: insufficient permissions");
+          return;
+        }
 
-      // Security validation
-      if (newMode === "admin" && !canSwitchToAdmin) {
-        toast.error("Acesso negado ao modo administrativo");
-        logModeSwitch(
-          user.id,
-          currentMode,
-          newMode,
-          navigator.userAgent,
-          new Date().toISOString(),
-        );
-        return;
-      }
+        setCurrentMode(mode);
+        localStorage.setItem("viewMode", mode);
 
-      const previousMode = currentMode;
-
-      // Log the mode switch
-      logModeSwitch(
-        user.id,
-        previousMode,
-        newMode,
-        navigator.userAgent,
-        new Date().toISOString(),
-      );
-
-      // Update state and persist
-      setCurrentMode(newMode);
-      localStorage.setItem(`viewMode_${user.id}`, newMode);
-
-      // Show success message
-      const modeLabel = newMode === "admin" ? "Administrativo" : "Cliente";
-      toast.success(`Modo alternado para: ${modeLabel}`, {
-        description:
-          newMode === "admin"
-            ? "🛡️ Acesso total às ferramentas administrativas"
-            : "⚖️ Visão padrão do sistema jurídico",
-      });
-
-      // Redirect to appropriate default route
-      const targetRoute = newMode === "admin" ? "/admin" : "/dashboard";
-      if (
-        window.location.pathname.startsWith("/admin") &&
-        newMode === "client"
-      ) {
-        window.location.href = targetRoute;
-      } else if (
-        !window.location.pathname.startsWith("/admin") &&
-        newMode === "admin"
-      ) {
-        window.location.href = targetRoute;
+        // Log mode switch for security
+        if (user) {
+          const logEntry = {
+            user: user.id,
+            action: `mode_switch_${mode}`,
+            timestamp: new Date().toISOString(),
+            metadata: {
+              from: currentMode,
+              to: mode,
+              userAgent: navigator.userAgent,
+            },
+          };
+          console.log("🔒 Mode Switch Log:", logEntry);
+        }
+      } catch (error) {
+        console.error("Error switching mode:", error);
       }
     },
-    [user, currentMode, canSwitchToAdmin],
+    [canSwitchToAdmin, currentMode, user],
   );
 
-  // Computed properties
+  // Toggle between modes
+  const toggleMode = React.useCallback(() => {
+    const newMode = currentMode === "client" ? "admin" : "client";
+    switchMode(newMode);
+  }, [currentMode, switchMode]);
+
+  // Computed values
   const isAdminMode = currentMode === "admin";
   const isClientMode = currentMode === "client";
 
-  // Auto-switch to client mode if user loses admin permissions
-  useEffect(() => {
-    if (isAdminMode && !canSwitchToAdmin) {
-      setCurrentMode("client");
-      localStorage.setItem(`viewMode_${user?.id}`, "client");
-      toast.warning(
-        "Modo administrativo desabilitado devido a alteração de permissões",
-      );
-    }
-  }, [isAdminMode, canSwitchToAdmin, user?.id]);
-
+  // Context value with safe defaults
   const contextValue: ViewModeContextType = {
     currentMode,
-    switchMode,
-    canSwitchToAdmin,
     isAdminMode,
     isClientMode,
+    canSwitchToAdmin,
     adminScopes,
+    switchMode,
+    toggleMode,
   };
 
   return (
@@ -219,12 +181,72 @@ export function ViewModeProvider({ children }: ViewModeProviderProps) {
   );
 }
 
-export function useViewMode() {
+export function useViewMode(): ViewModeContextType {
   const context = useContext(ViewModeContext);
   if (!context) {
-    throw new Error("useViewMode must be used within a ViewModeProvider");
+    // Return safe defaults instead of throwing error
+    console.warn(
+      "useViewMode called outside of ViewModeProvider, using defaults",
+    );
+    return {
+      currentMode: "client",
+      isAdminMode: false,
+      isClientMode: true,
+      canSwitchToAdmin: false,
+      adminScopes: [],
+      switchMode: () => {},
+      toggleMode: () => {},
+    };
   }
   return context;
 }
 
-export default ViewModeContext;
+// Component for conditional rendering based on view mode
+interface ViewModeGuardProps {
+  mode: ViewMode | ViewMode[];
+  fallback?: ReactNode;
+  children: ReactNode;
+}
+
+export function ViewModeGuard({
+  mode,
+  fallback = null,
+  children,
+}: ViewModeGuardProps) {
+  const { currentMode } = useViewMode();
+
+  const allowedModes = Array.isArray(mode) ? mode : [mode];
+  const isAllowed = allowedModes.includes(currentMode);
+
+  if (!isAllowed) {
+    return <>{fallback}</>;
+  }
+
+  return <>{children}</>;
+}
+
+// HOC for protecting components based on view mode
+export function withViewMode<P extends object>(
+  WrappedComponent: React.ComponentType<P>,
+  requiredMode: ViewMode | ViewMode[],
+  fallbackComponent?: React.ComponentType,
+) {
+  return function ViewModeWrappedComponent(props: P) {
+    const { currentMode } = useViewMode();
+
+    const allowedModes = Array.isArray(requiredMode)
+      ? requiredMode
+      : [requiredMode];
+    const isAllowed = allowedModes.includes(currentMode);
+
+    if (!isAllowed) {
+      if (fallbackComponent) {
+        const FallbackComponent = fallbackComponent;
+        return <FallbackComponent />;
+      }
+      return <div>Não disponível neste modo de visualização</div>;
+    }
+
+    return <WrappedComponent {...props} />;
+  };
+}
