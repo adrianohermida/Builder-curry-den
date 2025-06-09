@@ -161,6 +161,14 @@ const App = () => (
                           }
                         />
                         <Route
+                          path="painel"
+                          element={
+                            <PageWrapper>
+                              <Painel />
+                            </PageWrapper>
+                          }
+                        />
+                        <Route
                           path="dashboard-executivo"
                           element={
                             <PageWrapper>
