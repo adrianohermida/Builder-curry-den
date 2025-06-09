@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,8 @@ import {
   Zap,
   Building,
   Palette,
+  Home,
+  MessageSquare,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -69,6 +71,7 @@ export function CorrectedTopbar({
 }: CorrectedTopbarProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [notificationCount, setNotificationCount] = useState(3);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -99,7 +102,7 @@ export function CorrectedTopbar({
     console.warn("ViewMode context not available");
   }
 
-  let user = { name: "Usuário", email: "usuario@lawdesk.com" };
+  let user = { name: "Usuário", email: "usuario@lawdesk.com", role: "client" };
   let isAdmin = () => false;
 
   try {
@@ -110,15 +113,69 @@ export function CorrectedTopbar({
     console.warn("Permissions context not available");
   }
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   // Search command suggestions
   const searchSuggestions = [
-    { label: "Buscar clientes", value: "clientes", href: "/crm/clientes" },
-    { label: "Buscar processos", value: "processos", href: "/crm/processos" },
-    { label: "Buscar contratos", value: "contratos", href: "/crm/contratos" },
-    { label: "Agenda", value: "agenda", href: "/agenda" },
-    { label: "Documentos", value: "documentos", href: "/ged-juridico" },
-    { label: "IA Jurídico", value: "ia", href: "/ai-enhanced" },
-    { label: "Configurações", value: "configuracoes", href: "/settings" },
+    {
+      label: "Ir para Painel",
+      value: "painel",
+      href: "/painel",
+      icon: Home,
+    },
+    {
+      label: "Buscar Clientes",
+      value: "clientes",
+      href: "/crm/clientes",
+      icon: User,
+    },
+    {
+      label: "Buscar Processos",
+      value: "processos",
+      href: "/crm/processos",
+      icon: Shield,
+    },
+    {
+      label: "Buscar Contratos",
+      value: "contratos",
+      href: "/crm/contratos",
+      icon: Building,
+    },
+    {
+      label: "Agenda",
+      value: "agenda",
+      href: "/agenda",
+      icon: Search,
+    },
+    {
+      label: "Documentos (GED)",
+      value: "documentos",
+      href: "/ged-juridico",
+      icon: Search,
+    },
+    {
+      label: "IA Jurídico",
+      value: "ia",
+      href: "/ai-enhanced",
+      icon: Zap,
+    },
+    {
+      label: "Configurações",
+      value: "configuracoes",
+      href: "/settings",
+      icon: Settings,
+    },
   ];
 
   // Get page title from current route
@@ -167,15 +224,21 @@ export function CorrectedTopbar({
 
   const handleLogout = () => {
     // Implement logout logic
-    console.log("Logout");
+    localStorage.clear();
+    navigate("/login");
   };
 
   return (
     <>
       <header
         className={cn(
-          "sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
-          "transition-all duration-200",
+          "sticky top-0 z-40 w-full border-b transition-all duration-200",
+          // FIXED: Light mode background with proper theming
+          "bg-white/95 backdrop-blur-sm border-gray-200",
+          "dark:bg-gray-900/95 dark:border-gray-700",
+          // Admin mode styling
+          isAdminMode &&
+            "border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10",
         )}
       >
         <div className="flex h-16 items-center justify-between px-4 lg:px-6">
@@ -187,6 +250,7 @@ export function CorrectedTopbar({
               size="sm"
               onClick={onMenuClick}
               className="h-9 w-9 p-0"
+              data-sidebar-toggle
             >
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle menu</span>
@@ -194,11 +258,17 @@ export function CorrectedTopbar({
 
             {/* Page Title */}
             <div className="hidden md:block">
-              <h1 className="text-lg font-semibold text-foreground">
+              <h1
+                className={cn(
+                  "text-lg font-semibold",
+                  isAdminMode ? "text-red-900" : "text-gray-900",
+                  "dark:text-gray-100",
+                )}
+              >
                 {getPageTitle()}
               </h1>
               {isAdminMode && (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-red-600 dark:text-red-400">
                   Modo Administrativo
                 </p>
               )}
@@ -208,7 +278,7 @@ export function CorrectedTopbar({
             {isAdminMode && (
               <Badge
                 variant="destructive"
-                className="hidden sm:inline-flex items-center gap-1"
+                className="hidden sm:inline-flex items-center gap-1 bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
               >
                 <Shield className="h-3 w-3" />
                 Admin
@@ -224,8 +294,14 @@ export function CorrectedTopbar({
                 onClick={() => setSearchOpen(true)}
                 className={cn(
                   "w-full justify-start text-muted-foreground",
-                  "hover:bg-muted/50 transition-colors",
+                  "hover:bg-gray-50 transition-colors border-gray-200",
+                  "dark:hover:bg-gray-800 dark:border-gray-700",
+                  "focus:ring-2",
+                  isAdminMode
+                    ? "focus:ring-red-500 dark:focus:ring-red-400"
+                    : "focus:ring-blue-500 dark:focus:ring-blue-400",
                 )}
+                data-search-trigger
               >
                 <Search className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline-flex">
@@ -250,7 +326,12 @@ export function CorrectedTopbar({
                   variant="ghost"
                   size="sm"
                   onClick={() => setMode(isDark ? "light" : "dark")}
-                  className="h-9 w-9 p-0"
+                  className={cn(
+                    "h-9 w-9 p-0 transition-colors",
+                    isAdminMode
+                      ? "hover:bg-red-100 dark:hover:bg-red-900/20"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-800",
+                  )}
                 >
                   {isDark ? (
                     <Sun className="h-4 w-4" />
@@ -271,17 +352,31 @@ export function CorrectedTopbar({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 relative"
+                  className={cn(
+                    "h-9 w-9 p-0 relative transition-colors",
+                    isAdminMode
+                      ? "hover:bg-red-100 dark:hover:bg-red-900/20"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-800",
+                  )}
                 >
                   <Bell className="h-4 w-4" />
-                  <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full" />
+                  {notificationCount > 0 && (
+                    <div
+                      className={cn(
+                        "absolute -top-1 -right-1 h-3 w-3 rounded-full text-xs",
+                        isAdminMode ? "bg-red-500" : "bg-blue-500",
+                      )}
+                    />
+                  )}
                   <span className="sr-only">Notifications</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Notificações (3 novas)</TooltipContent>
+              <TooltipContent>
+                Notificações ({notificationCount} novas)
+              </TooltipContent>
             </Tooltip>
 
-            {/* Mode Toggle for Admin */}
+            {/* Admin Mode Toggle for Admin Users */}
             {isAdmin() && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -289,7 +384,12 @@ export function CorrectedTopbar({
                     variant={isAdminMode ? "destructive" : "outline"}
                     size="sm"
                     onClick={toggleMode}
-                    className="hidden sm:inline-flex items-center gap-2 h-9"
+                    className={cn(
+                      "hidden sm:inline-flex items-center gap-2 h-9 transition-all",
+                      isAdminMode
+                        ? "bg-red-600 hover:bg-red-700 text-white"
+                        : "border-gray-200 hover:bg-gray-50 text-gray-700",
+                    )}
                   >
                     {isAdminMode ? (
                       <>
@@ -322,7 +422,13 @@ export function CorrectedTopbar({
                       src={`https://avatar.vercel.sh/${user.name}`}
                       alt={user.name}
                     />
-                    <AvatarFallback>
+                    <AvatarFallback
+                      className={cn(
+                        isAdminMode
+                          ? "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300"
+                          : "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300",
+                      )}
+                    >
                       {user.name
                         .split(" ")
                         .map((n) => n[0])
@@ -332,7 +438,11 @@ export function CorrectedTopbar({
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-64" align="end" forceMount>
+              <DropdownMenuContent
+                className="w-64 z-dropdown"
+                align="end"
+                forceMount
+              >
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
@@ -375,14 +485,14 @@ export function CorrectedTopbar({
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSearchOpen(true)}>
                     <Keyboard className="mr-2 h-4 w-4" />
-                    <span>Atalhos</span>
+                    <span>Busca Rápida</span>
                     <DropdownMenuShortcut>⌘K</DropdownMenuShortcut>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <HelpCircle className="mr-2 h-4 w-4" />
-                    <span>Ajuda</span>
+                    <span>Ajuda & Suporte</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Zap className="mr-2 h-4 w-4" />
@@ -438,16 +548,20 @@ export function CorrectedTopbar({
         <CommandList>
           <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
           <CommandGroup heading="Navegação">
-            {searchSuggestions.map((suggestion) => (
-              <CommandItem
-                key={suggestion.value}
-                value={suggestion.value}
-                onSelect={handleSearch}
-              >
-                <Search className="mr-2 h-4 w-4" />
-                <span>{suggestion.label}</span>
-              </CommandItem>
-            ))}
+            {searchSuggestions.map((suggestion) => {
+              const Icon = suggestion.icon;
+              return (
+                <CommandItem
+                  key={suggestion.value}
+                  value={suggestion.value}
+                  onSelect={handleSearch}
+                  className="flex items-center gap-2"
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{suggestion.label}</span>
+                </CommandItem>
+              );
+            })}
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading="Ações">
@@ -478,24 +592,6 @@ export function CorrectedTopbar({
           </CommandGroup>
         </CommandList>
       </CommandDialog>
-
-      {/* Global Keyboard Shortcuts */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            document.addEventListener('keydown', function(e) {
-              if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                e.preventDefault();
-                window.dispatchEvent(new CustomEvent('open-search'));
-              }
-            });
-            
-            window.addEventListener('open-search', function() {
-              setSearchOpen(true);
-            });
-          `,
-        }}
-      />
     </>
   );
 }
