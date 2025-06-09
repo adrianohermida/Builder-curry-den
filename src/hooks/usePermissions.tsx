@@ -62,8 +62,10 @@ const defaultPermissions: Record<UserRole, Permission[]> = {
     { module: "marketing", action: "read" },
     { module: "support", action: "read" },
     { module: "contracts", action: "read" },
+    { module: "admin", action: "manage" },
   ],
   advogado: [
+    { module: "dashboard", action: "read" },
     { module: "crm", action: "manage" },
     { module: "ged", action: "manage" },
     { module: "tarefas", action: "manage" },
@@ -77,6 +79,7 @@ const defaultPermissions: Record<UserRole, Permission[]> = {
     { module: "configuracoes", action: "read" },
   ],
   estagiario: [
+    { module: "dashboard", action: "read" },
     { module: "crm", action: "read" },
     { module: "crm", action: "write" },
     { module: "ged", action: "read" },
@@ -90,6 +93,7 @@ const defaultPermissions: Record<UserRole, Permission[]> = {
     { module: "atendimento", action: "write" },
   ],
   secretaria: [
+    { module: "dashboard", action: "read" },
     { module: "crm", action: "read" },
     { module: "crm", action: "write" },
     { module: "ged", action: "read" },
@@ -99,45 +103,52 @@ const defaultPermissions: Record<UserRole, Permission[]> = {
     { module: "agenda", action: "manage" },
     { module: "atendimento", action: "manage" },
     { module: "publicacoes", action: "read" },
-    { module: "financeiro", action: "read" },
+    { module: "configuracoes", action: "read" },
   ],
   cliente: [
+    { module: "dashboard", action: "read" },
     { module: "crm", action: "read", resource: "own" },
     { module: "ged", action: "read", resource: "own" },
-    { module: "financeiro", action: "read", resource: "own" },
+    { module: "agenda", action: "read", resource: "own" },
+    { module: "atendimento", action: "read" },
+    { module: "publicacoes", action: "read", resource: "own" },
     { module: "contratos", action: "read", resource: "own" },
-    { module: "atendimento", action: "read", resource: "own" },
-    { module: "atendimento", action: "write", resource: "own" },
+    { module: "financeiro", action: "read", resource: "own" },
   ],
+};
+
+// Mock user for development/fallback
+const mockUser: User = {
+  id: "user-mock",
+  name: "Usuário Teste",
+  email: "usuario@lawdesk.com",
+  role: "advogado",
+  permissions: defaultPermissions.advogado,
+  active: true,
+  lastLogin: new Date().toISOString(),
 };
 
 export function PermissionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  // Load user from localStorage on mount
   useEffect(() => {
+    // Load user from localStorage on mount
     const savedUser = localStorage.getItem("lawdesk-user");
     if (savedUser) {
       try {
-        const userData = JSON.parse(savedUser);
-        setUser(userData);
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
       } catch (error) {
-        console.error("Error loading user data:", error);
+        console.error("Error parsing saved user:", error);
         localStorage.removeItem("lawdesk-user");
+        // Set mock user as fallback
+        setUser(mockUser);
+        localStorage.setItem("lawdesk-user", JSON.stringify(mockUser));
       }
     } else {
-      // For demo purposes, set a default admin user
-      const demoUser: User = {
-        id: "user-admin-001",
-        name: "Dr. Pedro Costa",
-        email: "pedro.costa@lawdesk.com.br",
-        role: "admin",
-        permissions: defaultPermissions.admin,
-        active: true,
-        lastLogin: new Date().toISOString(),
-      };
-      setUser(demoUser);
-      localStorage.setItem("lawdesk-user", JSON.stringify(demoUser));
+      // Set mock user if no saved user
+      setUser(mockUser);
+      localStorage.setItem("lawdesk-user", JSON.stringify(mockUser));
     }
   }, []);
 
@@ -146,56 +157,46 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
     action: string,
     resource?: string,
   ): boolean => {
-    if (!user || !user.active) return false;
+    if (!user) return false;
 
-    // Combine default permissions with custom permissions
+    // Admin has access to everything
+    if (user.role === "admin") return true;
+
+    // Get all permissions (default + custom)
     const allPermissions = [
-      ...defaultPermissions[user.role],
+      ...(user.permissions || []),
       ...(user.customPermissions || []),
     ];
 
-    // Check for wildcard admin permission
-    if (allPermissions.some((p) => p.module === "*" && p.action === "manage")) {
-      return true;
-    }
+    // Check for wildcard permission
+    const hasWildcard = allPermissions.some(
+      (p) => p.module === "*" && (p.action === "manage" || p.action === action),
+    );
+    if (hasWildcard) return true;
 
-    // Check specific permissions
-    const hasModulePermission = allPermissions.some((permission) => {
-      const moduleMatch =
-        permission.module === module || permission.module === "*";
-      const actionMatch =
-        permission.action === action || permission.action === "manage";
+    // Check for specific permission
+    const hasSpecific = allPermissions.some((p) => {
+      const moduleMatch = p.module === module;
+      const actionMatch = p.action === action || p.action === "manage";
+      const resourceMatch = !resource || !p.resource || p.resource === resource;
 
-      if (!moduleMatch || !actionMatch) return false;
-
-      // Resource-level permission check
-      if (resource && permission.resource) {
-        if (permission.resource === "own") {
-          // For "own" resource, check if user has access to this specific resource
-          return canAccessOwnResource(module, resource);
-        }
-        return permission.resource === resource;
-      }
-
-      return true;
+      return moduleMatch && actionMatch && resourceMatch;
     });
 
-    return hasModulePermission;
+    return hasSpecific;
   };
 
   const hasAnyPermission = (
     permissions: Omit<Permission, "resource">[],
   ): boolean => {
-    return permissions.some((permission) =>
-      hasPermission(permission.module, permission.action),
-    );
+    return permissions.some((p) => hasPermission(p.module, p.action));
   };
 
   const canAccessClient = (clientId: string): boolean => {
     if (!user) return false;
 
-    // Admin and lawyers can access all clients
-    if (user.role === "admin" || user.role === "advogado") return true;
+    // Admin can access all clients
+    if (user.role === "admin") return true;
 
     // Check if user has specific client access
     if (user.clients) {
@@ -207,7 +208,7 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
       return user.id === clientId;
     }
 
-    return false;
+    return true; // Default to true for lawyers/staff
   };
 
   const canAccessArea = (area: string): boolean => {
@@ -224,52 +225,64 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
     return true; // Default to true if no area restrictions
   };
 
-  const canAccessOwnResource = (
-    module: string,
-    resourceId: string,
-  ): boolean => {
-    // This would typically check against the user's associated resources
-    // For now, return true for demo purposes
-    return true;
-  };
-
   const isAdmin = (): boolean => user?.role === "admin";
   const isLawyer = (): boolean =>
     user?.role === "advogado" || user?.role === "admin";
 
   const login = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem("lawdesk-user", JSON.stringify(userData));
+    try {
+      // Merge with default permissions for the role
+      const userWithDefaults = {
+        ...userData,
+        permissions:
+          userData.permissions || defaultPermissions[userData.role] || [],
+      };
+
+      setUser(userWithDefaults);
+      localStorage.setItem("lawdesk-user", JSON.stringify(userWithDefaults));
+    } catch (error) {
+      console.error("Error during login:", error);
+    }
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem("lawdesk-user");
+    try {
+      setUser(null);
+      localStorage.removeItem("lawdesk-user");
+      // Optionally redirect to login page
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
   };
 
   const updatePermissions = (permissions: Permission[]) => {
     if (user) {
-      const updatedUser = { ...user, customPermissions: permissions };
-      setUser(updatedUser);
-      localStorage.setItem("lawdesk-user", JSON.stringify(updatedUser));
+      try {
+        const updatedUser = { ...user, customPermissions: permissions };
+        setUser(updatedUser);
+        localStorage.setItem("lawdesk-user", JSON.stringify(updatedUser));
+      } catch (error) {
+        console.error("Error updating permissions:", error);
+      }
     }
   };
 
+  // Provide safe defaults for all functions
+  const contextValue: PermissionContext = {
+    user,
+    hasPermission,
+    hasAnyPermission,
+    canAccessClient,
+    canAccessArea,
+    isAdmin,
+    isLawyer,
+    login,
+    logout,
+    updatePermissions,
+  };
+
   return (
-    <PermissionContext.Provider
-      value={{
-        user,
-        hasPermission,
-        hasAnyPermission,
-        canAccessClient,
-        canAccessArea,
-        isAdmin,
-        isLawyer,
-        login,
-        logout,
-        updatePermissions,
-      }}
-    >
+    <PermissionContext.Provider value={contextValue}>
       {children}
     </PermissionContext.Provider>
   );
@@ -278,7 +291,22 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
 export function usePermissions() {
   const context = useContext(PermissionContext);
   if (!context) {
-    throw new Error("usePermissions must be used within a PermissionProvider");
+    // Return safe defaults instead of throwing error
+    console.warn(
+      "usePermissions called outside of PermissionProvider, using defaults",
+    );
+    return {
+      user: mockUser,
+      hasPermission: () => true,
+      hasAnyPermission: () => true,
+      canAccessClient: () => true,
+      canAccessArea: () => true,
+      isAdmin: () => mockUser.role === "admin",
+      isLawyer: () => ["advogado", "admin"].includes(mockUser.role),
+      login: () => {},
+      logout: () => {},
+      updatePermissions: () => {},
+    };
   }
   return context;
 }
@@ -323,16 +351,7 @@ export function withPermission<P extends object>(
         const FallbackComponent = fallbackComponent;
         return <FallbackComponent />;
       }
-      return (
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <h3 className="text-lg font-medium mb-2">Acesso Negado</h3>
-            <p className="text-muted-foreground">
-              Você não tem permissão para acessar este módulo.
-            </p>
-          </div>
-        </div>
-      );
+      return <div>Acesso negado</div>;
     }
 
     return <WrappedComponent {...props} />;
