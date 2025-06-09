@@ -624,24 +624,32 @@ export default function DashboardExecutivo() {
                 <ResponsiveContainer width="100%" height={300}>
                   <RechartsLineChart data={productivityData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="name"
-                      type="category"
-                      allowDataOverflow={false}
-                      allowDecimals={true}
-                      allowDuplicatedCategory={true}
+                    <Tooltip
+                      formatter={(value, name) => [
+                        `${value}%`,
+                        name === "advogados"
+                          ? "Advogados"
+                          : name === "estagiarios"
+                            ? "Estagiários"
+                            : "Secretárias",
+                      ]}
                     />
-                    <YAxis
-                      type="number"
-                      allowDataOverflow={false}
-                      allowDecimals={true}
-                      allowDuplicatedCategory={true}
-                    />
-                    <Tooltip />
                     <Line
                       type="monotone"
-                      dataKey="value"
+                      dataKey="advogados"
+                      stroke="#3B82F6"
+                      strokeWidth={2}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="estagiarios"
                       stroke="#10B981"
+                      strokeWidth={2}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="secretarias"
+                      stroke="#F59E0B"
                       strokeWidth={2}
                     />
                   </RechartsLineChart>
