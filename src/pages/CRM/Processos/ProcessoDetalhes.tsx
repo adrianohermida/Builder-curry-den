@@ -37,6 +37,18 @@ import {
   Plus,
   X,
   Send,
+  FolderOpen,
+  CalendarPlus,
+  ExternalLink,
+  Copy,
+  Archive,
+  PlayCircle,
+  PauseCircle,
+  XCircle,
+  Info,
+  Zap,
+  Flag,
+  RefreshCw,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,9 +72,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useCRM, type Processo } from "@/hooks/useCRM";
 import { toast } from "sonner";
 import ProcessoForm from "./ProcessoForm";
@@ -76,6 +95,7 @@ interface DocumentoProcesso {
   uploadedBy: string;
   versao: number;
   status: "aprovado" | "pendente" | "rejeitado";
+  url?: string;
 }
 
 interface MovimentacaoProcesso {
@@ -86,6 +106,7 @@ interface MovimentacaoProcesso {
   responsavel: string;
   arquivo?: string;
   observacoes?: string;
+  status?: "pendente" | "concluido";
 }
 
 interface AnotacaoProcesso {
@@ -95,10 +116,22 @@ interface AnotacaoProcesso {
   texto: string;
   tipo: "observacao" | "lembrete" | "tarefa";
   prioridade: "baixa" | "media" | "alta";
+  concluida?: boolean;
 }
 
-export default function ProcessoDetalhes() {
-  const { id } = useParams<{ id: string }>();
+interface ProcessoDetalhesProps {
+  processoId?: string;
+  mode?: "summary" | "full";
+  onOpenFull?: () => void;
+}
+
+export default function ProcessoDetalhes({
+  processoId: propProcessoId,
+  mode = "full",
+  onOpenFull,
+}: ProcessoDetalhesProps) {
+  const { id: urlId } = useParams<{ id: string }>();
+  const processoId = propProcessoId || urlId;
   const navigate = useNavigate();
   const { obterProcesso, obterCliente } = useCRM();
 
@@ -120,6 +153,7 @@ export default function ProcessoDetalhes() {
       uploadedBy: "Dr. Pedro Santos",
       versao: 1,
       status: "aprovado",
+      url: "/documents/peticao-inicial.pdf",
     },
     {
       id: "doc-002",
@@ -130,6 +164,7 @@ export default function ProcessoDetalhes() {
       uploadedBy: "Dra. Ana Costa",
       versao: 1,
       status: "pendente",
+      url: "/documents/contestacao.pdf",
     },
     {
       id: "doc-003",
@@ -140,6 +175,18 @@ export default function ProcessoDetalhes() {
       uploadedBy: "Sistema Judicial",
       versao: 1,
       status: "aprovado",
+      url: "/documents/sentenca-parcial.pdf",
+    },
+    {
+      id: "doc-004",
+      nome: "Recurso de Apelação.pdf",
+      tipo: "recurso",
+      dataUpload: new Date("2024-01-28"),
+      tamanho: "3.2 MB",
+      uploadedBy: "Dr. Pedro Santos",
+      versao: 2,
+      status: "aprovado",
+      url: "/documents/recurso-apelacao.pdf",
     },
   ];
 
@@ -147,607 +194,634 @@ export default function ProcessoDetalhes() {
     {
       id: "mov-001",
       data: new Date("2024-01-26"),
-      tipo: "decisao",
-      descricao: "Deferimento de liminar",
-      responsavel: "Juiz Dr. Carlos Mendes",
-      arquivo: "decisao_liminar.pdf",
+      tipo: "audiencia",
+      descricao: "Audiência de conciliação agendada",
+      responsavel: "Tribunal",
+      status: "pendente",
+      observacoes: "Audiência marcada para 15/02/2024 às 14:00h",
     },
     {
       id: "mov-002",
-      data: new Date("2024-01-22"),
-      tipo: "audiencia",
-      descricao: "Audiência de conciliação designada",
-      responsavel: "Cartório da 1ª Vara",
-      observacoes: "Audiência marcada para 15/02/2024 às 14:00h",
+      data: new Date("2024-01-24"),
+      tipo: "peticao",
+      descricao: "Petição de esclarecimentos protocolada",
+      responsavel: "Dr. Pedro Santos",
+      arquivo: "esclarecimentos.pdf",
+      status: "concluido",
     },
     {
       id: "mov-003",
       data: new Date("2024-01-20"),
+      tipo: "decisao",
+      descricao: "Despacho do juiz deferindo pedido de dilação probatória",
+      responsavel: "Juiz Dr. Carlos Mendes",
+      status: "concluido",
+    },
+    {
+      id: "mov-004",
+      data: new Date("2024-01-15"),
       tipo: "peticao",
-      descricao: "Juntada de contestação",
-      responsavel: "Advogado da parte contrária",
+      descricao: "Petição inicial protocolada",
+      responsavel: "Dr. Pedro Santos",
+      arquivo: "peticao-inicial.pdf",
+      status: "concluido",
     },
   ];
 
   const anotacoes: AnotacaoProcesso[] = [
     {
-      id: "ant-001",
-      data: new Date("2024-01-26"),
+      id: "note-001",
+      data: new Date("2024-01-25"),
       usuario: "Dr. Pedro Santos",
       texto:
-        "Cliente informou sobre documentos adicionais que serão enviados até amanhã",
+        "Cliente confirmou presença na audiência de conciliação. Preparar proposta de acordo.",
       tipo: "observacao",
+      prioridade: "alta",
+    },
+    {
+      id: "note-002",
+      data: new Date("2024-01-22"),
+      usuario: "Ana Costa",
+      texto:
+        "Lembrar de protocolar quesitos para perícia técnica até 30/01/2024.",
+      tipo: "lembrete",
       prioridade: "media",
     },
     {
-      id: "ant-002",
-      data: new Date("2024-01-25"),
-      usuario: "Dra. Ana Costa",
-      texto: "Lembrar de preparar quesitos para perícia técnica",
-      tipo: "lembrete",
-      prioridade: "alta",
+      id: "note-003",
+      data: new Date("2024-01-18"),
+      usuario: "Dr. Pedro Santos",
+      texto:
+        "Analisar jurisprudência sobre casos similares para fortalecer argumentação.",
+      tipo: "tarefa",
+      prioridade: "media",
+      concluida: true,
     },
   ];
 
   useEffect(() => {
-    if (id) {
-      const processoData = obterProcesso(id);
-      setProcesso(processoData || null);
-      setLoading(false);
+    const loadProcesso = async () => {
+      if (!processoId) return;
+
+      setLoading(true);
+      try {
+        // Simular carregamento do processo
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Mock de processo - em produção viria da API
+        const mockProcesso: Processo = {
+          id: processoId,
+          numero: "1234567-89.2024.8.26.0001",
+          clienteId: "cli-001",
+          cliente: "João Silva",
+          area: "Trabalhista",
+          status: "ativo",
+          valor: 85000,
+          dataInicio: new Date("2024-01-15"),
+          dataEncerramento: undefined,
+          responsavel: "Dr. Pedro Santos",
+          tribunal: "TRT 2ª Região",
+          vara: "1ª Vara do Trabalho",
+          assunto: "Rescisão indireta de contrato de trabalho",
+          observacoes:
+            "Processo com alta complexidade envolvendo múltiplas verbas rescisórias",
+          tags: ["rescisao", "verbas", "complexo"],
+          proximaAudiencia: new Date("2024-02-15"),
+          risco: "medio",
+          prioridade: "alta",
+        };
+
+        setProcesso(mockProcesso);
+      } catch (error) {
+        console.error("Erro ao carregar processo:", error);
+        toast.error("Erro ao carregar dados do processo");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProcesso();
+  }, [processoId]);
+
+  // Configurações de status e outros
+  const statusConfig = {
+    ativo: {
+      label: "Ativo",
+      icon: PlayCircle,
+      color: "bg-green-100 text-green-800",
+    },
+    arquivado: {
+      label: "Arquivado",
+      icon: Archive,
+      color: "bg-gray-100 text-gray-800",
+    },
+    suspenso: {
+      label: "Suspenso",
+      icon: PauseCircle,
+      color: "bg-yellow-100 text-yellow-800",
+    },
+    encerrado: {
+      label: "Encerrado",
+      icon: CheckCircle,
+      color: "bg-blue-100 text-blue-800",
+    },
+  };
+
+  const riscoConfig = {
+    baixo: {
+      label: "Baixo",
+      color: "bg-green-100 text-green-800",
+      icon: CheckCircle,
+    },
+    medio: {
+      label: "Médio",
+      color: "bg-yellow-100 text-yellow-800",
+      icon: AlertTriangle,
+    },
+    alto: { label: "Alto", color: "bg-red-100 text-red-800", icon: XCircle },
+  };
+
+  const tipoDocumentoConfig = {
+    inicial: { label: "Petição Inicial", color: "bg-blue-100 text-blue-800" },
+    contestacao: {
+      label: "Contestação",
+      color: "bg-orange-100 text-orange-800",
+    },
+    sentenca: { label: "Sentença", color: "bg-green-100 text-green-800" },
+    recurso: { label: "Recurso", color: "bg-purple-100 text-purple-800" },
+    outros: { label: "Outros", color: "bg-gray-100 text-gray-800" },
+  };
+
+  const tipoMovimentacaoConfig = {
+    audiencia: { icon: Calendar, color: "text-blue-600" },
+    decisao: { icon: Gavel, color: "text-green-600" },
+    peticao: { icon: FileText, color: "text-purple-600" },
+    recurso: { icon: TrendingUp, color: "text-orange-600" },
+    sentenca: { icon: CheckCircle, color: "text-emerald-600" },
+    outros: { icon: Info, color: "text-gray-600" },
+  };
+
+  // Funções de ação
+  const copyProcessNumber = () => {
+    if (processo) {
+      navigator.clipboard.writeText(processo.numero);
+      toast.success(`Número ${processo.numero} copiado!`);
     }
-  }, [id, obterProcesso]);
+  };
+
+  const agendarAudiencia = () => {
+    if (processo) {
+      navigate(
+        `/agenda?processo=${processo.id}&tipo=audiencia&cliente=${processo.clienteId}`,
+      );
+    }
+  };
+
+  const openGED = () => {
+    if (processo) {
+      navigate(`/ged?processo=${processo.id}&cliente=${processo.clienteId}`);
+    }
+  };
+
+  const addNote = () => {
+    if (!newNote.trim()) return;
+
+    const novaNota: AnotacaoProcesso = {
+      id: `note-${Date.now()}`,
+      data: new Date(),
+      usuario: "Usuário Atual",
+      texto: newNote,
+      tipo: "observacao",
+      prioridade: "media",
+    };
+
+    // Em produção, salvaria na API
+    toast.success("Anotação adicionada com sucesso!");
+    setNewNote("");
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">
+            Carregando detalhes do processo...
+          </p>
+        </div>
       </div>
     );
   }
 
   if (!processo) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <Scale className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">
             Processo não encontrado
-          </h2>
-          <p className="text-gray-600 mb-4">
-            O processo solicitado não existe ou foi removido.
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            O processo solicitado não foi encontrado ou você não tem permissão
+            para visualizá-lo.
           </p>
           <Button onClick={() => navigate("/crm/processos")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar aos Processos
+            Voltar para Processos
           </Button>
         </div>
       </div>
     );
   }
 
-  const cliente = obterCliente(processo.clienteId);
-
-  const getStatusColor = (status: string) => {
-    const colors = {
-      ativo: "bg-blue-100 text-blue-800 border-blue-200",
-      suspenso: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      arquivado: "bg-gray-100 text-gray-800 border-gray-200",
-      encerrado: "bg-green-100 text-green-800 border-green-200",
-    };
-    return colors[status as keyof typeof colors] || colors.ativo;
-  };
-
-  const getRiscoColor = (risco: string) => {
-    const colors = {
-      baixo: "text-green-600",
-      medio: "text-yellow-600",
-      alto: "text-red-600",
-    };
-    return colors[risco as keyof typeof colors] || colors.baixo;
-  };
-
-  const getRiscoIcon = (risco: string) => {
-    if (risco === "alto") return <AlertTriangle className="h-4 w-4" />;
-    if (risco === "medio") return <Clock className="h-4 w-4" />;
-    return <CheckCircle className="h-4 w-4" />;
-  };
-
-  const getDocumentIcon = (tipo: string) => {
-    const icons = {
-      inicial: <FileText className="h-4 w-4 text-blue-600" />,
-      contestacao: <BookOpen className="h-4 w-4 text-orange-600" />,
-      sentenca: <Gavel className="h-4 w-4 text-green-600" />,
-      recurso: <TrendingUp className="h-4 w-4 text-purple-600" />,
-      outros: <Paperclip className="h-4 w-4 text-gray-600" />,
-    };
-    return icons[tipo as keyof typeof icons] || icons.outros;
-  };
-
-  const getMovimentacaoIcon = (tipo: string) => {
-    const icons = {
-      audiencia: <Calendar className="h-4 w-4 text-blue-600" />,
-      decisao: <Gavel className="h-4 w-4 text-green-600" />,
-      peticao: <FileText className="h-4 w-4 text-orange-600" />,
-      recurso: <TrendingUp className="h-4 w-4 text-purple-600" />,
-      sentenca: <CheckCircle className="h-4 w-4 text-green-600" />,
-      outros: <Activity className="h-4 w-4 text-gray-600" />,
-    };
-    return icons[tipo as keyof typeof icons] || icons.outros;
-  };
-
-  const addNote = () => {
-    if (newNote.trim()) {
-      // Aqui você adicionaria a anotação via API
-      toast.success("Anotação adicionada com sucesso!");
-      setNewNote("");
-    }
-  };
+  const StatusIcon = statusConfig[processo.status]?.icon;
+  const RiscoIcon = riscoConfig[processo.risco]?.icon;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  onClick={() => navigate("/crm/processos")}
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Voltar aos Processos
-                </Button>
-
-                {/* Breadcrumb */}
-                <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <button
-                    onClick={() => navigate("/crm")}
-                    className="hover:text-gray-700 dark:hover:text-gray-300"
-                  >
-                    CRM
-                  </button>
-                  <span>/</span>
-                  <button
-                    onClick={() => navigate("/crm/processos")}
-                    className="hover:text-gray-700 dark:hover:text-gray-300"
-                  >
-                    Processos
-                  </button>
-                  <span>/</span>
-                  <span className="text-gray-900 dark:text-white font-medium">
-                    {processo.numero}
-                  </span>
-                </nav>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                  <Scale className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                </div>
-
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                    {processo.numero}
-                  </h1>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {processo.assunto}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Badge className={getStatusColor(processo.status)}>
-                {processo.status}
-              </Badge>
-
-              <div
-                className={`flex items-center gap-1 ${getRiscoColor(processo.risco)}`}
+    <TooltipProvider>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {mode === "full" && (
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/crm/processos")}
+                className="h-8 w-8 p-0"
               >
-                {getRiscoIcon(processo.risco)}
-                <span className="text-sm font-medium capitalize">
-                  {processo.risco}
-                </span>
-              </div>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <MoreHorizontal className="h-4 w-4" />
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold">Processo Jurídico</h1>
+                {mode === "summary" && onOpenFull && (
+                  <Button variant="outline" size="sm" onClick={onOpenFull}>
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Ver Completo
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setShowEditForm(true)}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar Processo
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Download className="h-4 w-4 mr-2" />
-                    Exportar PDF
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Compartilhar
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Bell className="h-4 w-4 mr-2" />
-                    Configurar Alertas
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="text-red-600">
-                    <X className="h-4 w-4 mr-2" />
-                    Arquivar Processo
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                )}
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={copyProcessNumber}
+                      className="font-mono text-lg font-semibold hover:bg-gray-100 px-2 py-1 rounded transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      {processo.numero}
+                      <Copy className="h-4 w-4 opacity-60" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Clique para copiar o número do processo
+                  </TooltipContent>
+                </Tooltip>
+                <div className="flex items-center gap-2">
+                  {StatusIcon && <StatusIcon className="h-5 w-5" />}
+                  <Badge className={statusConfig[processo.status]?.color}>
+                    {statusConfig[processo.status]?.label}
+                  </Badge>
+                  {RiscoIcon && <RiscoIcon className="h-5 w-5" />}
+                  <Badge className={riscoConfig[processo.risco]?.color}>
+                    Risco {riscoConfig[processo.risco]?.label}
+                  </Badge>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Content */}
-      <div className="px-6 py-6">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={agendarAudiencia}>
+              <CalendarPlus className="h-4 w-4 mr-2" />
+              Agendar Audiência
+            </Button>
+            <Button variant="outline" onClick={openGED}>
+              <FolderOpen className="h-4 w-4 mr-2" />
+              Documentos
+            </Button>
+            <Button variant="outline" onClick={() => setShowEditForm(true)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Editar
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => window.print()}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Imprimir
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Compartilhar
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Archive className="h-4 w-4 mr-2" />
+                  Arquivar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Informações Básicas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <User className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium">Cliente</span>
+              </div>
+              <p className="font-semibold">{processo.cliente}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Tag className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium">Área</span>
+              </div>
+              <Badge variant="outline">{processo.area}</Badge>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <DollarSign className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium">Valor</span>
+              </div>
+              <p className="font-semibold">
+                {processo.valor
+                  ? `R$ ${processo.valor.toLocaleString()}`
+                  : "Não informado"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Calendar className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium">Início</span>
+              </div>
+              <p className="font-semibold">
+                {processo.dataInicio.toLocaleDateString()}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tabs do Conteúdo */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="resumo">Resumo</TabsTrigger>
-            <TabsTrigger value="documentos">Documentos</TabsTrigger>
             <TabsTrigger value="movimentacoes">Movimentações</TabsTrigger>
+            <TabsTrigger value="documentos">Documentos</TabsTrigger>
             <TabsTrigger value="anotacoes">Anotações</TabsTrigger>
-            <TabsTrigger value="cronologia">Cronologia</TabsTrigger>
+            <TabsTrigger value="timeline">Timeline</TabsTrigger>
+            <TabsTrigger value="relacionados">Relacionados</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="resumo" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Informações principais */}
-              <div className="lg:col-span-2 space-y-6">
-                {/* Dados do processo */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Scale className="h-5 w-5" />
-                      Dados do Processo
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">
-                          Número
-                        </span>
-                        <p className="text-sm font-mono">{processo.numero}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">
-                          Área
-                        </span>
-                        <p className="text-sm">{processo.area}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">
-                          Tribunal
-                        </span>
-                        <p className="text-sm">{processo.tribunal}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">
-                          Vara
-                        </span>
-                        <p className="text-sm">{processo.vara}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">
-                          Data de Início
-                        </span>
-                        <p className="text-sm">
-                          {new Intl.DateTimeFormat("pt-BR").format(
-                            processo.dataInicio,
-                          )}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">
-                          Responsável
-                        </span>
-                        <p className="text-sm">{processo.responsavel}</p>
-                      </div>
-                    </div>
-
-                    <Separator />
-
-                    <div>
-                      <span className="text-sm font-medium text-gray-500">
-                        Assunto
+          <TabsContent value="resumo" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Informações Detalhadas */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Info className="h-5 w-5" />
+                    Informações Detalhadas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Tribunal
+                    </label>
+                    <p className="font-medium">{processo.tribunal}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Vara
+                    </label>
+                    <p className="font-medium">{processo.vara}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Assunto
+                    </label>
+                    <p className="font-medium">{processo.assunto}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Responsável
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-6 w-6">
+                        <AvatarFallback className="text-xs">
+                          {processo.responsavel.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="font-medium">
+                        {processo.responsavel}
                       </span>
-                      <p className="text-sm mt-1">{processo.assunto}</p>
                     </div>
-
-                    {processo.observacoes && (
-                      <>
-                        <Separator />
-                        <div>
-                          <span className="text-sm font-medium text-gray-500">
-                            Observações
-                          </span>
-                          <p className="text-sm mt-1">{processo.observacoes}</p>
-                        </div>
-                      </>
-                    )}
-
-                    {processo.tags.length > 0 && (
-                      <>
-                        <Separator />
-                        <div>
-                          <span className="text-sm font-medium text-gray-500">
-                            Tags
-                          </span>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {processo.tags.map((tag) => (
-                              <Badge key={tag} variant="outline">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Valores financeiros */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <DollarSign className="h-5 w-5" />
-                      Valores Financeiros
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                        <DollarSign className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                        <p className="text-sm text-gray-500 mb-1">
-                          Valor dos Honorários
-                        </p>
-                        <p className="text-xl font-bold text-green-600">
-                          {new Intl.NumberFormat("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          }).format(processo.valor)}
-                        </p>
-                      </div>
-
-                      <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <Target className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                        <p className="text-sm text-gray-500 mb-1">
-                          Valor da Causa
-                        </p>
-                        <p className="text-xl font-bold text-blue-600">
-                          {new Intl.NumberFormat("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          }).format(processo.valor * 3)}
-                        </p>
-                      </div>
-
-                      <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                        <Activity className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-                        <p className="text-sm text-gray-500 mb-1">
-                          Custas Processuais
-                        </p>
-                        <p className="text-xl font-bold text-orange-600">
-                          {new Intl.NumberFormat("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          }).format(processo.valor * 0.1)}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Sidebar */}
-              <div className="space-y-6">
-                {/* Informações do cliente */}
-                {cliente && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <User className="h-5 w-5" />
-                        Cliente
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarFallback>
-                            {cliente.nome
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <p className="font-medium">{cliente.nome}</p>
-                          <p className="text-sm text-gray-500">
-                            {cliente.documento}
-                          </p>
-                        </div>
-                        <Badge variant="outline">{cliente.tipo}</Badge>
-                      </div>
-
-                      <Separator />
-
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Mail className="h-4 w-4 text-gray-400" />
-                          <a
-                            href={`mailto:${cliente.email}`}
-                            className="text-blue-600 hover:underline"
-                          >
-                            {cliente.email}
-                          </a>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Phone className="h-4 w-4 text-gray-400" />
-                          <a
-                            href={`tel:${cliente.telefone}`}
-                            className="text-blue-600 hover:underline"
-                          >
-                            {cliente.telefone}
-                          </a>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <MapPin className="h-4 w-4 text-gray-400" />
-                          <span className="text-gray-600">
-                            {cliente.endereco.cidade}, {cliente.endereco.uf}
-                          </span>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">Valor Total:</span>
-                          <span className="font-medium text-green-600">
-                            {new Intl.NumberFormat("pt-BR", {
-                              style: "currency",
-                              currency: "BRL",
-                            }).format(cliente.valorTotal)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">Responsável:</span>
-                          <span className="font-medium">
-                            {cliente.responsavel}
-                          </span>
-                        </div>
-                      </div>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        asChild
-                      >
-                        <Link to={`/crm/clientes/${cliente.id}`}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Ver Perfil do Cliente
-                        </Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Próximas ações */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Clock className="h-5 w-5" />
-                      Próximas Ações
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {processo.proximaAudiencia && (
-                      <Alert>
-                        <Calendar className="h-4 w-4" />
-                        <AlertDescription>
-                          <strong>Próxima Audiência:</strong>
-                          <br />
-                          {new Intl.DateTimeFormat("pt-BR", {
-                            dateStyle: "long",
-                            timeStyle: "short",
-                          }).format(processo.proximaAudiencia)}
-                        </AlertDescription>
-                      </Alert>
-                    )}
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Preparar quesitos</span>
-                        <Badge variant="secondary" className="text-xs">
-                          2 dias
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">
-                          Revisar documentos
+                  </div>
+                  {processo.proximaAudiencia && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Próxima Audiência
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-orange-500" />
+                        <span className="font-medium">
+                          {processo.proximaAudiencia.toLocaleDateString()}
                         </span>
-                        <Badge variant="secondary" className="text-xs">
-                          5 dias
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Contatar perito</span>
-                        <Badge variant="secondary" className="text-xs">
-                          1 semana
-                        </Badge>
                       </div>
                     </div>
+                  )}
+                  {processo.tags && processo.tags.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Tags
+                      </label>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {processo.tags.map((tag, index) => (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="text-xs"
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-                    <Button size="sm" className="w-full">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Adicionar Tarefa
-                    </Button>
-                  </CardContent>
-                </Card>
+              {/* Progresso e Estatísticas */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Progresso e Estatísticas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">
+                        Progresso Geral
+                      </span>
+                      <span className="text-sm text-gray-500">65%</span>
+                    </div>
+                    <Progress value={65} className="h-2" />
+                  </div>
 
-                {/* Quick actions */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Activity className="h-5 w-5" />
-                      Ações Rápidas
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start"
-                    >
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Agendar Audiência
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Nova Petição
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start"
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload Documento
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start"
-                    >
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      Contatar Cliente
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-3 border rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {documentos.length}
+                      </div>
+                      <div className="text-sm text-gray-500">Documentos</div>
+                    </div>
+                    <div className="text-center p-3 border rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">
+                        {movimentacoes.length}
+                      </div>
+                      <div className="text-sm text-gray-500">Movimentações</div>
+                    </div>
+                    <div className="text-center p-3 border rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">
+                        {anotacoes.length}
+                      </div>
+                      <div className="text-sm text-gray-500">Anotações</div>
+                    </div>
+                    <div className="text-center p-3 border rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {Math.floor(
+                          (new Date().getTime() -
+                            processo.dataInicio.getTime()) /
+                            (1000 * 60 * 60 * 24),
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-500">Dias</div>
+                    </div>
+                  </div>
+
+                  {processo.observacoes && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Observações
+                      </label>
+                      <p className="text-sm mt-1 p-2 bg-gray-50 rounded">
+                        {processo.observacoes}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
-          <TabsContent value="documentos" className="space-y-6">
+          <TabsContent value="movimentacoes" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">
+                Movimentações Processuais
+              </h3>
+              <Button size="sm">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Atualizar
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {movimentacoes.map((mov, index) => {
+                const TipoIcon = tipoMovimentacaoConfig[mov.tipo]?.icon || Info;
+                const iconColor =
+                  tipoMovimentacaoConfig[mov.tipo]?.color || "text-gray-600";
+
+                return (
+                  <Card
+                    key={mov.id}
+                    className="hover:shadow-md transition-shadow"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className={`p-2 rounded-lg bg-gray-100`}>
+                          <TipoIcon className={`h-4 w-4 ${iconColor}`} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium">{mov.descricao}</h4>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-500">
+                                {mov.data.toLocaleDateString()}
+                              </span>
+                              {mov.status && (
+                                <Badge
+                                  className={
+                                    mov.status === "concluido"
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-yellow-100 text-yellow-800"
+                                  }
+                                >
+                                  {mov.status === "concluido"
+                                    ? "Concluído"
+                                    : "Pendente"}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">
+                            Por: {mov.responsavel}
+                          </p>
+                          {mov.observacoes && (
+                            <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
+                              {mov.observacoes}
+                            </p>
+                          )}
+                          {mov.arquivo && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <Paperclip className="h-4 w-4 text-gray-400" />
+                              <a
+                                href="#"
+                                className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                              >
+                                {mov.arquivo}
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="documentos" className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Documentos do Processo</h3>
-              <Button onClick={() => setShowDocumentDialog(true)}>
-                <Upload className="h-4 w-4 mr-2" />
-                Upload Documento
-              </Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={openGED}>
+                  <FolderOpen className="h-4 w-4 mr-2" />
+                  Abrir GED
+                </Button>
+                <Button size="sm">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload
+                </Button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -759,60 +833,58 @@ export default function ProcessoDetalhes() {
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        {getDocumentIcon(doc.tipo)}
-                        <div className="flex-1">
-                          <h4 className="font-medium text-sm">{doc.nome}</h4>
-                          <p className="text-xs text-gray-500 capitalize">
-                            {doc.tipo}
-                          </p>
-                        </div>
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <Badge className={tipoDocumentoConfig[doc.tipo]?.color}>
+                          {tipoDocumentoConfig[doc.tipo]?.label}
+                        </Badge>
                       </div>
                       <Badge
-                        variant={
+                        className={
                           doc.status === "aprovado"
-                            ? "default"
+                            ? "bg-green-100 text-green-800"
                             : doc.status === "pendente"
-                              ? "secondary"
-                              : "destructive"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
                         }
-                        className="text-xs"
                       >
-                        {doc.status}
+                        {doc.status === "aprovado"
+                          ? "Aprovado"
+                          : doc.status === "pendente"
+                            ? "Pendente"
+                            : "Rejeitado"}
                       </Badge>
                     </div>
 
-                    <div className="space-y-2 text-xs text-gray-500">
+                    <h4 className="font-medium mb-2 line-clamp-2">
+                      {doc.nome}
+                    </h4>
+
+                    <div className="space-y-1 text-sm text-gray-600">
                       <div className="flex justify-between">
                         <span>Tamanho:</span>
                         <span>{doc.tamanho}</span>
                       </div>
                       <div className="flex justify-between">
+                        <span>Versão:</span>
+                        <span>v{doc.versao}</span>
+                      </div>
+                      <div className="flex justify-between">
                         <span>Upload:</span>
-                        <span>
-                          {new Intl.DateTimeFormat("pt-BR").format(
-                            doc.dataUpload,
-                          )}
-                        </span>
+                        <span>{doc.dataUpload.toLocaleDateString()}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Por:</span>
                         <span>{doc.uploadedBy}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Versão:</span>
-                        <span>v{doc.versao}</span>
-                      </div>
                     </div>
 
-                    <Separator className="my-3" />
-
-                    <div className="flex items-center gap-2">
+                    <div className="flex gap-2 mt-3">
                       <Button size="sm" variant="outline" className="flex-1">
-                        <Eye className="h-3 w-3 mr-1" />
+                        <Eye className="h-4 w-4 mr-1" />
                         Ver
                       </Button>
                       <Button size="sm" variant="outline" className="flex-1">
-                        <Download className="h-3 w-3 mr-1" />
+                        <Download className="h-4 w-4 mr-1" />
                         Baixar
                       </Button>
                     </div>
@@ -820,341 +892,280 @@ export default function ProcessoDetalhes() {
                 </Card>
               ))}
             </div>
-
-            {documentos.length === 0 && (
-              <div className="text-center py-12">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Nenhum documento
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Faça upload dos documentos relacionados ao processo.
-                </p>
-                <Button onClick={() => setShowDocumentDialog(true)}>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Primeiro Documento
-                </Button>
-              </div>
-            )}
           </TabsContent>
 
-          <TabsContent value="movimentacoes" className="space-y-6">
+          <TabsContent value="anotacoes" className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">
-                Movimentações Processuais
-              </h3>
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Exportar Histórico
-              </Button>
+              <h3 className="text-lg font-semibold">Anotações e Observações</h3>
             </div>
 
+            {/* Nova Anotação */}
             <Card>
-              <CardContent className="p-0">
-                <div className="divide-y">
-                  {movimentacoes.map((mov, index) => (
-                    <div
-                      key={mov.id}
-                      className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0">
-                          {getMovimentacaoIcon(mov.tipo)}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h4 className="font-medium text-sm">
-                                {mov.descricao}
-                              </h4>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {mov.responsavel}
-                              </p>
-                              {mov.observacoes && (
-                                <p className="text-xs text-gray-600 mt-2 bg-gray-50 dark:bg-gray-800 p-2 rounded">
-                                  {mov.observacoes}
-                                </p>
-                              )}
-                            </div>
-
-                            <div className="text-right">
-                              <p className="text-xs text-gray-500">
-                                {new Intl.DateTimeFormat("pt-BR", {
-                                  dateStyle: "short",
-                                  timeStyle: "short",
-                                }).format(mov.data)}
-                              </p>
-                              <Badge
-                                variant="outline"
-                                className="mt-1 text-xs capitalize"
-                              >
-                                {mov.tipo}
-                              </Badge>
-                            </div>
-                          </div>
-
-                          {mov.arquivo && (
-                            <div className="mt-3">
-                              <Button variant="outline" size="sm">
-                                <Paperclip className="h-3 w-3 mr-1" />
-                                {mov.arquivo}
-                              </Button>
-                            </div>
-                          )}
-                        </div>
+              <CardContent className="p-4">
+                <div className="flex gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>U</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <Textarea
+                      placeholder="Adicionar nova anotação..."
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      className="mb-2"
+                    />
+                    <div className="flex justify-between items-center">
+                      <div className="flex gap-2">
+                        <Badge variant="outline" className="cursor-pointer">
+                          Observação
+                        </Badge>
+                        <Badge variant="outline" className="cursor-pointer">
+                          Lembrete
+                        </Badge>
+                        <Badge variant="outline" className="cursor-pointer">
+                          Tarefa
+                        </Badge>
                       </div>
+                      <Button
+                        size="sm"
+                        onClick={addNote}
+                        disabled={!newNote.trim()}
+                      >
+                        <Send className="h-4 w-4 mr-1" />
+                        Adicionar
+                      </Button>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {movimentacoes.length === 0 && (
-              <div className="text-center py-12">
-                <History className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Nenhuma movimentação
-                </h3>
-                <p className="text-gray-600">
-                  As movimentações do processo aparecerão aqui conforme forem
-                  registradas.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="anotacoes" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Anotações e Lembretes</h3>
-            </div>
-
-            {/* Adicionar nova anotação */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Nova Anotação</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Textarea
-                  placeholder="Digite sua anotação ou lembrete..."
-                  value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                  rows={3}
-                />
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">Observação</Badge>
-                    <Badge variant="outline">Prioridade Média</Badge>
                   </div>
-                  <Button onClick={addNote} disabled={!newNote.trim()}>
-                    <Send className="h-4 w-4 mr-2" />
-                    Adicionar
-                  </Button>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Lista de anotações */}
-            <div className="space-y-4">
+            {/* Lista de Anotações */}
+            <div className="space-y-3">
               {anotacoes.map((anotacao) => (
                 <Card key={anotacao.id}>
                   <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback className="text-xs">
-                            {anotacao.usuario
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium text-sm">
-                            {anotacao.usuario}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {new Intl.DateTimeFormat("pt-BR", {
-                              dateStyle: "short",
-                              timeStyle: "short",
-                            }).format(anotacao.data)}
-                          </p>
+                    <div className="flex gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>
+                          {anotacao.usuario.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">
+                              {anotacao.usuario}
+                            </span>
+                            <Badge
+                              className={
+                                anotacao.tipo === "observacao"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : anotacao.tipo === "lembrete"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-purple-100 text-purple-800"
+                              }
+                            >
+                              {anotacao.tipo}
+                            </Badge>
+                            <Badge
+                              className={
+                                anotacao.prioridade === "alta"
+                                  ? "bg-red-100 text-red-800"
+                                  : anotacao.prioridade === "media"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-gray-100 text-gray-800"
+                              }
+                            >
+                              {anotacao.prioridade}
+                            </Badge>
+                          </div>
+                          <span className="text-sm text-gray-500">
+                            {anotacao.data.toLocaleDateString()}
+                          </span>
                         </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant={
-                            anotacao.tipo === "lembrete" ? "default" : "outline"
-                          }
-                          className="text-xs capitalize"
-                        >
-                          {anotacao.tipo}
-                        </Badge>
-                        <Badge
-                          variant={
-                            anotacao.prioridade === "alta"
-                              ? "destructive"
-                              : anotacao.prioridade === "media"
-                                ? "secondary"
-                                : "outline"
-                          }
-                          className="text-xs capitalize"
-                        >
-                          {anotacao.prioridade}
-                        </Badge>
+                        <p className="text-sm">{anotacao.texto}</p>
+                        {anotacao.tipo === "tarefa" && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <Checkbox checked={anotacao.concluida} />
+                            <span className="text-sm text-gray-600">
+                              {anotacao.concluida ? "Concluída" : "Pendente"}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
-
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      {anotacao.texto}
-                    </p>
                   </CardContent>
                 </Card>
               ))}
             </div>
-
-            {anotacoes.length === 0 && (
-              <div className="text-center py-12">
-                <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Nenhuma anotação
-                </h3>
-                <p className="text-gray-600">
-                  Adicione anotações para manter um histórico das observações do
-                  processo.
-                </p>
-              </div>
-            )}
           </TabsContent>
 
-          <TabsContent value="cronologia" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Cronologia Completa</h3>
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Exportar Timeline
-              </Button>
-            </div>
+          <TabsContent value="timeline" className="space-y-4">
+            <h3 className="text-lg font-semibold">Timeline do Processo</h3>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="relative">
-                  <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
+            <div className="relative">
+              <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+              <div className="space-y-6">
+                {[...movimentacoes, ...anotacoes]
+                  .sort((a, b) => b.data.getTime() - a.data.getTime())
+                  .map((item, index) => {
+                    const isMovimentacao =
+                      "tipo" in item &&
+                      [
+                        "audiencia",
+                        "decisao",
+                        "peticao",
+                        "recurso",
+                        "sentenca",
+                        "outros",
+                      ].includes(item.tipo);
+                    const Icon = isMovimentacao
+                      ? tipoMovimentacaoConfig[
+                          (item as MovimentacaoProcesso).tipo
+                        ]?.icon || Info
+                      : MessageSquare;
 
-                  <div className="space-y-6">
-                    {/* Timeline items combinando movimentações e anotações */}
-                    {[...movimentacoes, ...anotacoes]
-                      .sort((a, b) => b.data.getTime() - a.data.getTime())
-                      .map((item, index) => (
-                        <div
-                          key={`timeline-${index}`}
-                          className="relative flex items-start gap-4"
-                        >
-                          <div className="relative z-10 flex items-center justify-center w-8 h-8 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-full">
-                            {"tipo" in item ? (
-                              getMovimentacaoIcon(item.tipo)
-                            ) : (
-                              <MessageSquare className="h-4 w-4 text-blue-600" />
-                            )}
-                          </div>
-
-                          <div className="flex-1 min-w-0 pb-6">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h4 className="font-medium text-sm">
-                                  {"descricao" in item
-                                    ? item.descricao
-                                    : `Anotação: ${item.texto.substring(0, 50)}...`}
-                                </h4>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  {"responsavel" in item
-                                    ? item.responsavel
-                                    : item.usuario}
-                                </p>
-                                {"observacoes" in item && item.observacoes && (
-                                  <p className="text-xs text-gray-600 mt-2 bg-gray-50 dark:bg-gray-800 p-2 rounded">
-                                    {item.observacoes}
-                                  </p>
-                                )}
-                                {"texto" in item && (
-                                  <p className="text-xs text-gray-600 mt-2">
-                                    {item.texto}
-                                  </p>
-                                )}
-                              </div>
-
-                              <div className="text-right">
-                                <p className="text-xs text-gray-500">
-                                  {new Intl.DateTimeFormat("pt-BR", {
-                                    dateStyle: "short",
-                                    timeStyle: "short",
-                                  }).format(item.data)}
-                                </p>
-                                <Badge
-                                  variant="outline"
-                                  className="mt-1 text-xs"
-                                >
-                                  {"tipo" in item ? item.tipo : "anotacao"}
-                                </Badge>
-                              </div>
-                            </div>
-                          </div>
+                    return (
+                      <div
+                        key={item.id}
+                        className="relative flex items-start gap-4"
+                      >
+                        <div className="relative z-10 flex items-center justify-center w-8 h-8 bg-white border-2 border-gray-300 rounded-full">
+                          <Icon className="h-4 w-4 text-gray-600" />
                         </div>
-                      ))}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium">
+                              {isMovimentacao
+                                ? (item as MovimentacaoProcesso).descricao
+                                : (item as AnotacaoProcesso).texto}
+                            </h4>
+                            <span className="text-sm text-gray-500">
+                              {item.data.toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            {isMovimentacao
+                              ? `Por: ${(item as MovimentacaoProcesso).responsavel}`
+                              : `Por: ${(item as AnotacaoProcesso).usuario}`}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="relacionados" className="space-y-4">
+            <h3 className="text-lg font-semibold">Itens Relacionados</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Cliente
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <p className="font-medium">{processo.cliente}</p>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline">
+                        <Eye className="h-4 w-4 mr-1" />
+                        Ver Perfil
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <MessageSquare className="h-4 w-4 mr-1" />
+                        Contatar
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Compromissos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600">
+                      2 compromissos agendados
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={agendarAudiencia}
+                      >
+                        <CalendarPlus className="h-4 w-4 mr-1" />
+                        Agendar
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Eye className="h-4 w-4 mr-1" />
+                        Ver Todos
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <FolderOpen className="h-4 w-4" />
+                    Documentos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600">
+                      {documentos.length} documentos
+                    </p>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={openGED}>
+                        <FolderOpen className="h-4 w-4 mr-1" />
+                        Abrir GED
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Upload className="h-4 w-4 mr-1" />
+                        Upload
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
+
+        {/* Dialog de Formulário */}
+        <Dialog open={showEditForm} onOpenChange={setShowEditForm}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Editar Processo</DialogTitle>
+              <DialogDescription>
+                Edite as informações do processo jurídico
+              </DialogDescription>
+            </DialogHeader>
+            <ProcessoForm
+              processo={processo}
+              onSave={async (data) => {
+                // Em produção, chamaria a API para atualizar
+                toast.success("Processo atualizado com sucesso!");
+                setShowEditForm(false);
+                // Recarregar dados do processo
+              }}
+              onCancel={() => setShowEditForm(false)}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
-
-      {/* Form de edição */}
-      {showEditForm && (
-        <ProcessoForm
-          isOpen={showEditForm}
-          onClose={() => setShowEditForm(false)}
-          processo={processo}
-        />
-      )}
-
-      {/* Dialog de upload de documento */}
-      <Dialog open={showDocumentDialog} onOpenChange={setShowDocumentDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Upload de Documento</DialogTitle>
-            <DialogDescription>
-              Faça upload de um documento relacionado ao processo.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-sm text-gray-600 mb-2">
-                Arraste um arquivo aqui ou clique para selecionar
-              </p>
-              <Button variant="outline">
-                <Upload className="h-4 w-4 mr-2" />
-                Selecionar Arquivo
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Button
-                variant="outline"
-                onClick={() => setShowDocumentDialog(false)}
-              >
-                Cancelar
-              </Button>
-              <Button>
-                <Upload className="h-4 w-4 mr-2" />
-                Fazer Upload
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+    </TooltipProvider>
   );
 }

@@ -41,6 +41,16 @@ import {
   Bookmark,
   Target,
   Copy,
+  FolderOpen,
+  CalendarPlus,
+  Archive,
+  CheckCircle,
+  XCircle,
+  PlayCircle,
+  PauseCircle,
+  AlertCircle,
+  Info,
+  ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,6 +63,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import {
   Table,
@@ -75,19 +86,36 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useCRM, Processo } from "@/hooks/useCRM";
 import { useProcessoApi } from "@/services/ProcessoApiService";
 import { toast } from "sonner";
 import ProcessoForm from "./ProcessoForm";
 import ProcessoDetalhes from "./ProcessoDetalhes";
 import ProcessosMobile from "./ProcessosMobile";
+import { ClienteDetalhes } from "@/components/CRM/ClienteDetalhes";
 
 // Declaração global para o timeout da busca
 declare global {
@@ -96,1563 +124,1169 @@ declare global {
   }
 }
 
+// Interface expandida para Cliente com relacionamentos
+interface ClienteCompleto {
+  id: string;
+  nome: string;
+  documento: string;
+  tipo: "PF" | "PJ";
+  email: string;
+  telefone: string;
+  endereco: {
+    cep: string;
+    logradouro: string;
+    numero: string;
+    complemento?: string;
+    bairro: string;
+    cidade: string;
+    uf: string;
+  };
+  status: "novo" | "ativo" | "inativo" | "prospecto";
+  dataCadastro: Date;
+  ultimoContato?: Date;
+  valorTotal: number;
+  observacoes?: string;
+  tags: string[];
+  responsavel: string;
+  origem: string;
+  relacionamentos: {
+    processos: number;
+    contratos: number;
+    atendimentos: number;
+    valor_total_processos: number;
+    ultimo_processo?: Date;
+  };
+}
+
 // Detecta se é mobile
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
+const isMobile = () => window.innerWidth < 768;
 
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  return isMobile;
-};
-
-const ProcessosKanban: React.FC = () => {
-  const { processosFiltrados, editarProcesso, excluirProcesso } = useCRM();
-  const { consultarTJSP, criarAlerta } = useProcessoApi();
+export default function ProcessosModule() {
   const navigate = useNavigate();
+  const {
+    processos,
+    buscarProcessos,
+    obterProcesso,
+    criarProcesso,
+    atualizarProcesso,
+    excluirProcesso,
+    filtros,
+    atualizarFiltros,
+    loading,
+  } = useCRM();
 
-  const colunas = [
+  const { obterAndamentosProcesso } = useProcessoApi();
+
+  // Estados do componente
+  const [busca, setBusca] = useState("");
+  const [filtroArea, setFiltroArea] = useState("todos");
+  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [filtroRisco, setFiltroRisco] = useState("todos");
+  const [filtroResponsavel, setFiltroResponsavel] = useState("todos");
+  const [ordenacao, setOrdenacao] = useState("numero");
+  const [ordemCrescente, setOrdemCrescente] = useState(true);
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const [itensPorPagina] = useState(10);
+  const [viewMode, setViewMode] = useState<"list" | "cards">("list");
+  const [selectedProcessos, setSelectedProcessos] = useState<string[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editingProcesso, setEditingProcesso] = useState<Processo | null>(null);
+  const [showProcessoDetails, setShowProcessoDetails] = useState<string | null>(
+    null,
+  );
+  const [showClienteDetails, setShowClienteDetails] =
+    useState<ClienteCompleto | null>(null);
+  const [detailsMode, setDetailsMode] = useState<"summary" | "full">("summary");
+  const [showGEDDialog, setShowGEDDialog] = useState<string | null>(null);
+
+  // Estados para estatísticas
+  const [estatisticas, setEstatisticas] = useState({
+    total: 0,
+    ativos: 0,
+    arquivados: 0,
+    vencidos: 0,
+    valorTotal: 0,
+    taxaSucesso: 0,
+  });
+
+  // Mock de dados de clientes completos
+  const clientesCompletos: ClienteCompleto[] = [
     {
-      id: "ativo",
-      titulo: "Ativos",
-      cor: "bg-blue-50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-800",
-      contadorCor:
-        "bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100",
+      id: "cli-001",
+      nome: "João Silva",
+      documento: "123.456.789-00",
+      tipo: "PF",
+      email: "joao.silva@email.com",
+      telefone: "(11) 99999-9999",
+      endereco: {
+        cep: "01310-100",
+        logradouro: "Avenida Paulista",
+        numero: "1000",
+        bairro: "Bela Vista",
+        cidade: "São Paulo",
+        uf: "SP",
+      },
+      status: "ativo",
+      dataCadastro: new Date("2023-01-15"),
+      ultimoContato: new Date("2024-01-20"),
+      valorTotal: 85000,
+      observacoes: "Cliente corporativo importante",
+      tags: ["vip", "corporativo"],
+      responsavel: "Dr. Pedro Costa",
+      origem: "indicacao",
+      relacionamentos: {
+        processos: 3,
+        contratos: 2,
+        atendimentos: 8,
+        valor_total_processos: 150000,
+        ultimo_processo: new Date("2024-01-10"),
+      },
     },
     {
-      id: "suspenso",
-      titulo: "Suspensos",
-      cor: "bg-yellow-50 border-yellow-200 dark:bg-yellow-900/10 dark:border-yellow-800",
-      contadorCor:
-        "bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100",
+      id: "cli-002",
+      nome: "Maria Santos Oliveira",
+      documento: "987.654.321-00",
+      tipo: "PF",
+      email: "maria.santos@email.com",
+      telefone: "(11) 88888-8888",
+      endereco: {
+        cep: "04038-001",
+        logradouro: "Rua Vergueiro",
+        numero: "500",
+        bairro: "Vila Mariana",
+        cidade: "São Paulo",
+        uf: "SP",
+      },
+      status: "ativo",
+      dataCadastro: new Date("2023-06-10"),
+      ultimoContato: new Date("2024-01-18"),
+      valorTotal: 45000,
+      observacoes: "Cliente trabalhista",
+      tags: ["trabalhista", "urgente"],
+      responsavel: "Dra. Ana Lima",
+      origem: "website",
+      relacionamentos: {
+        processos: 2,
+        contratos: 1,
+        atendimentos: 5,
+        valor_total_processos: 80000,
+        ultimo_processo: new Date("2023-12-15"),
+      },
     },
     {
-      id: "arquivado",
-      titulo: "Arquivados",
-      cor: "bg-gray-50 border-gray-200 dark:bg-gray-800/50 dark:border-gray-700",
-      contadorCor:
-        "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100",
-    },
-    {
-      id: "encerrado",
-      titulo: "Encerrados",
-      cor: "bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800",
-      contadorCor:
-        "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100",
+      id: "cli-003",
+      nome: "Empresa ABC Ltda",
+      documento: "12.345.678/0001-90",
+      tipo: "PJ",
+      email: "contato@empresaabc.com",
+      telefone: "(11) 3333-3333",
+      endereco: {
+        cep: "01014-001",
+        logradouro: "Rua Direita",
+        numero: "123",
+        bairro: "Centro",
+        cidade: "São Paulo",
+        uf: "SP",
+      },
+      status: "ativo",
+      dataCadastro: new Date("2022-09-20"),
+      ultimoContato: new Date("2024-01-22"),
+      valorTotal: 250000,
+      observacoes: "Empresa de grande porte - múltiplas áreas",
+      tags: ["empresarial", "grande_porte", "multiple_areas"],
+      responsavel: "Dr. Carlos Mendes",
+      origem: "comercial",
+      relacionamentos: {
+        processos: 5,
+        contratos: 8,
+        atendimentos: 25,
+        valor_total_processos: 500000,
+        ultimo_processo: new Date("2024-01-05"),
+      },
     },
   ];
 
-  const getRiscoColor = (risco: string) => {
-    const colors = {
-      baixo: "text-green-600 dark:text-green-400",
-      medio: "text-yellow-600 dark:text-yellow-400",
-      alto: "text-red-600 dark:text-red-400",
-    };
-    return colors[risco as keyof typeof colors] || colors.baixo;
-  };
-
-  const getRiscoIcon = (risco: string) => {
-    if (risco === "alto") return <AlertTriangle className="h-3 w-3" />;
-    if (risco === "medio") return <Clock className="h-3 w-3" />;
-    return <CheckSquare className="h-3 w-3" />;
-  };
-
-  const handleConsultarTJSP = async (processo: Processo) => {
-    const resultado = await consultarTJSP(processo.numero);
-    if (resultado) {
-      // Atualizar processo com dados do TJSP
-      await editarProcesso(processo.id, {
-        observacoes: `${processo.observacoes || ""}\n\nDados TJSP: Status ${resultado.status}, Última movimentação: ${resultado.movimentacoes[0]?.descricao}`,
-      });
+  // Efeito para busca com debounce
+  useEffect(() => {
+    if (window.searchTimeout) {
+      clearTimeout(window.searchTimeout);
     }
-  };
 
-  const handleCriarAlerta = async (processo: Processo) => {
-    const sucesso = await criarAlerta(
-      processo.numero,
-      "prazo",
-      new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      `Lembrete para processo ${processo.assunto}`,
-      3,
-    );
-    if (sucesso) {
-      toast.success("Alerta criado com sucesso!");
-    }
-  };
+    window.searchTimeout = setTimeout(() => {
+      atualizarFiltros({ busca });
+    }, 300);
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {colunas.map((coluna) => {
-        const processosDaColuna = processosFiltrados.filter(
-          (processo) => processo.status === coluna.id,
-        );
-
-        return (
-          <div
-            key={coluna.id}
-            className={`rounded-lg border-2 ${coluna.cor} p-4 min-h-[500px]`}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                {coluna.titulo}
-              </h3>
-              <Badge variant="secondary" className={coluna.contadorCor}>
-                {processosDaColuna.length}
-              </Badge>
-            </div>
-
-            <ScrollArea className="h-[400px]">
-              <div className="space-y-3">
-                <AnimatePresence>
-                  {processosDaColuna.map((processo) => (
-                    <motion.div
-                      key={processo.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer group"
-                    >
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <button
-                              onClick={() =>
-                                navigate(`/crm/processos/${processo.id}`)
-                              }
-                              className="font-mono text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-left underline-offset-4 hover:underline transition-colors"
-                              title={`Ver detalhes do processo ${processo.numero}`}
-                            >
-                              {processo.numero}
-                            </button>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
-                              {processo.assunto}
-                            </p>
-                          </div>
-                          <div
-                            className={`flex items-center gap-1 ${getRiscoColor(processo.risco)}`}
-                          >
-                            {getRiscoIcon(processo.risco)}
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <button
-                            onClick={() =>
-                              navigate(`/crm/clientes/${processo.clienteId}`)
-                            }
-                            className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 truncate block text-left w-full underline-offset-4 hover:underline transition-colors"
-                            title={`Ver perfil de ${processo.cliente}`}
-                          >
-                            <User className="inline h-3 w-3 mr-1" />
-                            {processo.cliente}
-                          </button>
-                          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                            <span>{processo.area}</span>
-                            <span className="truncate ml-2">
-                              {processo.tribunal.split(" ")[0]}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <Badge variant="outline" className="text-xs">
-                              {processo.responsavel.split(" ")[0]}
-                            </Badge>
-                            <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                              {new Intl.NumberFormat("pt-BR", {
-                                style: "currency",
-                                currency: "BRL",
-                                maximumFractionDigits: 0,
-                              }).format(processo.valor)}
-                            </span>
-                          </div>
-
-                          {processo.proximaAudiencia && (
-                            <div className="flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded">
-                              <Calendar className="h-3 w-3" />
-                              Audiência:{" "}
-                              {new Intl.DateTimeFormat("pt-BR").format(
-                                processo.proximaAudiencia,
-                              )}
-                            </div>
-                          )}
-
-                          {processo.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                              {processo.tags.slice(0, 2).map((tag) => (
-                                <Badge
-                                  key={tag}
-                                  variant="outline"
-                                  className="text-xs"
-                                >
-                                  {tag}
-                                </Badge>
-                              ))}
-                              {processo.tags.length > 2 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{processo.tags.length - 2}
-                                </Badge>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Ações rápidas - visíveis no hover */}
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Separator className="my-2" />
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleConsultarTJSP(processo);
-                                }}
-                                title="Consultar TJSP"
-                              >
-                                <TrendingUp className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCriarAlerta(processo);
-                                }}
-                                title="Criar Alerta"
-                              >
-                                <Bell className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0"
-                                title="Favoritar"
-                              >
-                                <Star className="h-3 w-3" />
-                              </Button>
-                            </div>
-
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                >
-                                  <MoreHorizontal className="h-3 w-3" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-56">
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    navigate(`/crm/processos/${processo.id}`)
-                                  }
-                                  className="cursor-pointer"
-                                >
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  Ver Detalhes Completos
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => setShowProcessoForm(true)}
-                                  className="cursor-pointer"
-                                >
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Editar Processo
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    // Duplicar processo
-                                    toast.success("Processo duplicado!");
-                                  }}
-                                  className="cursor-pointer"
-                                >
-                                  <Copy className="h-4 w-4 mr-2" />
-                                  Duplicar
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    // Agendar audiência
-                                    toast.success(
-                                      "Redirecionando para agenda...",
-                                    );
-                                  }}
-                                  className="cursor-pointer"
-                                >
-                                  <Calendar className="h-4 w-4 mr-2" />
-                                  Agendar Audiência
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    // Vincular documento
-                                    toast.success("Abrindo GED...");
-                                  }}
-                                  className="cursor-pointer"
-                                >
-                                  <FileText className="h-4 w-4 mr-2" />
-                                  Vincular Documento
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    navigate(
-                                      `/crm/clientes/${processo.clienteId}`,
-                                    )
-                                  }
-                                  className="cursor-pointer"
-                                >
-                                  <Users className="h-4 w-4 mr-2" />
-                                  Ver Cliente
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    // Compartilhar processo
-                                    navigator.clipboard.writeText(
-                                      `${window.location.origin}/crm/processos/${processo.id}`,
-                                    );
-                                    toast.success("Link copiado!");
-                                  }}
-                                  className="cursor-pointer"
-                                >
-                                  <Share2 className="h-4 w-4 mr-2" />
-                                  Compartilhar Link
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  className="text-red-600 dark:text-red-400 cursor-pointer"
-                                  onClick={() => {
-                                    if (
-                                      confirm(
-                                        `Tem certeza que deseja excluir o processo ${processo.numero}?`,
-                                      )
-                                    ) {
-                                      excluirProcesso(processo.id);
-                                    }
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Excluir Processo
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-
-                {processosDaColuna.length === 0 && (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <Scale className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Nenhum processo nesta categoria</p>
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-const ProcessosLista: React.FC = () => {
-  const { processosFiltrados, excluirProcesso, obterCliente } = useCRM();
-  const { consultarTJSP } = useProcessoApi();
-  const navigate = useNavigate();
-  const [selectedProcessos, setSelectedProcessos] = useState<string[]>([]);
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof Processo;
-    direction: "asc" | "desc";
-  }>({ key: "dataInicio", direction: "desc" });
-
-  const handleSelectProcesso = (processoId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedProcessos((prev) => [...prev, processoId]);
-    } else {
-      setSelectedProcessos((prev) => prev.filter((id) => id !== processoId));
-    }
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedProcessos(processosFiltrados.map((p) => p.id));
-    } else {
-      setSelectedProcessos([]);
-    }
-  };
-
-  const handleBulkAction = (action: string) => {
-    switch (action) {
-      case "export":
-        toast.success(`${selectedProcessos.length} processos exportados!`);
-        break;
-      case "archive":
-        toast.success(`${selectedProcessos.length} processos arquivados!`);
-        break;
-      case "delete":
-        selectedProcessos.forEach((id) => excluirProcesso(id));
-        toast.success(`${selectedProcessos.length} processos excluídos!`);
-        break;
-      default:
-        toast.success(
-          `Ação ${action} aplicada a ${selectedProcessos.length} processos`,
-        );
-    }
-    setSelectedProcessos([]);
-  };
-
-  const handleSort = (key: keyof Processo) => {
-    const direction =
-      sortConfig.key === key && sortConfig.direction === "asc" ? "desc" : "asc";
-    setSortConfig({ key, direction });
-  };
-
-  const sortedProcessos = React.useMemo(() => {
-    return [...processosFiltrados].sort((a, b) => {
-      const aValue = a[sortConfig.key];
-      const bValue = b[sortConfig.key];
-
-      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-      return 0;
-    });
-  }, [processosFiltrados, sortConfig]);
-
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      ativo: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
-      suspenso:
-        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
-      arquivado:
-        "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100",
-      encerrado:
-        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
-    };
-    return variants[status as keyof typeof variants] || variants.ativo;
-  };
-
-  const getRiscoBadge = (risco: string) => {
-    const variants = {
-      baixo:
-        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
-      medio:
-        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
-      alto: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100",
-    };
-    return variants[risco as keyof typeof variants] || variants.baixo;
-  };
-
-  return (
-    <div className="space-y-4">
-      {/* Ações em massa */}
-      <AnimatePresence>
-        {selectedProcessos.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                {selectedProcessos.length} processo(s) selecionado(s)
-              </span>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleBulkAction("edit")}
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar em Massa
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleBulkAction("alert")}
-                >
-                  <Bell className="h-4 w-4 mr-2" />
-                  Criar Alertas
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleBulkAction("export")}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleBulkAction("archive")}
-                >
-                  <CheckSquare className="h-4 w-4 mr-2" />
-                  Arquivar
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleBulkAction("delete")}
-                  className="text-red-600 hover:text-red-700 dark:text-red-400"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Excluir
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Tabela de processos */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={
-                        selectedProcessos.length === sortedProcessos.length &&
-                        sortedProcessos.length > 0
-                      }
-                      onCheckedChange={handleSelectAll}
-                    />
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                    onClick={() => handleSort("numero")}
-                  >
-                    <div className="flex items-center gap-1">
-                      Número do Processo
-                      {sortConfig.key === "numero" && (
-                        <span className="text-xs">
-                          {sortConfig.direction === "asc" ? "↑" : "↓"}
-                        </span>
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                    onClick={() => handleSort("cliente")}
-                  >
-                    <div className="flex items-center gap-1">
-                      Cliente
-                      {sortConfig.key === "cliente" && (
-                        <span className="text-xs">
-                          {sortConfig.direction === "asc" ? "↑" : "↓"}
-                        </span>
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                    onClick={() => handleSort("area")}
-                  >
-                    <div className="flex items-center gap-1">
-                      Área
-                      {sortConfig.key === "area" && (
-                        <span className="text-xs">
-                          {sortConfig.direction === "asc" ? "↑" : "↓"}
-                        </span>
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Risco</TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                    onClick={() => handleSort("valor")}
-                  >
-                    <div className="flex items-center gap-1">
-                      Valor
-                      {sortConfig.key === "valor" && (
-                        <span className="text-xs">
-                          {sortConfig.direction === "asc" ? "↑" : "↓"}
-                        </span>
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead>Próxima Audiência</TableHead>
-                  <TableHead>Responsável</TableHead>
-                  <TableHead className="w-12"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <AnimatePresence>
-                  {sortedProcessos.map((processo, index) => (
-                    <motion.tr
-                      key={processo.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ delay: index * 0.02 }}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
-                    >
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedProcessos.includes(processo.id)}
-                          onCheckedChange={(checked) =>
-                            handleSelectProcesso(processo.id, !!checked)
-                          }
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <button
-                            onClick={() =>
-                              navigate(`/crm/processos/${processo.id}`)
-                            }
-                            className="font-mono text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-left"
-                          >
-                            {processo.numero}
-                          </button>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs mt-1">
-                            {processo.assunto}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <button
-                          onClick={() =>
-                            navigate(`/crm/clientes/${processo.clienteId}`)
-                          }
-                          className="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 text-left"
-                        >
-                          {processo.cliente}
-                        </button>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{processo.area}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusBadge(processo.status)}>
-                          {processo.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getRiscoBadge(processo.risco)}>
-                          {processo.risco}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-medium text-green-600 dark:text-green-400">
-                          {new Intl.NumberFormat("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          }).format(processo.valor)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {processo.proximaAudiencia ? (
-                          <div className="flex items-center gap-1 text-sm">
-                            <Calendar className="h-4 w-4 text-orange-500" />
-                            {new Intl.DateTimeFormat("pt-BR").format(
-                              processo.proximaAudiencia,
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-400 dark:text-gray-500">
-                            Não agendada
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-gray-600 dark:text-gray-300">
-                          {processo.responsavel}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() =>
-                                navigate(`/crm/processos/${processo.id}`)
-                              }
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              Ver Detalhes
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() => consultarTJSP(processo.numero)}
-                            >
-                              <TrendingUp className="h-4 w-4 mr-2" />
-                              Consultar TJSP
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Calendar className="h-4 w-4 mr-2" />
-                              Agendar Audiência
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <FileText className="h-4 w-4 mr-2" />
-                              Ver Documentos
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                navigate(`/crm/clientes/${processo.clienteId}`)
-                              }
-                            >
-                              <Users className="h-4 w-4 mr-2" />
-                              Ver Cliente
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Bell className="h-4 w-4 mr-2" />
-                              Criar Alerta
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Share2 className="h-4 w-4 mr-2" />
-                              Compartilhar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-red-600 dark:text-red-400"
-                              onClick={() => excluirProcesso(processo.id)}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Estado vazio */}
-      {sortedProcessos.length === 0 && (
-        <div className="text-center py-12">
-          <Scale className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            Nenhum processo encontrado
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
-            Nenhum processo corresponde aos filtros selecionados.
-          </p>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Criar Primeiro Processo
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const ImportacaoDialog: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-}> = ({ isOpen, onClose }) => {
-  const { importarProcessos } = useCRM();
-  const [arquivo, setArquivo] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [previewData, setPreviewData] = useState<any[]>([]);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setArquivo(file);
-      setValidationErrors([]);
-
-      // Simular preview e validação dos dados
-      const mockData = [
-        {
-          numero: "1234567-89.2024.8.26.0100",
-          cliente: "João Silva",
-          area: "Família",
-          valor: "15000",
-          status: "ativo",
-          responsavel: "Dr. Pedro Santos",
-          valido: true,
-        },
-        {
-          numero: "9876543-21.2024.8.26.0200",
-          cliente: "Maria Santos",
-          area: "Trabalhista",
-          valor: "25000",
-          status: "ativo",
-          responsavel: "Dra. Ana Costa",
-          valido: true,
-        },
-        {
-          numero: "invalid-number",
-          cliente: "",
-          area: "Cível",
-          valor: "abc",
-          status: "ativo",
-          responsavel: "",
-          valido: false,
-        },
-      ];
-
-      setPreviewData(mockData);
-
-      const errors = mockData
-        .filter((item) => !item.valido)
-        .map((item, index) => `Linha ${index + 3}: Dados inválidos`);
-
-      setValidationErrors(errors);
-    }
-  };
-
-  const handleImport = async () => {
-    if (!arquivo) return;
-
-    setUploading(true);
-    try {
-      await importarProcessos(arquivo);
-      onClose();
-      setArquivo(null);
-      setPreviewData([]);
-      setValidationErrors([]);
-      toast.success("Processos importados com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao importar processos");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const validProcesses = previewData.filter((item) => item.valido);
-  const invalidProcesses = previewData.filter((item) => !item.valido);
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileSpreadsheet className="h-5 w-5" />
-            Importar Processos
-          </DialogTitle>
-          <DialogDescription>
-            Importe processos em lote a partir de planilhas CSV ou XLSX.
-            Certifique-se de que os dados estejam no formato correto.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-6 overflow-y-auto">
-          {/* Área de upload */}
-          <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,.xlsx,.xls"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-
-            {!arquivo ? (
-              <div className="space-y-4">
-                <FileSpreadsheet className="h-12 w-12 text-gray-400 mx-auto" />
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                    Selecione um arquivo
-                  </h3>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    Formatos aceitos: CSV, XLSX, XLS (máximo 10MB)
-                  </p>
-                </div>
-                <Button onClick={() => fileInputRef.current?.click()}>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Escolher Arquivo
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <CheckSquare className="h-12 w-12 text-green-500 mx-auto" />
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                    Arquivo selecionado
-                  </h3>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    {arquivo.name} ({(arquivo.size / 1024 / 1024).toFixed(2)}{" "}
-                    MB)
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Escolher Outro Arquivo
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* Estatísticas da validação */}
-          {previewData.length > 0 && (
-            <div className="grid grid-cols-3 gap-4">
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {previewData.length}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    Total de registros
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-green-600">
-                    {validProcesses.length}
-                  </div>
-                  <div className="text-sm text-gray-500">Registros válidos</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-red-600">
-                    {invalidProcesses.length}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    Registros inválidos
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Erros de validação */}
-          {validationErrors.length > 0 && (
-            <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
-              <AlertDescription>
-                <div className="space-y-1">
-                  <p className="font-medium text-red-800 dark:text-red-200">
-                    Foram encontrados {validationErrors.length} erro(s) de
-                    validação:
-                  </p>
-                  <ul className="text-sm text-red-700 dark:text-red-300 list-disc list-inside">
-                    {validationErrors.slice(0, 5).map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                    {validationErrors.length > 5 && (
-                      <li>... e mais {validationErrors.length - 5} erros</li>
-                    )}
-                  </ul>
-                </div>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Preview dos dados */}
-          {previewData.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                  Preview dos Dados
-                </h3>
-                <Badge variant="outline">
-                  Mostrando {Math.min(previewData.length, 10)} de{" "}
-                  {previewData.length} registros
-                </Badge>
-              </div>
-
-              <div className="border rounded-lg overflow-hidden">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-8">Status</TableHead>
-                        <TableHead>Número do Processo</TableHead>
-                        <TableHead>Cliente</TableHead>
-                        <TableHead>Área</TableHead>
-                        <TableHead>Valor</TableHead>
-                        <TableHead>Responsável</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {previewData.slice(0, 10).map((item, index) => (
-                        <TableRow
-                          key={index}
-                          className={
-                            !item.valido ? "bg-red-50 dark:bg-red-900/20" : ""
-                          }
-                        >
-                          <TableCell>
-                            {item.valido ? (
-                              <CheckSquare className="h-4 w-4 text-green-600" />
-                            ) : (
-                              <AlertTriangle className="h-4 w-4 text-red-600" />
-                            )}
-                          </TableCell>
-                          <TableCell className="font-mono text-sm">
-                            {item.numero}
-                          </TableCell>
-                          <TableCell>
-                            {item.cliente || (
-                              <span className="text-red-600 text-sm">
-                                Obrigatório
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{item.area}</Badge>
-                          </TableCell>
-                          <TableCell>
-                            {isNaN(Number(item.valor)) ? (
-                              <span className="text-red-600 text-sm">
-                                Inválido
-                              </span>
-                            ) : (
-                              <span className="text-green-600 font-medium">
-                                R$ {Number(item.valor).toLocaleString("pt-BR")}
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {item.responsavel || (
-                              <span className="text-red-600 text-sm">
-                                Obrigatório
-                              </span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-
-              {previewData.length > 10 && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-                  ... e mais {previewData.length - 10} registros
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Ações */}
-          <div className="flex items-center justify-between border-t pt-4">
-            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-              <Shield className="h-4 w-4" />
-              Validação automática dos dados ativada
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={onClose} disabled={uploading}>
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleImport}
-                disabled={!arquivo || uploading || validProcesses.length === 0}
-              >
-                {uploading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Importando...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Importar {validProcesses.length} Processos
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-
-          {uploading && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Importando processos...</span>
-                <span>85%</span>
-              </div>
-              <Progress value={85} className="w-full" />
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-const ProcessosModule: React.FC = () => {
-  const {
-    viewMode,
-    setViewMode,
-    filtros,
-    atualizarFiltros,
-    exportarDados,
-    processosFiltrados,
-    estatisticas,
-  } = useCRM();
-  const [showImportDialog, setShowImportDialog] = useState(false);
-  const [showProcessoForm, setShowProcessoForm] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  // Carregar preferências de colunas do localStorage
-  const [visibleColumns, setVisibleColumns] = useState(() => {
-    const saved = localStorage.getItem("crm-processos-columns");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (error) {
-        console.warn("Erro ao carregar preferências de colunas:", error);
+    return () => {
+      if (window.searchTimeout) {
+        clearTimeout(window.searchTimeout);
       }
-    }
-    return {
-      numero: true,
-      cliente: true,
-      area: true,
-      status: true,
-      risco: true,
-      valor: true,
-      audiencia: true,
-      responsavel: true,
     };
+  }, [busca, atualizarFiltros]);
+
+  // Efeito para calcular estatísticas
+  useEffect(() => {
+    const stats = {
+      total: processos.length,
+      ativos: processos.filter((p) => p.status === "ativo").length,
+      arquivados: processos.filter((p) => p.status === "arquivado").length,
+      vencidos: processos.filter((p) => {
+        // Lógica para determinar processos vencidos
+        return false; // Placeholder
+      }).length,
+      valorTotal: processos.reduce((sum, p) => sum + (p.valor || 0), 0),
+      taxaSucesso: 87.5, // Placeholder - viria de cálculo real
+    };
+    setEstatisticas(stats);
+  }, [processos]);
+
+  // Função para copiar número do processo
+  const copyProcessNumber = (numero: string) => {
+    navigator.clipboard.writeText(numero);
+    toast.success(`Número do processo ${numero} copiado!`);
+  };
+
+  // Função para obter cliente por ID
+  const getClienteById = (clienteId: string): ClienteCompleto | undefined => {
+    return clientesCompletos.find((c) => c.id === clienteId);
+  };
+
+  // Função para abrir detalhes do cliente
+  const openClienteDetails = (processo: Processo) => {
+    const cliente = getClienteById(processo.clienteId);
+    if (cliente) {
+      setShowClienteDetails(cliente);
+    } else {
+      toast.error("Dados do cliente não encontrados");
+    }
+  };
+
+  // Função para agendar audiência
+  const agendarAudiencia = (processo: Processo) => {
+    // Navegar para a agenda com dados do processo
+    navigate(
+      `/agenda?processo=${processo.id}&tipo=audiencia&cliente=${processo.clienteId}`,
+    );
+  };
+
+  // Função para abrir GED do processo
+  const openProcessoGED = (processo: Processo) => {
+    // Navegar para o GED filtrado pelo processo
+    navigate(`/ged?processo=${processo.id}&cliente=${processo.clienteId}`);
+  };
+
+  // Função para ver detalhes do processo
+  const viewProcessoDetails = (
+    processoId: string,
+    mode: "summary" | "full" = "summary",
+  ) => {
+    if (mode === "full") {
+      navigate(`/crm/processos/${processoId}`);
+    } else {
+      setShowProcessoDetails(processoId);
+      setDetailsMode(mode);
+    }
+  };
+
+  // Filtrar processos baseado nos filtros atuais
+  const processosFiltrados = processos.filter((processo) => {
+    if (filtroArea !== "todos" && processo.area !== filtroArea) return false;
+    if (filtroStatus !== "todos" && processo.status !== filtroStatus)
+      return false;
+    if (filtroRisco !== "todos" && processo.risco !== filtroRisco) return false;
+    if (
+      filtroResponsavel !== "todos" &&
+      processo.responsavel !== filtroResponsavel
+    )
+      return false;
+    return true;
   });
 
-  const isMobile = useIsMobile();
+  // Ordenar processos
+  const processosOrdenados = [...processosFiltrados].sort((a, b) => {
+    let aValue: any = a[ordenacao as keyof Processo];
+    let bValue: any = b[ordenacao as keyof Processo];
 
-  // Se for mobile, renderiza a versão mobile
-  if (isMobile) {
+    if (ordenacao === "valor") {
+      aValue = a.valor || 0;
+      bValue = b.valor || 0;
+    }
+
+    if (typeof aValue === "string") {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    }
+
+    if (aValue < bValue) return ordemCrescente ? -1 : 1;
+    if (aValue > bValue) return ordemCrescente ? 1 : -1;
+    return 0;
+  });
+
+  // Paginação
+  const totalPaginas = Math.ceil(processosOrdenados.length / itensPorPagina);
+  const indiceInicial = (paginaAtual - 1) * itensPorPagina;
+  const indiceFinal = indiceInicial + itensPorPagina;
+  const processosNaPagina = processosOrdenados.slice(
+    indiceInicial,
+    indiceFinal,
+  );
+
+  // Configuração de colunas visíveis
+  const [colunasVisiveis, setColunasVisiveis] = useState({
+    numero: true,
+    cliente: true,
+    area: true,
+    status: true,
+    valor: true,
+    responsavel: true,
+    dataInicio: true,
+    proximaAudiencia: true,
+    risco: true,
+  });
+
+  // Configuração de status com cores
+  const statusConfig = {
+    ativo: {
+      label: "Ativo",
+      icon: PlayCircle,
+      color: "bg-green-100 text-green-800",
+    },
+    arquivado: {
+      label: "Arquivado",
+      icon: Archive,
+      color: "bg-gray-100 text-gray-800",
+    },
+    suspenso: {
+      label: "Suspenso",
+      icon: PauseCircle,
+      color: "bg-yellow-100 text-yellow-800",
+    },
+    encerrado: {
+      label: "Encerrado",
+      icon: CheckCircle,
+      color: "bg-blue-100 text-blue-800",
+    },
+  };
+
+  const riscoConfig = {
+    baixo: { label: "Baixo", color: "bg-green-100 text-green-800" },
+    medio: { label: "Médio", color: "bg-yellow-100 text-yellow-800" },
+    alto: { label: "Alto", color: "bg-red-100 text-red-800" },
+  };
+
+  // Se é mobile, usar componente mobile
+  if (isMobile()) {
     return <ProcessosMobile />;
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header com estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                <Scale className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Total
-                </p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">
-                  {estatisticas.totalProcessos}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-                <Activity className="h-5 w-5 text-green-600 dark:text-green-400" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Ativos
-                </p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">
-                  {estatisticas.processosAtivos}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
-                <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Alto Risco
-                </p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">
-                  {processosFiltrados.filter((p) => p.risco === "alto").length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-                <DollarSign className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Valor Total
-                </p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">
-                  {new Intl.NumberFormat("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                    maximumFractionDigits: 0,
-                  }).format(
-                    processosFiltrados.reduce((sum, p) => sum + p.valor, 0),
-                  )}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Header com controles */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Gestão de Processos
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Acompanhe e gerencie todos os seus processos jurídicos
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowImportDialog(true)}
-            className="border-dashed border-2 hover:border-blue-500 hover:text-blue-600 transition-colors"
-            title="Importar processos via planilha CSV ou XLSX"
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            Importar Processos
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => exportarDados("processos")}
-            title="Exportar processos filtrados para CSV"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Exportar ({processosFiltrados.length})
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => setShowProcessoForm(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Processo
-          </Button>
-        </div>
-      </div>
-
-      {/* Controles de visualização e filtros */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        {/* Busca inteligente com debounce */}
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Buscar por número, cliente, assunto, área..."
-            className="pl-10 pr-10"
-            value={filtros.busca}
-            onChange={(e) => {
-              const value = e.target.value;
-              // Debounce para melhor performance
-              clearTimeout(window.searchTimeout);
-              window.searchTimeout = setTimeout(() => {
-                atualizarFiltros({ busca: value });
-              }, 300);
-            }}
-          />
-          {filtros.busca && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-              onClick={() => atualizarFiltros({ busca: "" })}
-            >
-              <X className="h-3 w-3" />
+    <TooltipProvider>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+              <Scale className="h-8 w-8 text-primary" />
+              Processos Jurídicos
+            </h2>
+            <p className="text-muted-foreground">
+              Gerencie processos judiciais e acompanhe andamentos processuais
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Atualizar
             </Button>
-          )}
-        </div>
-
-        {/* Filtros rápidos */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant={showFilters ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Filtros
-          </Button>
-
-          <Separator orientation="vertical" className="h-6" />
-
-          {/* Modo de visualização melhorado */}
-          <div className="flex items-center border rounded-lg bg-gray-50 dark:bg-gray-800 p-1">
-            <Button
-              variant={viewMode === "kanban" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("kanban")}
-              className="rounded-r-none h-8 text-xs"
-              title="Visualização Kanban"
-            >
-              <Grid3X3 className="h-3 w-3 mr-1" />
-              Kanban
-            </Button>
-            <Button
-              variant={viewMode === "lista" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("lista")}
-              className="rounded-l-none h-8 text-xs"
-              title="Visualização em Lista"
-            >
-              <List className="h-3 w-3 mr-1" />
-              Lista
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Processo
             </Button>
           </div>
-
-          {/* Configuração de colunas visíveis */}
-          {viewMode === "lista" && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8">
-                  <Settings className="h-3 w-3 mr-2" />
-                  Colunas
-                  <Badge variant="secondary" className="ml-2 text-xs">
-                    {Object.values(visibleColumns).filter(Boolean).length}
-                  </Badge>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-                  Personalizar Colunas Visíveis
-                </div>
-                <DropdownMenuSeparator />
-                {Object.entries(visibleColumns).map(([key, visible]) => (
-                  <DropdownMenuCheckboxItem
-                    key={key}
-                    checked={visible}
-                    onCheckedChange={(checked) => {
-                      const newColumns = { ...visibleColumns, [key]: checked };
-                      setVisibleColumns(newColumns);
-                      // Salvar preferência do usuário
-                      localStorage.setItem(
-                        "crm-processos-columns",
-                        JSON.stringify(newColumns),
-                      );
-                      toast.success("Preferência de colunas salva!");
-                    }}
-                    className="cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      {key === "numero" && <Scale className="h-3 w-3" />}
-                      {key === "cliente" && <User className="h-3 w-3" />}
-                      {key === "area" && <Building className="h-3 w-3" />}
-                      {key === "status" && <Activity className="h-3 w-3" />}
-                      {key === "risco" && <AlertTriangle className="h-3 w-3" />}
-                      {key === "valor" && <DollarSign className="h-3 w-3" />}
-                      {key === "audiencia" && <Calendar className="h-3 w-3" />}
-                      {key === "responsavel" && <Users className="h-3 w-3" />}
-                      {key.charAt(0).toUpperCase() +
-                        key.slice(1).replace(/([A-Z])/g, " $1")}
-                    </div>
-                  </DropdownMenuCheckboxItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => {
-                    const defaultColumns = {
-                      numero: true,
-                      cliente: true,
-                      area: true,
-                      status: true,
-                      risco: true,
-                      valor: true,
-                      audiencia: true,
-                      responsavel: true,
-                    };
-                    setVisibleColumns(defaultColumns);
-                    localStorage.removeItem("crm-processos-columns");
-                    toast.success("Colunas restauradas ao padrão!");
-                  }}
-                  className="cursor-pointer text-xs"
-                >
-                  <RefreshCw className="h-3 w-3 mr-2" />
-                  Restaurar Padrão
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
         </div>
-      </div>
 
-      {/* Filtros expandidos */}
-      <AnimatePresence>
-        {showFilters && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <Card>
-              <CardContent className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <Select
-                    value={filtros.status}
-                    onValueChange={(value) =>
-                      atualizarFiltros({ status: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos os status</SelectItem>
-                      <SelectItem value="ativo">Ativo</SelectItem>
-                      <SelectItem value="suspenso">Suspenso</SelectItem>
-                      <SelectItem value="arquivado">Arquivado</SelectItem>
-                      <SelectItem value="encerrado">Encerrado</SelectItem>
-                    </SelectContent>
-                  </Select>
+        {/* Estatísticas Rápidas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+          {[
+            {
+              title: "Total",
+              value: estatisticas.total,
+              icon: Scale,
+              color: "blue",
+            },
+            {
+              title: "Ativos",
+              value: estatisticas.ativos,
+              icon: PlayCircle,
+              color: "green",
+            },
+            {
+              title: "Arquivados",
+              value: estatisticas.arquivados,
+              icon: Archive,
+              color: "gray",
+            },
+            {
+              title: "Taxa Sucesso",
+              value: `${estatisticas.taxaSucesso}%`,
+              icon: TrendingUp,
+              color: "emerald",
+            },
+            {
+              title: "Valor Total",
+              value: `R$ ${(estatisticas.valorTotal / 1000).toFixed(0)}k`,
+              icon: DollarSign,
+              color: "purple",
+            },
+            {
+              title: "Audiências",
+              value: "12",
+              icon: Calendar,
+              color: "orange",
+            },
+          ].map((stat, index) => {
+            const IconComponent = stat.icon;
+            return (
+              <motion.div
+                key={stat.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {stat.title}
+                        </p>
+                        <p className="text-2xl font-bold">{stat.value}</p>
+                      </div>
+                      <div className={`p-2 rounded-lg bg-${stat.color}-100`}>
+                        <IconComponent
+                          className={`h-5 w-5 text-${stat.color}-600`}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </div>
 
-                  <Select
-                    value={filtros.area}
-                    onValueChange={(value) => atualizarFiltros({ area: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Área" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todas as áreas</SelectItem>
-                      <SelectItem value="Família">Família</SelectItem>
-                      <SelectItem value="Trabalhista">Trabalhista</SelectItem>
-                      <SelectItem value="Cível">Cível</SelectItem>
-                      <SelectItem value="Criminal">Criminal</SelectItem>
-                      <SelectItem value="Tributário">Tributário</SelectItem>
-                      <SelectItem value="Administrativo">
-                        Administrativo
-                      </SelectItem>
-                      <SelectItem value="Previdenciário">
-                        Previdenciário
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select
-                    value={filtros.responsavel}
-                    onValueChange={(value) =>
-                      atualizarFiltros({ responsavel: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Responsável" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos os responsáveis</SelectItem>
-                      <SelectItem value="Dr. Pedro Santos">
-                        Dr. Pedro Santos
-                      </SelectItem>
-                      <SelectItem value="Dra. Ana Costa">
-                        Dra. Ana Costa
-                      </SelectItem>
-                      <SelectItem value="Dr. Carlos Silva">
-                        Dr. Carlos Silva
-                      </SelectItem>
-                      <SelectItem value="Dra. Maria Oliveira">
-                        Dra. Maria Oliveira
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select
-                    value={
-                      filtros.busca.includes("risco:")
-                        ? filtros.busca.replace("risco:", "")
-                        : ""
-                    }
-                    onValueChange={(value) =>
-                      atualizarFiltros({
-                        busca: value
-                          ? `risco:${value}`
-                          : filtros.busca.replace(/risco:\w+/g, "").trim(),
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Nível de Risco" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos os níveis</SelectItem>
-                      <SelectItem value="alto">Alto Risco</SelectItem>
-                      <SelectItem value="medio">Médio Risco</SelectItem>
-                      <SelectItem value="baixo">Baixo Risco</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        atualizarFiltros({
-                          busca: "",
-                          status: "",
-                          area: "",
-                          responsavel: "",
-                        })
-                      }
-                      className="w-full"
-                    >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Limpar Filtros
-                    </Button>
-                  </div>
+        {/* Filtros e Controles */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              {/* Busca */}
+              <div className="flex items-center gap-4 flex-1">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Buscar processos..."
+                    value={busca}
+                    onChange={(e) => setBusca(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+
+                {/* Filtros */}
+                <Select value={filtroArea} onValueChange={setFiltroArea}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Área" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todas as áreas</SelectItem>
+                    <SelectItem value="Trabalhista">Trabalhista</SelectItem>
+                    <SelectItem value="Civil">Civil</SelectItem>
+                    <SelectItem value="Criminal">Criminal</SelectItem>
+                    <SelectItem value="Empresarial">Empresarial</SelectItem>
+                    <SelectItem value="Tributário">Tributário</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+                  <SelectTrigger className="w-36">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    {Object.entries(statusConfig).map(([key, config]) => (
+                      <SelectItem key={key} value={key}>
+                        {config.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={filtroRisco} onValueChange={setFiltroRisco}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Risco" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    {Object.entries(riscoConfig).map(([key, config]) => (
+                      <SelectItem key={key} value={key}>
+                        {config.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Controles de visualização */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center border rounded-lg">
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("list")}
+                    className="rounded-r-none"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "cards" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("cards")}
+                    className="rounded-l-none"
+                  >
+                    <Grid3X3 className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Menu de colunas visíveis */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Colunas
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
+                    <DropdownMenuLabel>Colunas Visíveis</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {Object.entries(colunasVisiveis).map(([key, visible]) => (
+                      <DropdownMenuCheckboxItem
+                        key={key}
+                        checked={visible}
+                        onCheckedChange={(checked) =>
+                          setColunasVisiveis((prev) => ({
+                            ...prev,
+                            [key]: checked,
+                          }))
+                        }
+                      >
+                        {key === "numero" && "Número"}
+                        {key === "cliente" && "Cliente"}
+                        {key === "area" && "Área"}
+                        {key === "status" && "Status"}
+                        {key === "valor" && "Valor"}
+                        {key === "responsavel" && "Responsável"}
+                        {key === "dataInicio" && "Data Início"}
+                        {key === "proximaAudiencia" && "Próxima Audiência"}
+                        {key === "risco" && "Risco"}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Exportação */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Download className="h-4 w-4 mr-2" />
+                      Exportar
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />
+                      Excel (.xlsx)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <FileText className="h-4 w-4 mr-2" />
+                      PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Download className="h-4 w-4 mr-2" />
+                      CSV
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Lista de Processos */}
+        <Card>
+          <CardContent className="p-0">
+            {viewMode === "list" ? (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={
+                            selectedProcessos.length ===
+                            processosNaPagina.length
+                          }
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedProcessos(
+                                processosNaPagina.map((p) => p.id),
+                              );
+                            } else {
+                              setSelectedProcessos([]);
+                            }
+                          }}
+                        />
+                      </TableHead>
+                      {colunasVisiveis.numero && (
+                        <TableHead
+                          className="cursor-pointer hover:bg-gray-50"
+                          onClick={() => {
+                            if (ordenacao === "numero") {
+                              setOrdemCrescente(!ordemCrescente);
+                            } else {
+                              setOrdenacao("numero");
+                              setOrdemCrescente(true);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-1">
+                            Número do Processo
+                            {ordenacao === "numero" && (
+                              <span>{ordemCrescente ? "↑" : "↓"}</span>
+                            )}
+                          </div>
+                        </TableHead>
+                      )}
+                      {colunasVisiveis.cliente && (
+                        <TableHead>Cliente</TableHead>
+                      )}
+                      {colunasVisiveis.area && <TableHead>Área</TableHead>}
+                      {colunasVisiveis.status && <TableHead>Status</TableHead>}
+                      {colunasVisiveis.valor && (
+                        <TableHead
+                          className="cursor-pointer hover:bg-gray-50"
+                          onClick={() => {
+                            if (ordenacao === "valor") {
+                              setOrdemCrescente(!ordemCrescente);
+                            } else {
+                              setOrdenacao("valor");
+                              setOrdemCrescente(true);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-1">
+                            Valor
+                            {ordenacao === "valor" && (
+                              <span>{ordemCrescente ? "↑" : "↓"}</span>
+                            )}
+                          </div>
+                        </TableHead>
+                      )}
+                      {colunasVisiveis.responsavel && (
+                        <TableHead>Responsável</TableHead>
+                      )}
+                      {colunasVisiveis.dataInicio && (
+                        <TableHead>Data Início</TableHead>
+                      )}
+                      {colunasVisiveis.proximaAudiencia && (
+                        <TableHead>Próxima Audiência</TableHead>
+                      )}
+                      {colunasVisiveis.risco && <TableHead>Risco</TableHead>}
+                      <TableHead className="w-12">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {processosNaPagina.map((processo) => {
+                      const cliente = getClienteById(processo.clienteId);
+                      const StatusIcon = statusConfig[processo.status]?.icon;
+
+                      return (
+                        <TableRow
+                          key={processo.id}
+                          className="hover:bg-gray-50/50 transition-colors"
+                        >
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedProcessos.includes(processo.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedProcessos([
+                                    ...selectedProcessos,
+                                    processo.id,
+                                  ]);
+                                } else {
+                                  setSelectedProcessos(
+                                    selectedProcessos.filter(
+                                      (id) => id !== processo.id,
+                                    ),
+                                  );
+                                }
+                              }}
+                            />
+                          </TableCell>
+                          {colunasVisiveis.numero && (
+                            <TableCell>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() =>
+                                      copyProcessNumber(processo.numero)
+                                    }
+                                    className="font-mono text-sm hover:bg-gray-100 px-2 py-1 rounded transition-colors cursor-pointer flex items-center gap-1"
+                                  >
+                                    {processo.numero}
+                                    <Copy className="h-3 w-3 opacity-60" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Clique para copiar o número do processo
+                                </TooltipContent>
+                              </Tooltip>
+                            </TableCell>
+                          )}
+                          {colunasVisiveis.cliente && (
+                            <TableCell>
+                              <button
+                                onClick={() => openClienteDetails(processo)}
+                                className="flex items-center gap-2 hover:bg-gray-100 px-2 py-1 rounded transition-colors cursor-pointer"
+                              >
+                                <Avatar className="h-6 w-6">
+                                  <AvatarFallback className="text-xs">
+                                    {cliente?.nome.charAt(0) || "?"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="font-medium text-blue-600 hover:text-blue-800">
+                                  {cliente?.nome || "Cliente não encontrado"}
+                                </span>
+                                <ChevronRight className="h-3 w-3 opacity-60" />
+                              </button>
+                            </TableCell>
+                          )}
+                          {colunasVisiveis.area && (
+                            <TableCell>
+                              <Badge variant="outline">{processo.area}</Badge>
+                            </TableCell>
+                          )}
+                          {colunasVisiveis.status && (
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {StatusIcon && (
+                                  <StatusIcon className="h-4 w-4" />
+                                )}
+                                <Badge
+                                  className={
+                                    statusConfig[processo.status]?.color
+                                  }
+                                >
+                                  {statusConfig[processo.status]?.label}
+                                </Badge>
+                              </div>
+                            </TableCell>
+                          )}
+                          {colunasVisiveis.valor && (
+                            <TableCell>
+                              <span className="font-medium">
+                                {processo.valor
+                                  ? `R$ ${processo.valor.toLocaleString()}`
+                                  : "Não informado"}
+                              </span>
+                            </TableCell>
+                          )}
+                          {colunasVisiveis.responsavel && (
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6">
+                                  <AvatarFallback className="text-xs">
+                                    {processo.responsavel.charAt(0)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="text-sm">
+                                  {processo.responsavel}
+                                </span>
+                              </div>
+                            </TableCell>
+                          )}
+                          {colunasVisiveis.dataInicio && (
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3 text-gray-400" />
+                                {processo.dataInicio.toLocaleDateString()}
+                              </div>
+                            </TableCell>
+                          )}
+                          {colunasVisiveis.proximaAudiencia && (
+                            <TableCell>
+                              {processo.proximaAudiencia ? (
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3 text-orange-500" />
+                                  <span className="text-sm">
+                                    {processo.proximaAudiencia.toLocaleDateString()}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-gray-400 text-sm">
+                                  Não agendada
+                                </span>
+                              )}
+                            </TableCell>
+                          )}
+                          {colunasVisiveis.risco && (
+                            <TableCell>
+                              <Badge
+                                className={riscoConfig[processo.risco]?.color}
+                              >
+                                {riscoConfig[processo.risco]?.label}
+                              </Badge>
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuLabel>
+                                  Ações do Processo
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    viewProcessoDetails(processo.id, "summary")
+                                  }
+                                >
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  Ver Resumo
+                                </DropdownMenuItem>
+
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    viewProcessoDetails(processo.id, "full")
+                                  }
+                                >
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  Ver Detalhes Completos
+                                </DropdownMenuItem>
+
+                                <DropdownMenuSeparator />
+
+                                <DropdownMenuItem
+                                  onClick={() => agendarAudiencia(processo)}
+                                >
+                                  <CalendarPlus className="h-4 w-4 mr-2" />
+                                  Agendar Audiência
+                                </DropdownMenuItem>
+
+                                <DropdownMenuItem
+                                  onClick={() => openProcessoGED(processo)}
+                                >
+                                  <FolderOpen className="h-4 w-4 mr-2" />
+                                  Documentos (GED)
+                                </DropdownMenuItem>
+
+                                <DropdownMenuSeparator />
+
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setEditingProcesso(processo);
+                                    setShowForm(true);
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Editar
+                                </DropdownMenuItem>
+
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    if (
+                                      confirm(
+                                        "Tem certeza que deseja excluir este processo?",
+                                      )
+                                    ) {
+                                      excluirProcesso(processo.id);
+                                      toast.success(
+                                        "Processo excluído com sucesso!",
+                                      );
+                                    }
+                                  }}
+                                  className="text-red-600"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Excluir
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              /* View em Cards */
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {processosNaPagina.map((processo) => {
+                    const cliente = getClienteById(processo.clienteId);
+                    const StatusIcon = statusConfig[processo.status]?.icon;
+
+                    return (
+                      <motion.div
+                        key={processo.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() =>
+                                    copyProcessNumber(processo.numero)
+                                  }
+                                  className="font-mono text-sm font-medium hover:bg-gray-100 px-2 py-1 rounded transition-colors cursor-pointer flex items-center gap-1"
+                                >
+                                  {processo.numero}
+                                  <Copy className="h-3 w-3 opacity-60" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Clique para copiar o número do processo
+                              </TooltipContent>
+                            </Tooltip>
+                            <div className="flex items-center gap-2 mt-1">
+                              {StatusIcon && <StatusIcon className="h-4 w-4" />}
+                              <Badge
+                                className={statusConfig[processo.status]?.color}
+                              >
+                                {statusConfig[processo.status]?.label}
+                              </Badge>
+                              <Badge
+                                className={riscoConfig[processo.risco]?.color}
+                              >
+                                {riscoConfig[processo.risco]?.label}
+                              </Badge>
+                            </div>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  viewProcessoDetails(processo.id, "summary")
+                                }
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver Resumo
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  viewProcessoDetails(processo.id, "full")
+                                }
+                              >
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                Ver Detalhes Completos
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => agendarAudiencia(processo)}
+                              >
+                                <CalendarPlus className="h-4 w-4 mr-2" />
+                                Agendar Audiência
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => openProcessoGED(processo)}
+                              >
+                                <FolderOpen className="h-4 w-4 mr-2" />
+                                Documentos
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+
+                        <div className="space-y-2">
+                          <button
+                            onClick={() => openClienteDetails(processo)}
+                            className="flex items-center gap-2 hover:bg-gray-100 px-2 py-1 rounded transition-colors cursor-pointer w-full text-left"
+                          >
+                            <User className="h-4 w-4 text-gray-400" />
+                            <span className="font-medium text-blue-600 hover:text-blue-800">
+                              {cliente?.nome || "Cliente não encontrado"}
+                            </span>
+                            <ChevronRight className="h-3 w-3 opacity-60" />
+                          </button>
+
+                          <div className="flex items-center gap-2">
+                            <Tag className="h-4 w-4 text-gray-400" />
+                            <Badge variant="outline">{processo.area}</Badge>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4 text-gray-400" />
+                            <span className="font-medium">
+                              {processo.valor
+                                ? `R$ ${processo.valor.toLocaleString()}`
+                                : "Não informado"}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm">
+                              {processo.dataInicio.toLocaleDateString()}
+                            </span>
+                          </div>
+
+                          {processo.proximaAudiencia && (
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-orange-500" />
+                              <span className="text-sm">
+                                Audiência:{" "}
+                                {processo.proximaAudiencia.toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Paginação */}
+        {totalPaginas > 1 && (
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Mostrando {indiceInicial + 1} a{" "}
+              {Math.min(indiceFinal, processosOrdenados.length)} de{" "}
+              {processosOrdenados.length} processos
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPaginaAtual(Math.max(1, paginaAtual - 1))}
+                disabled={paginaAtual === 1}
+              >
+                Anterior
+              </Button>
+              <span className="text-sm">
+                Página {paginaAtual} de {totalPaginas}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setPaginaAtual(Math.min(totalPaginas, paginaAtual + 1))
+                }
+                disabled={paginaAtual === totalPaginas}
+              >
+                Próxima
+              </Button>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
 
-      {/* Conteúdo baseado no modo de visualização */}
-      {viewMode === "kanban" ? <ProcessosKanban /> : <ProcessosLista />}
+        {/* Dialog de Formulário */}
+        <Dialog open={showForm} onOpenChange={setShowForm}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {editingProcesso ? "Editar Processo" : "Novo Processo"}
+              </DialogTitle>
+              <DialogDescription>
+                {editingProcesso
+                  ? "Edite as informações do processo jurídico"
+                  : "Preencha as informações para criar um novo processo jurídico"}
+              </DialogDescription>
+            </DialogHeader>
+            <ProcessoForm
+              processo={editingProcesso}
+              onSave={async (data) => {
+                if (editingProcesso) {
+                  await atualizarProcesso(editingProcesso.id, data);
+                  toast.success("Processo atualizado com sucesso!");
+                } else {
+                  await criarProcesso(data);
+                  toast.success("Processo criado com sucesso!");
+                }
+                setShowForm(false);
+                setEditingProcesso(null);
+              }}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingProcesso(null);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
 
-      {/* Dialogs */}
-      <ImportacaoDialog
-        isOpen={showImportDialog}
-        onClose={() => setShowImportDialog(false)}
-      />
+        {/* Sheet de Detalhes do Processo (Summary) */}
+        <Sheet
+          open={!!showProcessoDetails && detailsMode === "summary"}
+          onOpenChange={(open) => !open && setShowProcessoDetails(null)}
+        >
+          <SheetContent className="w-[600px] sm:w-[800px]">
+            <SheetHeader>
+              <SheetTitle>Resumo do Processo</SheetTitle>
+              <SheetDescription>
+                Informações resumidas do processo jurídico
+              </SheetDescription>
+            </SheetHeader>
+            {showProcessoDetails && (
+              <div className="mt-6">
+                <ProcessoDetalhes
+                  processoId={showProcessoDetails}
+                  mode="summary"
+                  onOpenFull={() => {
+                    setShowProcessoDetails(null);
+                    navigate(`/crm/processos/${showProcessoDetails}`);
+                  }}
+                />
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
 
-      <ProcessoForm
-        isOpen={showProcessoForm}
-        onClose={() => setShowProcessoForm(false)}
-      />
-    </div>
+        {/* Dialog de Detalhes do Cliente */}
+        <Dialog
+          open={!!showClienteDetails}
+          onOpenChange={(open) => !open && setShowClienteDetails(null)}
+        >
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Detalhes do Cliente</DialogTitle>
+              <DialogDescription>
+                Informações completas e relacionamentos do cliente
+              </DialogDescription>
+            </DialogHeader>
+            {showClienteDetails && (
+              <ClienteDetalhes
+                cliente={showClienteDetails}
+                onClose={() => setShowClienteDetails(null)}
+                showRelacionamentos={true}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
+    </TooltipProvider>
   );
-};
-
-export default ProcessosModule;
+}
