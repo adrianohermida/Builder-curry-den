@@ -15,7 +15,7 @@ export function CorrectedLayout() {
   const { isDark, config } = useTheme();
   const { isAdminMode } = useViewMode();
 
-  // Enhanced responsive behavior with modern breakpoints
+  // Enhanced responsive behavior
   useEffect(() => {
     const checkScreenSize = () => {
       const width = window.innerWidth;
@@ -42,47 +42,107 @@ export function CorrectedLayout() {
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
-  // Apply modern theme and mode classes
+  // FIXED: Apply theme and mode classes properly
   useEffect(() => {
     const html = document.documentElement;
     const body = document.body;
 
-    // Theme application
-    html.classList.toggle("dark", isDark);
-    html.classList.toggle("admin-mode", isAdminMode);
-    html.classList.toggle("mobile", isMobile);
-    html.classList.toggle("tablet", isTablet);
+    // Clear all theme classes first
+    html.classList.remove(
+      "dark",
+      "light",
+      "admin-mode",
+      "client-mode",
+      "mobile",
+      "tablet",
+      "high-contrast",
+      "reduced-motion",
+      "large-text",
+    );
+
+    // FORCE light mode as base
+    html.classList.add("light");
+
+    // Only add dark if explicitly set
+    if (isDark) {
+      html.classList.add("dark");
+    }
+
+    // FIXED: Apply admin/client mode classes
+    if (isAdminMode) {
+      html.classList.add("admin-mode");
+      body.classList.add("admin-mode");
+    } else {
+      html.classList.add("client-mode");
+      body.classList.add("client-mode");
+    }
+
+    // Apply device classes
+    if (isMobile) {
+      html.classList.add("mobile");
+      body.classList.add("mobile-layout");
+    }
+    if (isTablet) {
+      html.classList.add("tablet");
+      body.classList.add("tablet-layout");
+    }
 
     // Apply accessibility settings
-    html.classList.toggle("reduced-motion", config.accessibility.reducedMotion);
-    html.classList.toggle("large-text", config.accessibility.largeText);
-    html.classList.toggle("high-contrast", config.accessibility.highContrast);
+    if (config.accessibility.reducedMotion) {
+      html.classList.add("reduced-motion");
+    }
+    if (config.accessibility.largeText) {
+      html.classList.add("large-text");
+    }
+    if (config.accessibility.highContrast) {
+      html.classList.add("high-contrast");
+    }
 
-    // Modern scrollbar styles
-    body.className = cn(
-      "antialiased font-sans",
-      isDark ? "dark" : "light",
-      isAdminMode && "admin-theme",
-      isMobile && "mobile-layout",
-      isTablet && "tablet-layout",
-      config.accessibility.reducedMotion && "reduced-motion",
-      config.accessibility.largeText && "large-text",
-    );
-
-    // CSS custom properties for consistent theming
+    // FIXED: Apply CSS custom properties for theming
     const root = document.documentElement;
-    root.style.setProperty(
-      "--primary-color",
-      isAdminMode ? "0 84% 60%" : "221.2 83.2% 53.3%",
-    );
-    root.style.setProperty(
-      "--background-color",
-      isDark ? "222.2 84% 4.9%" : "0 0% 100%",
-    );
+
+    // Set primary color based on mode
+    if (isAdminMode) {
+      root.style.setProperty("--primary", "0 84% 60%"); // Red for admin
+      root.style.setProperty("--primary-foreground", "210 40% 98%");
+      root.style.setProperty("--accent", "0 84% 60%");
+      root.style.setProperty("--ring", "0 84% 60%");
+    } else {
+      root.style.setProperty("--primary", "221.2 83.2% 53.3%"); // Blue for client
+      root.style.setProperty("--primary-foreground", "210 40% 98%");
+      root.style.setProperty("--accent", "221.2 83.2% 53.3%");
+      root.style.setProperty("--ring", "221.2 83.2% 53.3%");
+    }
+
+    // FIXED: Set background and text colors properly
+    if (isDark) {
+      root.style.setProperty("--background", "222.2 84% 4.9%");
+      root.style.setProperty("--foreground", "210 40% 98%");
+      root.style.setProperty("--card", "222.2 84% 4.9%");
+      root.style.setProperty("--card-foreground", "210 40% 98%");
+      body.style.backgroundColor = "hsl(222.2 84% 4.9%)";
+      body.style.color = "hsl(210 40% 98%)";
+    } else {
+      // FORCE LIGHT MODE
+      root.style.setProperty("--background", "0 0% 100%");
+      root.style.setProperty("--foreground", "222.2 84% 4.9%");
+      root.style.setProperty("--card", "0 0% 100%");
+      root.style.setProperty("--card-foreground", "222.2 84% 4.9%");
+      body.style.backgroundColor = "#ffffff";
+      body.style.color = "#0f172a";
+    }
+
+    // Set sidebar width custom property
     root.style.setProperty(
       "--sidebar-width",
       sidebarOpen && !isMobile && !isTablet ? "288px" : "64px",
     );
+
+    // FIXED: Meta theme color for browser UI
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute("content", isDark ? "#0f172a" : "#ffffff");
+    }
   }, [isDark, isAdminMode, isMobile, isTablet, config, sidebarOpen]);
 
   const toggleSidebar = () => {
@@ -96,7 +156,17 @@ export function CorrectedLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col overflow-hidden">
+    <div
+      className={cn(
+        "min-h-screen flex flex-col overflow-hidden",
+        // FIXED: Force light background
+        "bg-white text-gray-900",
+        isDark && "dark:bg-gray-900 dark:text-gray-100",
+        isAdminMode && "admin-mode",
+        isMobile && "mobile-layout",
+        isTablet && "tablet-layout",
+      )}
+    >
       {/* Mobile Overlay */}
       <AnimatePresence>
         {(isMobile || isTablet) && sidebarOpen && (
@@ -113,10 +183,10 @@ export function CorrectedLayout() {
 
       {/* Main Layout Container */}
       <div className="flex flex-1 min-h-0">
-        {/* Sidebar */}
+        {/* FIXED: Sidebar with proper z-index and positioning */}
         <aside
           className={cn(
-            "z-50 transition-all duration-300 ease-out",
+            "z-50 transition-all duration-300 ease-out sidebar-container",
             // Mobile: fixed overlay
             isMobile && [
               "fixed inset-y-0 left-0",
@@ -144,21 +214,23 @@ export function CorrectedLayout() {
 
         {/* Main Content Area */}
         <div className="flex flex-col flex-1 min-w-0">
-          {/* Modern Header */}
-          <CorrectedTopbar
-            onMenuClick={toggleSidebar}
-            sidebarOpen={sidebarOpen}
-            isMobile={isMobile}
-          />
+          {/* FIXED: Header with proper z-index */}
+          <header className="topbar-container">
+            <CorrectedTopbar
+              onMenuClick={toggleSidebar}
+              sidebarOpen={sidebarOpen}
+              isMobile={isMobile}
+            />
+          </header>
 
-          {/* Page Content with Modern Scrolling */}
-          <main className="flex-1 overflow-auto relative">
+          {/* FIXED: Page Content with proper scrolling */}
+          <main className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
             <div
               className={cn(
                 "container mx-auto max-w-7xl",
                 // Modern spacing system
                 "px-4 py-6 sm:px-6 sm:py-8 lg:px-8",
-                // Reduced padding on mobile for better space utilization
+                // Reduced padding on mobile
                 isMobile && "px-4 py-4",
                 isTablet && "px-6 py-6",
               )}
@@ -180,7 +252,7 @@ export function CorrectedLayout() {
         </div>
       </div>
 
-      {/* Chat Widget with improved positioning */}
+      {/* FIXED: Chat Widget with proper positioning */}
       <ConversacaoWidget
         className={cn(
           "fixed bottom-4 right-4 z-30",
@@ -188,251 +260,189 @@ export function CorrectedLayout() {
         )}
       />
 
-      {/* Global Styles for Modern SaaS Design */}
+      {/* FIXED: Global keyboard shortcuts */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            // Global keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+              if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                // Trigger search dialog
+                const searchTrigger = document.querySelector('[data-search-trigger]');
+                if (searchTrigger) searchTrigger.click();
+              }
+              
+              // Alt + M to toggle sidebar
+              if (e.altKey && e.key === 'm') {
+                e.preventDefault();
+                window.toggleSidebar?.();
+              }
+            });
+            
+            // Expose sidebar toggle globally
+            window.toggleSidebar = () => {
+              const sidebarToggle = document.querySelector('[data-sidebar-toggle]');
+              if (sidebarToggle) sidebarToggle.click();
+            };
+          `,
+        }}
+      />
+
+      {/* FIXED: Critical styles for immediate theme application */}
       <style jsx global>{`
-        /* Modern CSS Reset and Base Styles */
-        * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
+        /* Immediate theme application to prevent flash */
+        html {
+          background-color: #ffffff !important;
+          color: #0f172a !important;
         }
 
-        html {
-          scroll-behavior: smooth;
-          text-rendering: optimizeLegibility;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
+        html.dark {
+          background-color: #0f172a !important;
+          color: #f8fafc !important;
         }
 
         body {
-          font-family:
-            "Inter",
-            -apple-system,
-            BlinkMacSystemFont,
-            "Segoe UI",
-            "Roboto",
-            "Oxygen",
-            "Ubuntu",
-            "Cantarell",
-            sans-serif;
-          line-height: 1.6;
-          letter-spacing: -0.01em;
+          background-color: inherit !important;
+          color: inherit !important;
+          transition:
+            background-color 0.2s ease,
+            color 0.2s ease;
         }
 
-        /* Modern Scrollbar Design */
-        ::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
+        /* Admin mode color overrides */
+        .admin-mode {
+          --primary: 0 84% 60% !important;
+          --primary-foreground: 210 40% 98% !important;
+          --accent: 0 84% 60% !important;
+          --ring: 0 84% 60% !important;
         }
 
-        ::-webkit-scrollbar-track {
-          background: transparent;
+        /* Client mode color overrides */
+        .client-mode {
+          --primary: 221.2 83.2% 53.3% !important;
+          --primary-foreground: 210 40% 98% !important;
+          --accent: 221.2 83.2% 53.3% !important;
+          --ring: 221.2 83.2% 53.3% !important;
         }
 
-        ::-webkit-scrollbar-thumb {
-          background: hsl(var(--muted-foreground) / 0.3);
-          border-radius: 3px;
-          transition: background 0.2s ease;
+        /* Force light mode backgrounds */
+        .bg-background {
+          background-color: #ffffff !important;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-          background: hsl(var(--muted-foreground) / 0.5);
+        .dark .bg-background {
+          background-color: #0f172a !important;
         }
 
-        /* Mobile-specific optimizations */
-        .mobile-layout {
-          --min-touch-target: 44px;
+        .text-foreground {
+          color: #0f172a !important;
         }
 
-        .mobile-layout button,
-        .mobile-layout [role="button"],
-        .mobile-layout [tabindex="0"] {
-          min-height: var(--min-touch-target);
-          min-width: var(--min-touch-target);
+        .dark .text-foreground {
+          color: #f8fafc !important;
         }
 
-        /* Prevent zoom on iOS form inputs */
-        .mobile-layout input,
-        .mobile-layout textarea,
-        .mobile-layout select {
-          font-size: 16px !important;
+        /* Card styles */
+        .bg-card {
+          background-color: #ffffff !important;
         }
 
-        /* Enhanced touch scrolling */
-        .mobile-layout {
-          -webkit-overflow-scrolling: touch;
-          overscroll-behavior: contain;
+        .dark .bg-card {
+          background-color: #1e293b !important;
         }
 
-        /* Admin Theme Colors */
-        .admin-theme {
-          --primary: 0 84% 60%;
-          --primary-foreground: 210 40% 98%;
-          --accent: 0 84% 60%;
-          --accent-foreground: 210 40% 98%;
+        /* Sidebar container */
+        .sidebar-container {
+          background-color: #ffffff !important;
+          border-right: 1px solid #e2e8f0 !important;
         }
 
-        /* Client Theme Colors */
-        .light:not(.admin-theme) {
-          --primary: 221.2 83.2% 53.3%;
-          --primary-foreground: 210 40% 98%;
-          --accent: 221.2 83.2% 53.3%;
-          --accent-foreground: 210 40% 98%;
+        .dark .sidebar-container {
+          background-color: #1e293b !important;
+          border-right: 1px solid #334155 !important;
         }
 
-        /* Modern Focus Styles */
-        :focus-visible {
-          outline: 2px solid hsl(var(--primary));
-          outline-offset: 2px;
-          border-radius: 4px;
+        /* Topbar container */
+        .topbar-container {
+          background-color: rgba(255, 255, 255, 0.95) !important;
+          backdrop-filter: blur(10px);
+          border-bottom: 1px solid #e2e8f0 !important;
         }
 
-        /* High Contrast Mode */
-        .high-contrast {
-          --border: 0 0% 20%;
-          --muted: 0 0% 90%;
-          --muted-foreground: 0 0% 10%;
+        .dark .topbar-container {
+          background-color: rgba(30, 41, 59, 0.95) !important;
+          border-bottom: 1px solid #334155 !important;
         }
 
-        .high-contrast.dark {
-          --border: 0 0% 80%;
-          --muted: 0 0% 10%;
-          --muted-foreground: 0 0% 90%;
+        /* Fix any remaining dark backgrounds */
+        [style*="rgb(2, 8, 23)"] {
+          background-color: #ffffff !important;
         }
 
-        /* Reduced Motion */
-        .reduced-motion *,
-        .reduced-motion *::before,
-        .reduced-motion *::after {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
+        .dark [style*="rgb(2, 8, 23)"] {
+          background-color: #0f172a !important;
+        }
+
+        /* Ensure modals and dropdowns have correct z-index */
+        .z-modal {
+          z-index: 1050 !important;
+        }
+
+        .z-modal-backdrop {
+          z-index: 1040 !important;
+        }
+
+        .z-dropdown {
+          z-index: 1000 !important;
+        }
+
+        .z-popover {
+          z-index: 1060 !important;
+        }
+
+        .z-tooltip {
+          z-index: 1070 !important;
+        }
+
+        .z-toast {
+          z-index: 1080 !important;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+          .mobile-layout .container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+          }
+        }
+
+        @media (min-width: 768px) and (max-width: 1024px) {
+          .tablet-layout .container {
+            padding-left: 1.5rem !important;
+            padding-right: 1.5rem !important;
+          }
+        }
+
+        /* Performance optimizations */
+        .sidebar-container,
+        .topbar-container {
+          will-change: transform;
+          transform: translateZ(0);
+        }
+
+        /* Smooth transitions */
+        * {
+          transition-property:
+            background-color, border-color, color, fill, stroke, opacity,
+            box-shadow, transform;
+          transition-duration: 0.2s;
+          transition-timing-function: ease-out;
+        }
+
+        .reduced-motion * {
           transition-duration: 0.01ms !important;
-          scroll-behavior: auto !important;
-        }
-
-        /* Large Text Support */
-        .large-text {
-          font-size: 1.125em;
-        }
-
-        .large-text h1 {
-          font-size: 2.5rem;
-        }
-        .large-text h2 {
-          font-size: 2rem;
-        }
-        .large-text h3 {
-          font-size: 1.75rem;
-        }
-        .large-text h4 {
-          font-size: 1.5rem;
-        }
-        .large-text h5 {
-          font-size: 1.25rem;
-        }
-        .large-text h6 {
-          font-size: 1.125rem;
-        }
-
-        /* Modern Card Styles */
-        .modern-card {
-          border-radius: 12px;
-          border: 1px solid hsl(var(--border));
-          background: hsl(var(--card));
-          box-shadow:
-            0 1px 3px 0 rgb(0 0 0 / 0.1),
-            0 1px 2px -1px rgb(0 0 0 / 0.1);
-          transition: all 0.2s ease;
-        }
-
-        .modern-card:hover {
-          box-shadow:
-            0 4px 6px -1px rgb(0 0 0 / 0.1),
-            0 2px 4px -2px rgb(0 0 0 / 0.1);
-          transform: translateY(-1px);
-        }
-
-        /* Modern Button Styles */
-        .modern-button {
-          border-radius: 8px;
-          font-weight: 500;
-          transition: all 0.2s ease;
-          border: none;
-          outline: none;
-        }
-
-        .modern-button:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
-        }
-
-        .modern-button:active {
-          transform: translateY(0);
-        }
-
-        /* Modern Input Styles */
-        .modern-input {
-          border-radius: 8px;
-          border: 1px solid hsl(var(--border));
-          background: hsl(var(--background));
-          transition: all 0.2s ease;
-        }
-
-        .modern-input:focus {
-          border-color: hsl(var(--primary));
-          box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
-        }
-
-        /* Modern Modal/Dialog Styles */
-        .modern-modal {
-          border-radius: 16px;
-          border: 1px solid hsl(var(--border));
-          box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-        }
-
-        /* Safe Area Support for iOS */
-        @supports (padding: max(0px)) {
-          .mobile-layout {
-            padding-left: max(16px, env(safe-area-inset-left));
-            padding-right: max(16px, env(safe-area-inset-right));
-            padding-bottom: max(16px, env(safe-area-inset-bottom));
-          }
-        }
-
-        /* Dark Mode Optimizations */
-        .dark {
-          color-scheme: dark;
-        }
-
-        .dark .modern-card {
-          background: hsl(var(--card));
-          border-color: hsl(var(--border));
-        }
-
-        /* Print Styles */
-        @media print {
-          .sidebar-layout,
-          .topbar-layout,
-          .chat-widget {
-            display: none !important;
-          }
-
-          .main-content {
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-        }
-
-        /* RTL Support */
-        [dir="rtl"] .sidebar-layout {
-          right: 0;
-          left: auto;
-        }
-
-        [dir="rtl"] .chat-widget {
-          left: 1rem;
-          right: auto;
+          animation-duration: 0.01ms !important;
         }
       `}</style>
     </div>
