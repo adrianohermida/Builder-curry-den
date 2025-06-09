@@ -322,65 +322,7 @@ export function CorrectedSidebar({
         )}
       </div>
 
-      {/* Mode Indicator - compacto */}
-      {!collapsed && (
-        <div
-          className={cn(
-            "px-4 py-2 border-b",
-            isAdminMode
-              ? "border-slate-700 bg-slate-800/30"
-              : "border-border bg-muted/20",
-          )}
-        >
-          <div className="flex items-center justify-center">
-            <Badge
-              variant={isAdminMode ? "destructive" : "default"}
-              className={cn(
-                "text-xs",
-                isAdminMode
-                  ? "bg-red-600 text-white"
-                  : "bg-blue-600 text-white",
-              )}
-            >
-              {isAdminMode ? "🛡️ ADMIN" : "⚖️ CLIENTE"}
-            </Badge>
-          </div>
-        </div>
-      )}
-
-      {/* User Info - otimizado */}
-      {user && !collapsed && (
-        <div
-          className={cn(
-            "p-3 border-b",
-            isAdminMode ? "border-slate-700" : "border-border",
-          )}
-        >
-          <div className="flex items-center space-x-2">
-            <div
-              className={cn(
-                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium",
-                isAdminMode
-                  ? "bg-slate-700 text-slate-200"
-                  : "bg-primary/10 text-primary",
-              )}
-            >
-              {user.name?.charAt(0) || "U"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium truncate">{user.name}</p>
-              <p
-                className={cn(
-                  "text-xs truncate",
-                  isAdminMode ? "text-slate-400" : "text-muted-foreground",
-                )}
-              >
-                {user.role}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Mode Indicator removido - já aparece no header */}
 
       {/* Search - removido para evitar redundância */}
 
