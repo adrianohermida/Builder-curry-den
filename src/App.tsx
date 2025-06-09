@@ -173,7 +173,7 @@ const App = () => (
                           path="crm"
                           element={
                             <PageWrapper>
-                              <ResponsiveCRM />
+                              <CRMModerno />
                             </PageWrapper>
                           }
                         />
