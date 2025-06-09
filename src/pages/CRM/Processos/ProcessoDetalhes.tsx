@@ -216,9 +216,9 @@ export default function ProcessoDetalhes() {
           <p className="text-gray-600 mb-4">
             O processo solicitado não existe ou foi removido.
           </p>
-          <Button onClick={() => navigate("/crm")}>
+          <Button onClick={() => navigate("/crm/processos")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar ao CRM
+            Voltar aos Processos
           </Button>
         </div>
       </div>
@@ -288,12 +288,34 @@ export default function ProcessoDetalhes() {
       {/* Header */}
       <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
         <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" onClick={() => navigate("/crm")}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar
-              </Button>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" onClick={() => navigate("/crm/processos")}>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Voltar aos Processos
+                </Button>
+
+                {/* Breadcrumb */}
+                <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                  <button
+                    onClick={() => navigate("/crm")}
+                    className="hover:text-gray-700 dark:hover:text-gray-300"
+                  >
+                    CRM
+                  </button>
+                  <span>/</span>
+                  <button
+                    onClick={() => navigate("/crm/processos")}
+                    className="hover:text-gray-700 dark:hover:text-gray-300"
+                  >
+                    Processos
+                  </button>
+                  <span>/</span>
+                  <span className="text-gray-900 dark:text-white font-medium">
+                    {processo?.numero}
+                  </span>
+                </nav>
+              </div>
 
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
