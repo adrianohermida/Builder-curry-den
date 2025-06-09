@@ -107,12 +107,8 @@ const Tarefas = createLazyComponent(() => import("./pages/Tarefas"));
 const Publicacoes = createLazyComponent(() => import("./pages/Publicacoes"));
 const Contratos = createLazyComponent(() => import("./pages/Contratos"));
 const ContratosEnhanced = createLazyComponent(
-  () => import("./pages/CRM/Contratos/ContratosEnhanced"),
-);
 const TestContratosEnhanced = createLazyComponent(() => import("./pages/TestContratosEnhanced"));
 const TestProcessos = createLazyComponent(() => import("./pages/TestProcessos"));
-  () => import("./pages/TestContratosEnhanced"),
-);
 const Financeiro = createLazyComponent(() => import("./pages/Financeiro"));
 const GEDJuridico = createLazyComponent(() => import("./pages/GEDJuridico"));
 const GEDJuridicoV2 = createLazyComponent(
