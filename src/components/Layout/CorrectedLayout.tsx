@@ -114,10 +114,11 @@ export function CorrectedLayout() {
         {/* Main Content Area */}
         <div className="flex flex-col flex-1 min-w-0">
           {/* Header - SEM redundâncias */}
-          <OptimizedTopbar
-            onMenuClick={toggleSidebar}
+          <CorrectedTopbar
+            onMenuClick={() => setSidebarOpen(!sidebarOpen)}
             sidebarOpen={sidebarOpen}
             isMobile={isMobile}
+          />
           />
 
           {/* Page Content */}
