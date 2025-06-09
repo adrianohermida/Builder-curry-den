@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -43,22 +43,51 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import {
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-} from "@/components/ui/recharts-enhanced";
+
+// Safe chart component wrapper
+const SafeChart: React.FC<{
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}> = ({
+  children,
+  fallback = (
+    <div className="w-full h-[200px] flex items-center justify-center bg-gray-50 rounded">
+      <span className="text-gray-500">Carregando gráfico...</span>
+    </div>
+  ),
+}) => {
+  return (
+    <Suspense fallback={fallback}>
+      <div className="w-full h-[200px]">{children}</div>
+    </Suspense>
+  );
+};
+
+// Mock data for charts
+const revenueData = [
+  { time: "Jan", revenue: 65000, growth: 12 },
+  { time: "Fev", revenue: 78000, growth: 20 },
+  { time: "Mar", revenue: 82000, growth: 5 },
+  { time: "Abr", revenue: 94000, growth: 15 },
+  { time: "Mai", revenue: 87000, growth: -7 },
+  { time: "Jun", revenue: 102000, growth: 17 },
+];
+
+const userActivityData = [
+  { time: "00h", users: 120 },
+  { time: "04h", users: 80 },
+  { time: "08h", users: 380 },
+  { time: "12h", users: 520 },
+  { time: "16h", users: 450 },
+  { time: "20h", users: 280 },
+];
+
+const performanceData = [
+  { name: "API Response", value: 95, color: "#10B981" },
+  { name: "Uptime", value: 99.9, color: "#3B82F6" },
+  { name: "Error Rate", value: 0.1, color: "#EF4444" },
+  { name: "Cache Hit", value: 87, color: "#8B5CF6" },
+];
 
 const modules = [
   {
@@ -97,473 +126,390 @@ const modules = [
   {
     id: "desenvolvimento",
     title: "Desenvolvimento",
-    description: "Blueprint Builder, builds e deploys",
-    icon: Settings,
+    description: "Blueprint Builder, deploys e releases",
+    icon: Code,
     href: "/admin/desenvolvimento",
     color: "from-purple-500 to-purple-600",
-    stats: { value: "47", label: "Deploys Este Mês" },
+    stats: { value: "v2025.1", label: "Versão Atual" },
     status: "healthy",
-    growth: "+15 deploys",
+    growth: "3 releases/mês",
   },
   {
     id: "faturamento",
     title: "Faturamento",
-    description: "Receitas, Stripe e gestão financeira",
+    description: "Receitas, Stripe e análise financeira",
     icon: CreditCard,
     href: "/admin/faturamento",
     color: "from-orange-500 to-orange-600",
-    stats: { value: "94%", label: "Taxa Cobrança" },
+    stats: { value: "R$ 2.8M", label: "MRR Atual" },
     status: "healthy",
-    growth: "+2.3%",
+    growth: "+22% vs anterior",
   },
   {
     id: "suporte",
     title: "Suporte B2B",
-    description: "Tickets e atendimento aos clientes",
+    description: "Tickets, atendimento e satisfação",
     icon: Headphones,
     href: "/admin/suporte",
     color: "from-cyan-500 to-cyan-600",
-    stats: { value: "4.8", label: "Satisfação Média" },
+    stats: { value: "4.8★", label: "Satisfação" },
     status: "healthy",
-    growth: "+0.2 pontos",
+    growth: "97% resolvidos",
   },
   {
     id: "marketing",
     title: "Marketing",
-    description: "Campanhas e comunicação",
+    description: "Campanhas, leads e conversão",
     icon: MessageSquare,
     href: "/admin/marketing",
     color: "from-pink-500 to-pink-600",
-    stats: { value: "31%", label: "Open Rate" },
+    stats: { value: "340", label: "Leads/mês" },
     status: "warning",
-    growth: "-2.1%",
+    growth: "+15% vs anterior",
   },
   {
     id: "produtos",
     title: "Gestão de Produtos",
-    description: "Planos SaaS e monetização",
+    description: "Planos SaaS, features e roadmap",
     icon: Package,
     href: "/admin/produtos",
     color: "from-indigo-500 to-indigo-600",
-    stats: { value: "8", label: "Planos Ativos" },
+    stats: { value: "5", label: "Planos Ativos" },
     status: "healthy",
-    growth: "+1 novo plano",
+    growth: "2 novos planos",
   },
   {
     id: "seguranca",
     title: "Segurança",
-    description: "Auditoria e conformidade LGPD",
+    description: "Auditoria, compliance e LGPD",
     icon: Lock,
     href: "/admin/seguranca",
     color: "from-red-500 to-red-600",
-    stats: { value: "100%", label: "Compliance Score" },
+    stats: { value: "100%", label: "Compliance" },
     status: "healthy",
-    growth: "Estável",
+    growth: "0 incidentes",
   },
 ];
 
-const quickStats = [
+const kpis = [
   {
-    label: "Clientes Ativos",
-    value: "1,247",
-    change: "+12%",
+    title: "Receita MRR",
+    value: "R$ 2.847.320",
+    change: "+12.5%",
+    trend: "up",
+    icon: DollarSign,
+    color: "text-green-600",
+    bgColor: "bg-green-50",
+  },
+  {
+    title: "Usuários Ativos",
+    value: "1.247",
+    change: "+8.2%",
     trend: "up",
     icon: Users,
     color: "text-blue-600",
     bgColor: "bg-blue-50",
   },
   {
-    label: "Receita Mensal",
-    value: "R$ 2.8M",
-    change: "+8.3%",
-    trend: "up",
+    title: "Taxa de Churn",
+    value: "2.4%",
+    change: "-0.8%",
+    trend: "down",
     icon: TrendingUp,
-    color: "text-green-600",
-    bgColor: "bg-green-50",
+    color: "text-orange-600",
+    bgColor: "bg-orange-50",
   },
   {
-    label: "Uptime Sistema",
-    value: "99.9%",
-    change: "Estável",
-    trend: "stable",
-    icon: Activity,
-    color: "text-purple-600",
-    bgColor: "bg-purple-50",
-  },
-  {
-    label: "Tarefas IA/Mês",
-    value: "47.2K",
-    change: "+23%",
+    title: "Uptime",
+    value: "99.97%",
+    change: "+0.02%",
     trend: "up",
-    icon: Zap,
-    color: "text-yellow-600",
-    bgColor: "bg-yellow-50",
+    icon: MonitorCheck,
+    color: "text-emerald-600",
+    bgColor: "bg-emerald-50",
   },
 ];
 
-const recentActivity = [
+const systemAlerts = [
   {
     id: 1,
-    type: "deploy",
-    title: "Deploy v2025.1 executado",
-    description: "Sistema atualizado com novos recursos de IA",
-    timestamp: "há 2 horas",
-    icon: Rocket,
-    color: "text-green-600",
+    type: "info",
+    title: "Manutenção Programada",
+    message: "Sistema será atualizado hoje às 2h para v2025.1.2",
+    time: "2h",
+    icon: RefreshCw,
   },
   {
     id: 2,
-    type: "alert",
-    title: "Pico de uso detectado",
-    description: "Traffic aumentou 35% nas últimas 24h",
-    timestamp: "há 4 horas",
-    icon: TrendingUp,
-    color: "text-orange-600",
+    type: "success",
+    title: "Deploy Concluído",
+    message: "Release v2025.1.1 implementado com sucesso",
+    time: "4h",
+    icon: CheckCircle,
   },
   {
     id: 3,
-    type: "security",
-    title: "Scan de segurança concluído",
-    description: "Nenhuma vulnerabilidade encontrada",
-    timestamp: "há 6 horas",
-    icon: Shield,
-    color: "text-blue-600",
-  },
-  {
-    id: 4,
-    type: "backup",
-    title: "Backup automatizado",
-    description: "Backup diário executado com sucesso",
-    timestamp: "há 8 horas",
+    type: "warning",
+    title: "Uso de Storage Alto",
+    message: "Banco de dados atingiu 85% da capacidade",
+    time: "6h",
     icon: Database,
-    color: "text-purple-600",
   },
-];
-
-const performanceData = [
-  { time: "00:00", usuarios: 45, requests: 1200, responseTime: 180 },
-  { time: "04:00", usuarios: 32, requests: 890, responseTime: 165 },
-  { time: "08:00", usuarios: 78, requests: 2100, responseTime: 220 },
-  { time: "12:00", usuarios: 156, requests: 4200, responseTime: 245 },
-  { time: "16:00", usuarios: 189, requests: 5100, responseTime: 280 },
-  { time: "20:00", usuarios: 134, requests: 3600, responseTime: 210 },
-];
-
-const moduleUsageData = [
-  { name: "GED", value: 35, color: "#3B82F6" },
-  { name: "CRM", value: 28, color: "#10B981" },
-  { name: "IA Jurídica", value: 22, color: "#8B5CF6" },
-  { name: "Atendimento", value: 15, color: "#F59E0B" },
 ];
 
 export default function AdminDashboard() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [activeView, setActiveView] = useState("overview");
+  const [selectedTab, setSelectedTab] = useState("overview");
+  const [systemHealth, setSystemHealth] = useState({
+    api: 99.97,
+    database: 99.85,
+    storage: 87.2,
+    cdn: 99.99,
+  });
 
-  const refreshData = async () => {
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setLastUpdate(new Date());
-    setIsLoading(false);
-  };
-
+  // Real-time updates simulation
   useEffect(() => {
-    setLastUpdate(new Date());
+    const interval = setInterval(() => {
+      setSystemHealth((prev) => ({
+        ...prev,
+        api: 99.9 + Math.random() * 0.09,
+        database: 99.8 + Math.random() * 0.19,
+        storage: 85 + Math.random() * 5,
+        cdn: 99.95 + Math.random() * 0.04,
+      }));
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  const getStatusIcon = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "healthy":
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
+        return <Badge className="bg-green-100 text-green-800">Saudável</Badge>;
       case "warning":
-        return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
-      case "critical":
-        return <AlertTriangle className="w-4 h-4 text-red-500" />;
+        return <Badge className="bg-yellow-100 text-yellow-800">Atenção</Badge>;
+      case "error":
+        return <Badge className="bg-red-100 text-red-800">Erro</Badge>;
       default:
-        return <CheckCircle className="w-4 h-4 text-gray-500" />;
+        return <Badge variant="secondary">Desconhecido</Badge>;
     }
+  };
+
+  const SimpleChart: React.FC<{
+    data: any[];
+    type: "area" | "line" | "bar";
+  }> = ({ data, type }) => {
+    return (
+      <div className="w-full h-[200px] flex items-center justify-center bg-gradient-to-r from-blue-50 to-indigo-50 rounded">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2">
+            <BarChart3 className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-sm text-gray-600">
+            Gráfico {type} ({data.length} pontos)
+          </p>
+          <p className="text-xs text-gray-500 mt-1">Dados em tempo real</p>
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center lg:text-left"
-        >
-          <div className="flex items-center gap-4 justify-center lg:justify-start mb-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-500 to-pink-600 rounded-full">
-              <Shield className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Painel Administrativo Lawdesk
-              </h1>
-              <p className="text-gray-600">
-                Sistema completo de administração interna
-              </p>
+      <div className="bg-gradient-to-r from-gray-900 via-purple-900 to-gray-900 rounded-xl p-8 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">
+              Painel Administrativo Lawdesk
+            </h1>
+            <p className="text-gray-300 text-lg">
+              Visão completa dos sistemas internos e métricas empresariais
+            </p>
+            <div className="flex items-center gap-4 mt-4">
+              <Badge className="bg-white/20 text-white border-white/30">
+                🔒 Admin Access
+              </Badge>
+              <Badge className="bg-green-500/20 text-green-300 border-green-500/30">
+                ✅ Todos os Sistemas Online
+              </Badge>
+              <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+                🚀 v2025.1 - Estável
+              </Badge>
             </div>
           </div>
-        </motion.div>
-
-        <div className="flex items-center gap-3 justify-center lg:justify-end">
-          {lastUpdate && (
-            <div className="text-sm text-gray-500 hidden sm:block">
-              Última atualização: {lastUpdate.toLocaleTimeString()}
+          <div className="text-right">
+            <div className="text-4xl font-bold">99.97%</div>
+            <div className="text-gray-300">Uptime Geral</div>
+            <div className="text-sm text-green-300 mt-1">
+              ⚡ Excelente Performance
             </div>
-          )}
-          <Button
-            onClick={refreshData}
-            disabled={isLoading}
-            variant="outline"
-            size="sm"
-          >
-            {isLoading ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Atualizando...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Atualizar
-              </>
-            )}
-          </Button>
-          <Link to="/system-health">
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-            >
-              <MonitorCheck className="w-4 h-4 mr-2" />
-              System Health
-            </Button>
-          </Link>
+          </div>
         </div>
       </div>
 
-      {/* Critical Alerts */}
-      <Alert className="border-orange-200 bg-orange-50">
-        <Bell className="h-4 w-4 text-orange-600" />
-        <AlertDescription className="text-orange-700">
-          <strong>Sistema em alta performance:</strong> Traffic aumentou 35% nas
-          últimas 24h. Todos os sistemas operando normalmente.
-        </AlertDescription>
-      </Alert>
+      {/* KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {kpis.map((kpi, index) => {
+          const Icon = kpi.icon;
+          return (
+            <motion.div
+              key={kpi.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">
+                        {kpi.title}
+                      </p>
+                      <p className="text-2xl font-bold text-gray-900 mt-1">
+                        {kpi.value}
+                      </p>
+                      <div className="flex items-center mt-2">
+                        <TrendingUp
+                          className={`h-4 w-4 mr-1 ${
+                            kpi.trend === "up"
+                              ? "text-green-500"
+                              : "text-red-500"
+                          }`}
+                        />
+                        <span
+                          className={`text-sm font-medium ${
+                            kpi.trend === "up"
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {kpi.change}
+                        </span>
+                        <span className="text-sm text-gray-500 ml-1">
+                          vs período anterior
+                        </span>
+                      </div>
+                    </div>
+                    <div className={`p-3 rounded-lg ${kpi.bgColor}`}>
+                      <Icon className={`h-6 w-6 ${kpi.color}`} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
+      </div>
 
-      {/* Dashboard Tabs */}
-      <Tabs value={activeView} onValueChange={setActiveView}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="modules">Módulos</TabsTrigger>
-          <TabsTrigger value="activity">Atividade</TabsTrigger>
-        </TabsList>
+      {/* Charts and Analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Revenue Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Evolução da Receita
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SafeChart>
+              <SimpleChart data={revenueData} type="area" />
+            </SafeChart>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Quick Stats */}
+        {/* User Activity Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Atividade de Usuários (24h)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SafeChart>
+              <SimpleChart data={userActivityData} type="line" />
+            </SafeChart>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* System Health */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MonitorCheck className="h-5 w-5" />
+            Saúde do Sistema
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {quickStats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-              >
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">
-                          {stat.label}
-                        </p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">
-                          {stat.value}
-                        </p>
-                      </div>
-                      <div
-                        className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}
-                      >
-                        <stat.icon className={`w-6 h-6 ${stat.color}`} />
-                      </div>
-                    </div>
-                    <div className="mt-4">
-                      <Badge
-                        variant={stat.trend === "up" ? "default" : "secondary"}
-                        className={
-                          stat.trend === "up"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
-                        }
-                      >
-                        {stat.change}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* System Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="w-5 h-5 text-green-600" />
-                Status do Sistema Lawdesk
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                  <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-green-600">
-                    Operacional
-                  </div>
-                  <div className="text-sm text-green-700">
-                    Todos os sistemas funcionando
-                  </div>
+            {Object.entries(systemHealth).map(([key, value]) => (
+              <div key={key} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium capitalize">
+                    {key === "api"
+                      ? "API"
+                      : key === "database"
+                        ? "Database"
+                        : key === "storage"
+                          ? "Storage"
+                          : "CDN"}
+                  </span>
+                  <span className="text-sm font-bold">{value.toFixed(2)}%</span>
                 </div>
-                <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <Timer className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-blue-600">
-                    127 dias
-                  </div>
-                  <div className="text-sm text-blue-700">Uptime contínuo</div>
-                </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <Code className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-purple-600">
-                    v2025.1
-                  </div>
-                  <div className="text-sm text-purple-700">Versão atual</div>
-                </div>
-                <div className="text-center p-4 bg-orange-50 rounded-lg border border-orange-200">
-                  <Cloud className="w-8 h-8 text-orange-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-orange-600">AWS</div>
-                  <div className="text-sm text-orange-700">Infraestrutura</div>
+                <Progress value={value} className="h-2" />
+                <div className="text-xs text-gray-500">
+                  {value >= 99
+                    ? "🟢 Excelente"
+                    : value >= 95
+                      ? "🟡 Bom"
+                      : "🔴 Crítico"}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="performance" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Users & Requests Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Usuários e Requests (24h)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={performanceData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="time" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area
-                      type="monotone"
-                      dataKey="usuarios"
-                      stackId="1"
-                      stroke="#3B82F6"
-                      fill="#3B82F6"
-                      fillOpacity={0.6}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Module Usage Distribution */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5" />
-                  Uso por Módulo
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={moduleUsageData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={(entry) => `${entry.name} (${entry.value}%)`}
-                    >
-                      {moduleUsageData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+            ))}
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Response Time Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Gauge className="w-5 h-5" />
-                Tempo de Resposta (24h)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={performanceData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="responseTime"
-                    stroke="#F59E0B"
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="modules" className="space-y-6">
-          {/* Modules Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {modules.map((module, index) => (
-              <motion.div
-                key={module.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-              >
-                <Link to={module.href}>
-                  <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-0 bg-gradient-to-br from-white to-gray-50">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <div
-                          className={`w-12 h-12 rounded-lg bg-gradient-to-r ${module.color} flex items-center justify-center`}
-                        >
-                          <module.icon className="w-6 h-6 text-white" />
+      {/* Admin Modules Grid */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Módulos Administrativos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {modules.map((module, index) => {
+              const Icon = module.icon;
+              return (
+                <motion.div
+                  key={module.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Link to={module.href} className="block group">
+                    <Card className="hover:shadow-lg transition-all group-hover:scale-105">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div
+                            className={`p-3 rounded-lg bg-gradient-to-r ${module.color}`}
+                          >
+                            <Icon className="h-6 w-6 text-white" />
+                          </div>
+                          {getStatusBadge(module.status)}
                         </div>
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(module.status)}
-                          <div className="text-right">
+                        <h3 className="font-semibold text-gray-900 mb-2">
+                          {module.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                          {module.description}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <div>
                             <div className="text-lg font-bold text-gray-900">
                               {module.stats.value}
                             </div>
@@ -571,131 +517,49 @@ export default function AdminDashboard() {
                               {module.stats.label}
                             </div>
                           </div>
+                          <div className="text-right">
+                            <div className="text-sm font-medium text-green-600">
+                              {module.growth}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-
-                      <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                        {module.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        {module.description}
-                      </p>
-
-                      <div className="flex items-center justify-between">
-                        <Badge
-                          variant="outline"
-                          className={
-                            module.status === "healthy"
-                              ? "text-green-700 border-green-200"
-                              : "text-yellow-700 border-yellow-200"
-                          }
-                        >
-                          {module.growth}
-                        </Badge>
-                        <Progress
-                          value={Math.random() * 100}
-                          className="h-1 w-16"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              </motion.div>
-            ))}
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </motion.div>
+              );
+            })}
           </div>
-        </TabsContent>
+        </CardContent>
+      </Card>
 
-        <TabsContent value="activity" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="w-5 h-5" />
-                Atividade Recente do Sistema
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentActivity.map((activity, index) => (
-                  <motion.div
-                    key={activity.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                    className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <div
-                      className={`w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center`}
-                    >
-                      <activity.icon className={`w-5 h-5 ${activity.color}`} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">
-                        {activity.title}
-                      </h4>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {activity.description}
-                      </p>
-                      <div className="text-xs text-gray-500 mt-2">
-                        {activity.timestamp}
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="text-xs">
-                      {activity.type}
-                    </Badge>
-                  </motion.div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Quick Actions */}
+      {/* System Alerts */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Zap className="w-5 h-5" />
-            Ações Rápidas
+            <Bell className="h-5 w-5" />
+            Alertas do Sistema
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Link to="/admin/executive">
-              <Button
-                variant="outline"
-                className="w-full h-20 flex flex-col gap-2 bg-purple-50 hover:bg-purple-100 border-purple-200"
-              >
-                <Crown className="w-6 h-6 text-purple-600" />
-                <span className="text-xs">Executive</span>
-              </Button>
-            </Link>
-            <Link to="/admin/bi">
-              <Button
-                variant="outline"
-                className="w-full h-20 flex flex-col gap-2"
-              >
-                <BarChart3 className="w-6 h-6" />
-                <span className="text-xs">Analytics</span>
-              </Button>
-            </Link>
-            <Link to="/admin/equipe">
-              <Button
-                variant="outline"
-                className="w-full h-20 flex flex-col gap-2"
-              >
-                <Users className="w-6 h-6" />
-                <span className="text-xs">Equipe</span>
-              </Button>
-            </Link>
-            <Link to="/system-health">
-              <Button
-                variant="outline"
-                className="w-full h-20 flex flex-col gap-2"
-              >
-                <MonitorCheck className="w-6 h-6" />
-                <span className="text-xs">Health</span>
-              </Button>
-            </Link>
+          <div className="space-y-4">
+            {systemAlerts.map((alert) => {
+              const Icon = alert.icon;
+              return (
+                <Alert key={alert.id}>
+                  <Icon className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="font-medium">{alert.title}</div>
+                        <div className="text-sm">{alert.message}</div>
+                      </div>
+                      <div className="text-xs text-gray-500">{alert.time}</div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
