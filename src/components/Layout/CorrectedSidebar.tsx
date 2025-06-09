@@ -506,6 +506,7 @@ export function CorrectedSidebar({
               <nav className="space-y-1">
                 {systemTools.map((tool) => {
                   const isActive = location.pathname === tool.href;
+                  const IconComponent = tool.icon;
 
                   return (
                     <Link
@@ -519,7 +520,7 @@ export function CorrectedSidebar({
                       )}
                     >
                       <div className="flex items-center space-x-3">
-                        <tool.icon className="w-4 h-4 flex-shrink-0" />
+                        <IconComponent className="w-4 h-4 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <div className="truncate">{tool.title}</div>
                           <div className="text-xs text-slate-400 truncate">
