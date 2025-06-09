@@ -75,183 +75,196 @@ export const EnhancedRouteGuard: React.FC<EnhancedRouteGuardProps> = ({
 
   // Async access check to prevent blocking
   useEffect(() => {
-    const checkAccess = async () => {
+    const checkAccess = () => {
       try {
-        // Wrap access checks in transition to prevent Suspense issues
-        startTransition(() => {
-          setIsLoading(true);
+        // Use a microtask to avoid blocking the render cycle
+        Promise.resolve()
+          .then(() => {
+            startTransition(() => {
+              setIsLoading(true);
 
-          // Check if user is logged in
-          if (!user) {
-            setAccessResult({
-              hasAccess: false,
-              component: <Navigate to="/login" replace />,
-            });
-            setIsLoading(false);
-            return;
-          }
+              // Check if user is logged in
+              if (!user) {
+                setAccessResult({
+                  hasAccess: false,
+                  component: <Navigate to="/login" replace />,
+                });
+                setIsLoading(false);
+                return;
+              }
 
-          // Check mode restrictions
-          if (adminModeOnly && !isAdminMode) {
-            if (canSwitchToAdmin) {
-              setAccessResult({
-                hasAccess: false,
-                component: (
-                  <ModeRedirectPage
-                    type="admin-required"
-                    onSwitchMode={() => switchMode("admin")}
-                    fallbackPath={fallbackPath}
-                    currentPath={location.pathname}
-                  />
-                ),
-              });
-            } else {
-              if (showAccessDenied) {
+              // Check mode restrictions
+              if (adminModeOnly && !isAdminMode) {
+                if (canSwitchToAdmin) {
+                  setAccessResult({
+                    hasAccess: false,
+                    component: (
+                      <ModeRedirectPage
+                        type="admin-required"
+                        onSwitchMode={() => switchMode("admin")}
+                        fallbackPath={fallbackPath}
+                        currentPath={location.pathname}
+                      />
+                    ),
+                  });
+                } else {
+                  if (showAccessDenied) {
+                    setAccessResult({
+                      hasAccess: false,
+                      component: (
+                        <AccessDeniedPage
+                          type="admin-mode-required"
+                          fallbackPath={fallbackPath}
+                          userRole={user.role}
+                        />
+                      ),
+                    });
+                  } else {
+                    toast.error("Esta página requer modo administrativo.");
+                    setAccessResult({
+                      hasAccess: false,
+                      component: <Navigate to={fallbackPath} replace />,
+                    });
+                  }
+                }
+                setIsLoading(false);
+                return;
+              }
+
+              if (clientModeOnly && !isClientMode) {
                 setAccessResult({
                   hasAccess: false,
                   component: (
-                    <AccessDeniedPage
-                      type="admin-mode-required"
+                    <ModeRedirectPage
+                      type="client-required"
+                      onSwitchMode={() => switchMode("client")}
                       fallbackPath={fallbackPath}
-                      userRole={user.role}
+                      currentPath={location.pathname}
                     />
                   ),
                 });
-              } else {
-                toast.error("Esta página requer modo administrativo.");
-                setAccessResult({
-                  hasAccess: false,
-                  component: <Navigate to={fallbackPath} replace />,
-                });
+                setIsLoading(false);
+                return;
               }
-            }
-            setIsLoading(false);
-            return;
-          }
 
-          if (clientModeOnly && !isClientMode) {
-            setAccessResult({
-              hasAccess: false,
-              component: (
-                <ModeRedirectPage
-                  type="client-required"
-                  onSwitchMode={() => switchMode("client")}
-                  fallbackPath={fallbackPath}
-                  currentPath={location.pathname}
-                />
-              ),
-            });
-            setIsLoading(false);
-            return;
-          }
-
-          // Check admin requirement
-          if (requireAdmin && !isAdmin()) {
-            if (showAccessDenied) {
-              setAccessResult({
-                hasAccess: false,
-                component: (
-                  <AccessDeniedPage
-                    type="admin"
-                    fallbackPath={fallbackPath}
-                    userRole={user.role}
-                  />
-                ),
-              });
-            } else {
-              setAccessResult({
-                hasAccess: false,
-                component: <Navigate to={fallbackPath} replace />,
-              });
-            }
-            setIsLoading(false);
-            return;
-          }
-
-          // Check executive requirement
-          if (
-            requireExecutive &&
-            !isAdmin() &&
-            !hasPermission("executive", "read")
-          ) {
-            if (showAccessDenied) {
-              setAccessResult({
-                hasAccess: false,
-                component: (
-                  <AccessDeniedPage
-                    type="executive"
-                    fallbackPath={fallbackPath}
-                    userRole={user.role}
-                  />
-                ),
-              });
-            } else {
-              setAccessResult({
-                hasAccess: false,
-                component: <Navigate to={fallbackPath} replace />,
-              });
-            }
-            setIsLoading(false);
-            return;
-          }
-
-          // Check specific permission
-          if (requiredPermission && !isAdmin()) {
-            const [module, action] = requiredPermission.split(".");
-            if (!hasPermission(module, action)) {
-              if (showAccessDenied) {
-                setAccessResult({
-                  hasAccess: false,
-                  component: (
-                    <AccessDeniedPage
-                      type="permission"
-                      permission={requiredPermission}
-                      fallbackPath={fallbackPath}
-                      userRole={user.role}
-                    />
-                  ),
-                });
-              } else {
-                setAccessResult({
-                  hasAccess: false,
-                  component: <Navigate to={fallbackPath} replace />,
-                });
+              // Check admin requirement
+              if (requireAdmin && !isAdmin()) {
+                if (showAccessDenied) {
+                  setAccessResult({
+                    hasAccess: false,
+                    component: (
+                      <AccessDeniedPage
+                        type="admin"
+                        fallbackPath={fallbackPath}
+                        userRole={user.role}
+                      />
+                    ),
+                  });
+                } else {
+                  setAccessResult({
+                    hasAccess: false,
+                    component: <Navigate to={fallbackPath} replace />,
+                  });
+                }
+                setIsLoading(false);
+                return;
               }
+
+              // Check executive requirement
+              if (
+                requireExecutive &&
+                !isAdmin() &&
+                !hasPermission("executive", "read")
+              ) {
+                if (showAccessDenied) {
+                  setAccessResult({
+                    hasAccess: false,
+                    component: (
+                      <AccessDeniedPage
+                        type="executive"
+                        fallbackPath={fallbackPath}
+                        userRole={user.role}
+                      />
+                    ),
+                  });
+                } else {
+                  setAccessResult({
+                    hasAccess: false,
+                    component: <Navigate to={fallbackPath} replace />,
+                  });
+                }
+                setIsLoading(false);
+                return;
+              }
+
+              // Check specific permission
+              if (requiredPermission && !isAdmin()) {
+                const [module, action] = requiredPermission.split(".");
+                if (!hasPermission(module, action)) {
+                  if (showAccessDenied) {
+                    setAccessResult({
+                      hasAccess: false,
+                      component: (
+                        <AccessDeniedPage
+                          type="permission"
+                          permission={requiredPermission}
+                          fallbackPath={fallbackPath}
+                          userRole={user.role}
+                        />
+                      ),
+                    });
+                  } else {
+                    setAccessResult({
+                      hasAccess: false,
+                      component: <Navigate to={fallbackPath} replace />,
+                    });
+                  }
+                  setIsLoading(false);
+                  return;
+                }
+              }
+
+              // Check specific role
+              if (requiredRole && user.role !== requiredRole && !isAdmin()) {
+                if (showAccessDenied) {
+                  setAccessResult({
+                    hasAccess: false,
+                    component: (
+                      <AccessDeniedPage
+                        type="role"
+                        requiredRole={requiredRole}
+                        fallbackPath={fallbackPath}
+                        userRole={user.role}
+                      />
+                    ),
+                  });
+                } else {
+                  setAccessResult({
+                    hasAccess: false,
+                    component: <Navigate to={fallbackPath} replace />,
+                  });
+                }
+                setIsLoading(false);
+                return;
+              }
+
+              // All checks passed
+              setAccessResult({ hasAccess: true });
               setIsLoading(false);
-              return;
-            }
-          }
-
-          // Check specific role
-          if (requiredRole && user.role !== requiredRole && !isAdmin()) {
-            if (showAccessDenied) {
-              setAccessResult({
-                hasAccess: false,
-                component: (
-                  <AccessDeniedPage
-                    type="role"
-                    requiredRole={requiredRole}
-                    fallbackPath={fallbackPath}
-                    userRole={user.role}
-                  />
-                ),
-              });
-            } else {
+            });
+          })
+          .catch((error) => {
+            console.error("Error in access check:", error);
+            startTransition(() => {
               setAccessResult({
                 hasAccess: false,
                 component: <Navigate to={fallbackPath} replace />,
               });
-            }
-            setIsLoading(false);
-            return;
-          }
-
-          // All checks passed
-          setAccessResult({ hasAccess: true });
-          setIsLoading(false);
-        });
+              setIsLoading(false);
+            });
+          });
       } catch (error) {
-        console.error("Error in access check:", error);
+        console.error("Synchronous error in access check:", error);
         startTransition(() => {
           setAccessResult({
             hasAccess: false,
