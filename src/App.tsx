@@ -28,6 +28,7 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { AdminErrorBoundary } from "@/components/ui/admin-error-boundary";
 import { RouteGuard } from "@/components/RouteGuard";
 import { EnhancedRouteGuard } from "@/components/Enhanced/EnhancedRouteGuard";
+import { ThemeInitializer } from "@/components/ThemeInitializer";
 import NotFound from "./pages/NotFound";
 import EnhancedNotFound from "./pages/EnhancedNotFound";
 
@@ -263,6 +264,7 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
         <ThemeProvider>
+          <ThemeInitializer />
           <StorageProvider>
             <RegrasProcessuaisProvider>
               <PermissionProvider>
