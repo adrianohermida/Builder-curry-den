@@ -97,54 +97,9 @@ export function CorrectedLayout() {
     if (config.accessibility.highContrast) {
       html.classList.add("high-contrast");
     }
+  }, [isDark, isAdminMode, isMobile, isTablet, config]);
 
-    // FIXED: Apply CSS custom properties for theming
-    const root = document.documentElement;
-
-    // Set primary color based on mode
-    if (isAdminMode) {
-      root.style.setProperty("--primary", "0 84% 60%"); // Red for admin
-      root.style.setProperty("--primary-foreground", "210 40% 98%");
-      root.style.setProperty("--accent", "0 84% 60%");
-      root.style.setProperty("--ring", "0 84% 60%");
-    } else {
-      root.style.setProperty("--primary", "221.2 83.2% 53.3%"); // Blue for client
-      root.style.setProperty("--primary-foreground", "210 40% 98%");
-      root.style.setProperty("--accent", "221.2 83.2% 53.3%");
-      root.style.setProperty("--ring", "221.2 83.2% 53.3%");
-    }
-
-    // FIXED: Set background and text colors properly
-    if (isDark) {
-      root.style.setProperty("--background", "222.2 84% 4.9%");
-      root.style.setProperty("--foreground", "210 40% 98%");
-      root.style.setProperty("--card", "222.2 84% 4.9%");
-      root.style.setProperty("--card-foreground", "210 40% 98%");
-      body.style.backgroundColor = "hsl(222.2 84% 4.9%)";
-      body.style.color = "hsl(210 40% 98%)";
-    } else {
-      // FORCE LIGHT MODE
-      root.style.setProperty("--background", "0 0% 100%");
-      root.style.setProperty("--foreground", "222.2 84% 4.9%");
-      root.style.setProperty("--card", "0 0% 100%");
-      root.style.setProperty("--card-foreground", "222.2 84% 4.9%");
-      body.style.backgroundColor = "#ffffff";
-      body.style.color = "#0f172a";
-    }
-
-    // Set sidebar width custom property
-    root.style.setProperty(
-      "--sidebar-width",
-      sidebarOpen && !isMobile && !isTablet ? "288px" : "64px",
-    );
-
-    // FIXED: Meta theme color for browser UI
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (metaThemeColor) {
-      metaThemeColor.setAttribute("content", isDark ? "#0f172a" : "#ffffff");
-    }
-  }, [isDark, isAdminMode, isMobile, isTablet, config, sidebarOpen]);
-
+  // FIXED: Toggle sidebar with responsive behavior
   const toggleSidebar = () => {
     const newState = !sidebarOpen;
     setSidebarOpen(newState);
@@ -159,15 +114,13 @@ export function CorrectedLayout() {
     <div
       className={cn(
         "min-h-screen flex flex-col overflow-hidden",
-        // FIXED: Force light background
-        "bg-white text-gray-900",
-        isDark && "dark:bg-gray-900 dark:text-gray-100",
-        isAdminMode && "admin-mode",
+        // FIXED: Use CSS custom properties for consistent theming
+        "bg-background text-foreground",
         isMobile && "mobile-layout",
         isTablet && "tablet-layout",
       )}
     >
-      {/* Mobile Overlay */}
+      {/* FIXED: Mobile Overlay with light backdrop */}
       <AnimatePresence>
         {(isMobile || isTablet) && sidebarOpen && (
           <motion.div
@@ -175,7 +128,7 @@ export function CorrectedLayout() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -183,7 +136,7 @@ export function CorrectedLayout() {
 
       {/* Main Layout Container */}
       <div className="flex flex-1 min-h-0">
-        {/* FIXED: Sidebar with proper z-index and positioning */}
+        {/* FIXED: Responsive Sidebar - no fixed widths */}
         <aside
           className={cn(
             "z-50 transition-all duration-300 ease-out sidebar-container",
@@ -191,17 +144,19 @@ export function CorrectedLayout() {
             isMobile && [
               "fixed inset-y-0 left-0",
               sidebarOpen ? "translate-x-0" : "-translate-x-full",
+              "w-80", // Compact mobile width
             ],
-            // Tablet: fixed overlay with larger width
+            // Tablet: fixed overlay
             isTablet && [
               "fixed inset-y-0 left-0",
               sidebarOpen ? "translate-x-0" : "-translate-x-full",
+              "w-64", // Medium tablet width
             ],
-            // Desktop: relative positioning with smooth collapse
+            // Desktop: relative positioning with responsive widths
             !isMobile &&
               !isTablet && [
                 "relative flex-shrink-0",
-                sidebarOpen ? "w-72" : "w-16",
+                sidebarOpen ? "w-64 xl:w-72" : "w-16", // Responsive desktop widths
               ],
           )}
         >
@@ -223,16 +178,16 @@ export function CorrectedLayout() {
             />
           </header>
 
-          {/* FIXED: Page Content with proper scrolling */}
-          <main className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
+          {/* FIXED: Page Content with responsive spacing */}
+          <main className="flex-1 overflow-auto bg-background">
             <div
               className={cn(
-                "container mx-auto max-w-7xl",
-                // Modern spacing system
-                "px-4 py-6 sm:px-6 sm:py-8 lg:px-8",
-                // Reduced padding on mobile
-                isMobile && "px-4 py-4",
-                isTablet && "px-6 py-6",
+                "w-full max-w-none",
+                // Responsive padding system
+                "p-3 sm:p-4 md:p-6 lg:p-8",
+                // Compact mobile spacing
+                isMobile && "p-3",
+                isTablet && "p-4",
               )}
             >
               <motion.div
@@ -252,199 +207,8 @@ export function CorrectedLayout() {
         </div>
       </div>
 
-      {/* FIXED: Chat Widget with proper positioning */}
-      <ConversacaoWidget
-        className={cn(
-          "fixed bottom-4 right-4 z-30",
-          isMobile && isAdminMode && "bottom-20",
-        )}
-      />
-
-      {/* FIXED: Global keyboard shortcuts */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            // Global keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-              if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                e.preventDefault();
-                // Trigger search dialog
-                const searchTrigger = document.querySelector('[data-search-trigger]');
-                if (searchTrigger) searchTrigger.click();
-              }
-              
-              // Alt + M to toggle sidebar
-              if (e.altKey && e.key === 'm') {
-                e.preventDefault();
-                window.toggleSidebar?.();
-              }
-            });
-            
-            // Expose sidebar toggle globally
-            window.toggleSidebar = () => {
-              const sidebarToggle = document.querySelector('[data-sidebar-toggle]');
-              if (sidebarToggle) sidebarToggle.click();
-            };
-          `,
-        }}
-      />
-
-      {/* FIXED: Critical styles for immediate theme application */}
-      <style jsx global>{`
-        /* Immediate theme application to prevent flash */
-        html {
-          background-color: #ffffff !important;
-          color: #0f172a !important;
-        }
-
-        html.dark {
-          background-color: #0f172a !important;
-          color: #f8fafc !important;
-        }
-
-        body {
-          background-color: inherit !important;
-          color: inherit !important;
-          transition:
-            background-color 0.2s ease,
-            color 0.2s ease;
-        }
-
-        /* Admin mode color overrides */
-        .admin-mode {
-          --primary: 0 84% 60% !important;
-          --primary-foreground: 210 40% 98% !important;
-          --accent: 0 84% 60% !important;
-          --ring: 0 84% 60% !important;
-        }
-
-        /* Client mode color overrides */
-        .client-mode {
-          --primary: 221.2 83.2% 53.3% !important;
-          --primary-foreground: 210 40% 98% !important;
-          --accent: 221.2 83.2% 53.3% !important;
-          --ring: 221.2 83.2% 53.3% !important;
-        }
-
-        /* Force light mode backgrounds */
-        .bg-background {
-          background-color: #ffffff !important;
-        }
-
-        .dark .bg-background {
-          background-color: #0f172a !important;
-        }
-
-        .text-foreground {
-          color: #0f172a !important;
-        }
-
-        .dark .text-foreground {
-          color: #f8fafc !important;
-        }
-
-        /* Card styles */
-        .bg-card {
-          background-color: #ffffff !important;
-        }
-
-        .dark .bg-card {
-          background-color: #1e293b !important;
-        }
-
-        /* Sidebar container */
-        .sidebar-container {
-          background-color: #ffffff !important;
-          border-right: 1px solid #e2e8f0 !important;
-        }
-
-        .dark .sidebar-container {
-          background-color: #1e293b !important;
-          border-right: 1px solid #334155 !important;
-        }
-
-        /* Topbar container */
-        .topbar-container {
-          background-color: rgba(255, 255, 255, 0.95) !important;
-          backdrop-filter: blur(10px);
-          border-bottom: 1px solid #e2e8f0 !important;
-        }
-
-        .dark .topbar-container {
-          background-color: rgba(30, 41, 59, 0.95) !important;
-          border-bottom: 1px solid #334155 !important;
-        }
-
-        /* Fix any remaining dark backgrounds */
-        [style*="rgb(2, 8, 23)"] {
-          background-color: #ffffff !important;
-        }
-
-        .dark [style*="rgb(2, 8, 23)"] {
-          background-color: #0f172a !important;
-        }
-
-        /* Ensure modals and dropdowns have correct z-index */
-        .z-modal {
-          z-index: 1050 !important;
-        }
-
-        .z-modal-backdrop {
-          z-index: 1040 !important;
-        }
-
-        .z-dropdown {
-          z-index: 1000 !important;
-        }
-
-        .z-popover {
-          z-index: 1060 !important;
-        }
-
-        .z-tooltip {
-          z-index: 1070 !important;
-        }
-
-        .z-toast {
-          z-index: 1080 !important;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-          .mobile-layout .container {
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-          }
-        }
-
-        @media (min-width: 768px) and (max-width: 1024px) {
-          .tablet-layout .container {
-            padding-left: 1.5rem !important;
-            padding-right: 1.5rem !important;
-          }
-        }
-
-        /* Performance optimizations */
-        .sidebar-container,
-        .topbar-container {
-          will-change: transform;
-          transform: translateZ(0);
-        }
-
-        /* Smooth transitions */
-        * {
-          transition-property:
-            background-color, border-color, color, fill, stroke, opacity,
-            box-shadow, transform;
-          transition-duration: 0.2s;
-          transition-timing-function: ease-out;
-        }
-
-        .reduced-motion * {
-          transition-duration: 0.01ms !important;
-          animation-duration: 0.01ms !important;
-        }
-      `}</style>
+      {/* FIXED: Conversation Widget with responsive positioning */}
+      <ConversacaoWidget />
     </div>
   );
 }

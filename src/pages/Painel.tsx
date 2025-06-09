@@ -21,6 +21,9 @@ import {
   Zap,
   Crown,
   Shield,
+  ChevronRight,
+  Eye,
+  Plus,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,44 +39,36 @@ const Painel: React.FC = () => {
 
   const metricas = [
     {
-      titulo: "Total Clientes",
+      titulo: "Clientes",
       valor: "1,234",
       icone: Users,
-      cor: isAdminMode ? "text-red-600" : "text-blue-600",
-      bgCor: isAdminMode ? "bg-red-50" : "bg-blue-50",
       mudanca: "+12%",
       tipo: "positiva",
       meta: 1500,
       atual: 1234,
     },
     {
-      titulo: "Processos Ativos",
+      titulo: "Processos",
       valor: "892",
       icone: Scale,
-      cor: "text-green-600",
-      bgCor: "bg-green-50",
       mudanca: "+8%",
       tipo: "positiva",
       meta: 1000,
       atual: 892,
     },
     {
-      titulo: "Receita Mensal",
+      titulo: "Receita",
       valor: "R$ 284k",
       icone: DollarSign,
-      cor: "text-emerald-600",
-      bgCor: "bg-emerald-50",
       mudanca: "+22%",
       tipo: "positiva",
       meta: 300000,
       atual: 284000,
     },
     {
-      titulo: "Tarefas Pendentes",
+      titulo: "Tarefas",
       valor: "47",
       icone: CheckSquare,
-      cor: "text-orange-600",
-      bgCor: "bg-orange-50",
       mudanca: "-5%",
       tipo: "negativa",
       meta: 30,
@@ -121,33 +116,29 @@ const Painel: React.FC = () => {
       id: 1,
       tipo: "cliente",
       descricao: "Novo cliente cadastrado: João Silva",
-      tempo: "2 horas atrás",
+      tempo: "2h",
       icone: Users,
-      cor: isAdminMode ? "text-red-600" : "text-blue-600",
     },
     {
       id: 2,
       tipo: "processo",
       descricao: "Processo atualizado: 1234567-89.2024",
-      tempo: "4 horas atrás",
+      tempo: "4h",
       icone: Scale,
-      cor: "text-green-600",
     },
     {
       id: 3,
       tipo: "tarefa",
       descricao: "Tarefa concluída: Análise de contrato",
-      tempo: "6 horas atrás",
+      tempo: "6h",
       icone: CheckSquare,
-      cor: "text-emerald-600",
     },
     {
       id: 4,
       tipo: "documento",
       descricao: "Documento adicionado ao GED",
-      tempo: "1 dia atrás",
+      tempo: "1d",
       icone: FileText,
-      cor: "text-purple-600",
     },
   ];
 
@@ -155,21 +146,21 @@ const Painel: React.FC = () => {
     {
       id: 1,
       titulo: "Reunião com João Silva",
-      data: "2024-01-25",
+      data: "25/01",
       hora: "14:00",
       tipo: "reuniao",
     },
     {
       id: 2,
       titulo: "Audiência Processo 1234567",
-      data: "2024-01-26",
+      data: "26/01",
       hora: "10:30",
       tipo: "audiencia",
     },
     {
       id: 3,
-      titulo: "Prazo para recurso - Processo 7891011",
-      data: "2024-01-27",
+      titulo: "Prazo para recurso",
+      data: "27/01",
       hora: "23:59",
       tipo: "prazo",
     },
@@ -178,52 +169,52 @@ const Painel: React.FC = () => {
   const getPrioridadeColor = (prioridade: string) => {
     switch (prioridade) {
       case "alta":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-50 text-red-700 border-red-200";
       case "media":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-yellow-50 text-yellow-700 border-yellow-200";
       case "baixa":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-green-50 text-green-700 border-green-200";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-muted text-muted-foreground";
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pendente":
-        return "bg-orange-100 text-orange-800";
+        return "bg-orange-50 text-orange-700";
       case "em_andamento":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-50 text-blue-700";
       case "agendada":
-        return "bg-green-100 text-green-800";
+        return "bg-green-50 text-green-700";
       case "concluida":
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
     }
   };
 
   const getTipoEventoColor = (tipo: string) => {
     switch (tipo) {
       case "audiencia":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-50 text-red-700 border-red-200";
       case "reuniao":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-blue-50 text-blue-700 border-blue-200";
       case "prazo":
-        return "bg-orange-100 text-orange-800 border-orange-200";
+        return "bg-orange-50 text-orange-700 border-orange-200";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-muted text-muted-foreground";
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div className="min-h-screen bg-background">
+      <div className="space-y-6">
+        {/* FIXED: Compact Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                 Painel de Controle
               </h1>
               {isAdminMode && (
@@ -236,31 +227,36 @@ const Painel: React.FC = () => {
                 </Badge>
               )}
             </div>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Visão geral das atividades e métricas do seu escritório
+            <p className="text-muted-foreground text-sm mt-1">
+              Visão geral das atividades do escritório
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => navigate("/agenda")}>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/agenda")}
+            >
               <Calendar className="h-4 w-4 mr-2" />
-              Ver Agenda
+              Agenda
             </Button>
             <Button
+              size="sm"
               onClick={() => navigate("/crm")}
               className={cn(
                 isAdminMode
-                  ? "bg-red-600 hover:bg-red-700"
-                  : "bg-blue-600 hover:bg-blue-700",
+                  ? "bg-destructive hover:bg-destructive/90"
+                  : "bg-primary hover:bg-primary/90",
               )}
             >
               <BarChart3 className="h-4 w-4 mr-2" />
-              Acessar CRM
+              CRM
             </Button>
           </div>
         </div>
 
-        {/* Métricas Principais */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* FIXED: Responsive Metrics Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {metricas.map((metrica, index) => {
             const Icone = metrica.icone;
             const progresso = metrica.meta
@@ -274,14 +270,14 @@ const Painel: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer group">
-                  <CardContent className="p-6">
+                <Card className="hover:shadow-md transition-all duration-300 cursor-pointer">
+                  <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        <p className="text-sm font-medium text-muted-foreground mb-1">
                           {metrica.titulo}
                         </p>
-                        <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                        <p className="text-2xl font-bold text-foreground mb-2">
                           {metrica.valor}
                         </p>
                         <div className="flex items-center gap-2">
@@ -302,27 +298,19 @@ const Painel: React.FC = () => {
                               {metrica.mudanca}
                             </span>
                           </div>
-                          <span className="text-sm text-gray-500">
-                            vs mês anterior
-                          </span>
                         </div>
                         {metrica.meta && (
                           <div className="mt-3">
-                            <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
-                              <span>Meta mensal</span>
+                            <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                              <span>Meta: {metrica.meta.toLocaleString()}</span>
                               <span>{Math.round(progresso)}%</span>
                             </div>
-                            <Progress value={progresso} className="h-2" />
+                            <Progress value={progresso} className="h-1" />
                           </div>
                         )}
                       </div>
-                      <div
-                        className={cn(
-                          "p-3 rounded-lg group-hover:scale-110 transition-transform",
-                          metrica.bgCor,
-                        )}
-                      >
-                        <Icone className={cn("h-6 w-6", metrica.cor)} />
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Icone className="h-5 w-5 text-primary" />
                       </div>
                     </div>
                   </CardContent>
@@ -332,215 +320,205 @@ const Painel: React.FC = () => {
           })}
         </div>
 
-        {/* Grid Principal */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* FIXED: Responsive Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {/* Tarefas Recentes */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckSquare className="h-5 w-5" />
-                  Tarefas Recentes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {tarefasRecentes.map((tarefa, index) => (
-                    <motion.div
-                      key={tarefa.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="flex items-start gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                    >
-                      <div className="flex-shrink-0">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage
-                            src={`https://avatar.vercel.sh/${tarefa.cliente}`}
-                          />
-                          <AvatarFallback>
-                            {tarefa.cliente.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                          {tarefa.titulo}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Cliente: {tarefa.cliente}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge
-                            className={getPrioridadeColor(tarefa.prioridade)}
-                          >
-                            {tarefa.prioridade}
-                          </Badge>
-                          <Badge className={getStatusColor(tarefa.status)}>
-                            {tarefa.status.replace("_", " ")}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex-shrink-0 text-right">
-                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                          <Clock className="h-4 w-4 mr-1" />
-                          {new Intl.DateTimeFormat("pt-BR").format(
-                            new Date(tarefa.prazo),
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-                <div className="mt-6">
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => navigate("/tarefas")}
-                  >
-                    Ver Todas as Tarefas
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Próximos Eventos */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Próximos Eventos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {proximosEventos.map((evento, index) => (
-                    <motion.div
-                      key={evento.id}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    >
-                      <div className="text-sm font-mono text-gray-600 dark:text-gray-400 w-12">
-                        {evento.hora}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {evento.titulo}
-                        </p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          {new Intl.DateTimeFormat("pt-BR").format(
-                            new Date(evento.data),
-                          )}
-                        </p>
-                        <Badge
-                          className={cn(
-                            "mt-1 text-xs",
-                            getTipoEventoColor(evento.tipo),
-                          )}
-                        >
-                          {evento.tipo}
-                        </Badge>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+          <Card className="lg:col-span-1">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Tarefas Recentes</CardTitle>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  className="w-full mt-4"
+                  onClick={() => navigate("/tarefas")}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {tarefasRecentes.slice(0, 4).map((tarefa) => (
+                <div
+                  key={tarefa.id}
+                  className="flex items-start justify-between p-3 bg-muted/50 rounded-lg"
+                >
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-sm text-foreground truncate">
+                      {tarefa.titulo}
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {tarefa.cliente} • {tarefa.prazo}
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-xs px-2 py-0.5",
+                          getPrioridadeColor(tarefa.prioridade),
+                        )}
+                      >
+                        {tarefa.prioridade}
+                      </Badge>
+                      <Badge
+                        className={cn(
+                          "text-xs px-2 py-0.5",
+                          getStatusColor(tarefa.status),
+                        )}
+                      >
+                        {tarefa.status}
+                      </Badge>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Atividades Recentes */}
+          <Card className="lg:col-span-1">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Atividades Recentes</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {atividadesRecentes.map((atividade) => {
+                const Icone = atividade.icone;
+                return (
+                  <div key={atividade.id} className="flex items-start gap-3">
+                    <div className="p-1.5 bg-primary/10 rounded-lg flex-shrink-0">
+                      <Icone className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground">
+                        {atividade.descricao}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {atividade.tempo}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+
+          {/* Próximos Eventos */}
+          <Card className="lg:col-span-2 xl:col-span-1">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Próximos Eventos</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => navigate("/agenda")}
                 >
-                  Ver Agenda Completa
+                  <Plus className="h-4 w-4" />
                 </Button>
-              </CardContent>
-            </Card>
-
-            {/* Atividades Recentes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
-                  Atividades Recentes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {atividadesRecentes.map((atividade, index) => {
-                    const IconeAtividade = atividade.icone;
-                    return (
-                      <motion.div
-                        key={atividade.id}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                      >
-                        <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
-                          <IconeAtividade
-                            className={cn("h-4 w-4", atividade.cor)}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {atividade.descricao}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
-                            <Clock className="h-3 w-3" />
-                            {atividade.tempo}
-                          </p>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {proximosEventos.map((evento) => (
+                <div
+                  key={evento.id}
+                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                >
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-sm text-foreground">
+                      {evento.titulo}
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {evento.data} às {evento.hora}
+                    </p>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-xs px-2 py-0.5 mt-2",
+                        getTipoEventoColor(evento.tipo),
+                      )}
+                    >
+                      {evento.tipo}
+                    </Badge>
+                  </div>
+                  <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              ))}
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Alertas/Notificações */}
-        <Card className="border-orange-200 bg-orange-50 dark:bg-orange-900/10 dark:border-orange-800">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20">
-                <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-orange-900 dark:text-orange-100 mb-1">
-                  Atenção necessária
-                </h3>
-                <p className="text-sm text-orange-800 dark:text-orange-200 mb-3">
-                  Você tem 3 prazos vencendo hoje e 2 audiências agendadas para
-                  amanhã. Verifique sua agenda para não perder compromissos
-                  importantes.
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-orange-300 text-orange-700 hover:bg-orange-100"
-                    onClick={() => navigate("/agenda")}
-                  >
-                    Ver Agenda
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-orange-300 text-orange-700 hover:bg-orange-100"
-                    onClick={() => navigate("/tarefas")}
-                  >
-                    Ver Tarefas
-                  </Button>
-                </div>
-              </div>
+        {/* FIXED: Quick Actions */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Ações Rápidas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <Button
+                variant="outline"
+                className="h-20 flex-col gap-2"
+                onClick={() => navigate("/crm/clientes/novo")}
+              >
+                <Users className="h-5 w-5" />
+                <span className="text-xs">Novo Cliente</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-20 flex-col gap-2"
+                onClick={() => navigate("/crm/processos/novo")}
+              >
+                <Scale className="h-5 w-5" />
+                <span className="text-xs">Novo Processo</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-20 flex-col gap-2"
+                onClick={() => navigate("/agenda")}
+              >
+                <Calendar className="h-5 w-5" />
+                <span className="text-xs">Agendar</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-20 flex-col gap-2"
+                onClick={() => navigate("/tarefas")}
+              >
+                <CheckSquare className="h-5 w-5" />
+                <span className="text-xs">Nova Tarefa</span>
+              </Button>
             </div>
           </CardContent>
         </Card>
+
+        {/* Alertas e Notificações */}
+        {tarefasRecentes.filter((t) => t.prioridade === "alta").length > 0 && (
+          <Card className="border-orange-200 bg-orange-50">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-orange-800">
+                    Atenção: Tarefas Urgentes
+                  </h4>
+                  <p className="text-sm text-orange-700 mt-1">
+                    Você tem 3 prazos vencendo hoje e 2 audiências agendadas
+                    para amanhã. Verifique sua agenda para não perder
+                    compromissos importantes.
+                  </p>
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-orange-800 border-orange-300 hover:bg-orange-100"
+                      onClick={() => navigate("/agenda")}
+                    >
+                      Ver Agenda
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
