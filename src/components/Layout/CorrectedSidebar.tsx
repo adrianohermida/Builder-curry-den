@@ -400,6 +400,7 @@ export function CorrectedSidebar({
                 const isActive = location.pathname === item.href;
 
                 if (collapsed) {
+                  const IconComponent = item.icon;
                   return (
                     <Tooltip key={item.href}>
                       <TooltipTrigger asChild>
@@ -416,7 +417,7 @@ export function CorrectedSidebar({
                                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
                           )}
                         >
-                          <item.icon className="w-4 h-4" />
+                          <IconComponent className="w-4 h-4" />
                         </Link>
                       </TooltipTrigger>
                       <TooltipContent side="right">
