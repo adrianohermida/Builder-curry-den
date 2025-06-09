@@ -27,7 +27,7 @@ import {
   Zap,
   Building,
   PieChart,
-  LineChart,
+  LineChart as LineChartIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,7 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ChartWrapper } from "@/components/ui/chart-error-boundary";
 import {
-  LineChart,
+  LineChart as RechartsLineChart,
   Line,
   CartesianGrid,
   Tooltip,
