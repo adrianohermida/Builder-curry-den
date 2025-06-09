@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useTransition, useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useViewMode } from "@/contexts/ViewModeContext";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { PageLoading } from "@/components/ui/simple-loading";
 
 export interface EnhancedRouteGuardProps {
   children: React.ReactNode;
@@ -29,118 +30,268 @@ export const EnhancedRouteGuard: React.FC<EnhancedRouteGuardProps> = ({
   requiredRole,
   adminModeOnly = false,
   clientModeOnly = false,
-  fallbackPath = "/dashboard",
+  fallbackPath = "/painel",
   showAccessDenied = true,
 }) => {
-  const { user, isAdmin, hasPermission } = usePermissions();
-  const { isAdminMode, isClientMode, canSwitchToAdmin, switchMode } =
-    useViewMode();
   const location = useLocation();
+  const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(true);
+  const [accessResult, setAccessResult] = useState<{
+    hasAccess: boolean;
+    component?: React.ReactNode;
+  }>({ hasAccess: false });
 
-  // Check if user is logged in
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  // Safe hooks with fallbacks to prevent errors
+  let user = null;
+  let isAdmin = () => false;
+  let hasPermission = () => false;
+  let isAdminMode = false;
+  let isClientMode = true;
+  let canSwitchToAdmin = false;
+  let switchMode = () => {};
 
-  // Check mode restrictions
-  if (adminModeOnly && !isAdminMode) {
-    if (canSwitchToAdmin) {
-      return (
-        <ModeRedirectPage
-          type="admin-required"
-          onSwitchMode={() => switchMode("admin")}
-          fallbackPath={fallbackPath}
-          currentPath={location.pathname}
-        />
-      );
-    } else {
-      if (showAccessDenied) {
-        return (
-          <AccessDeniedPage
-            type="admin-mode-required"
-            fallbackPath={fallbackPath}
-            userRole={user.role}
-          />
-        );
-      }
-      toast.error("Esta página requer modo administrativo.");
-      return <Navigate to={fallbackPath} replace />;
-    }
-  }
-
-  if (clientModeOnly && !isClientMode) {
-    return (
-      <ModeRedirectPage
-        type="client-required"
-        onSwitchMode={() => switchMode("client")}
-        fallbackPath={fallbackPath}
-        currentPath={location.pathname}
-      />
+  try {
+    const permissions = usePermissions();
+    user = permissions.user;
+    isAdmin = permissions.isAdmin;
+    hasPermission = permissions.hasPermission;
+  } catch (error) {
+    console.warn(
+      "Permission context not available in RouteGuard, using defaults",
     );
   }
 
-  // Check admin requirement
-  if (requireAdmin && !isAdmin()) {
-    if (showAccessDenied) {
-      return (
-        <AccessDeniedPage
-          type="admin"
-          fallbackPath={fallbackPath}
-          userRole={user.role}
-        />
-      );
-    }
-    return <Navigate to={fallbackPath} replace />;
+  try {
+    const viewMode = useViewMode();
+    isAdminMode = viewMode.isAdminMode || false;
+    isClientMode = viewMode.isClientMode || true;
+    canSwitchToAdmin = viewMode.canSwitchToAdmin || false;
+    switchMode = viewMode.switchMode || (() => {});
+  } catch (error) {
+    console.warn(
+      "ViewMode context not available in RouteGuard, using defaults",
+    );
   }
 
-  // Check executive requirement (admin or specific executive permissions)
-  if (requireExecutive && !isAdmin() && !hasPermission("executive", "read")) {
-    if (showAccessDenied) {
-      return (
-        <AccessDeniedPage
-          type="executive"
-          fallbackPath={fallbackPath}
-          userRole={user.role}
-        />
-      );
-    }
-    return <Navigate to={fallbackPath} replace />;
-  }
+  // Async access check to prevent blocking
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        // Wrap access checks in transition to prevent Suspense issues
+        startTransition(() => {
+          setIsLoading(true);
 
-  // Check specific permission
-  if (requiredPermission && !isAdmin()) {
-    const [module, action] = requiredPermission.split(".");
-    if (!hasPermission(module, action)) {
-      if (showAccessDenied) {
-        return (
-          <AccessDeniedPage
-            type="permission"
-            permission={requiredPermission}
-            fallbackPath={fallbackPath}
-            userRole={user.role}
-          />
-        );
+          // Check if user is logged in
+          if (!user) {
+            setAccessResult({
+              hasAccess: false,
+              component: <Navigate to="/login" replace />,
+            });
+            setIsLoading(false);
+            return;
+          }
+
+          // Check mode restrictions
+          if (adminModeOnly && !isAdminMode) {
+            if (canSwitchToAdmin) {
+              setAccessResult({
+                hasAccess: false,
+                component: (
+                  <ModeRedirectPage
+                    type="admin-required"
+                    onSwitchMode={() => switchMode("admin")}
+                    fallbackPath={fallbackPath}
+                    currentPath={location.pathname}
+                  />
+                ),
+              });
+            } else {
+              if (showAccessDenied) {
+                setAccessResult({
+                  hasAccess: false,
+                  component: (
+                    <AccessDeniedPage
+                      type="admin-mode-required"
+                      fallbackPath={fallbackPath}
+                      userRole={user.role}
+                    />
+                  ),
+                });
+              } else {
+                toast.error("Esta página requer modo administrativo.");
+                setAccessResult({
+                  hasAccess: false,
+                  component: <Navigate to={fallbackPath} replace />,
+                });
+              }
+            }
+            setIsLoading(false);
+            return;
+          }
+
+          if (clientModeOnly && !isClientMode) {
+            setAccessResult({
+              hasAccess: false,
+              component: (
+                <ModeRedirectPage
+                  type="client-required"
+                  onSwitchMode={() => switchMode("client")}
+                  fallbackPath={fallbackPath}
+                  currentPath={location.pathname}
+                />
+              ),
+            });
+            setIsLoading(false);
+            return;
+          }
+
+          // Check admin requirement
+          if (requireAdmin && !isAdmin()) {
+            if (showAccessDenied) {
+              setAccessResult({
+                hasAccess: false,
+                component: (
+                  <AccessDeniedPage
+                    type="admin"
+                    fallbackPath={fallbackPath}
+                    userRole={user.role}
+                  />
+                ),
+              });
+            } else {
+              setAccessResult({
+                hasAccess: false,
+                component: <Navigate to={fallbackPath} replace />,
+              });
+            }
+            setIsLoading(false);
+            return;
+          }
+
+          // Check executive requirement
+          if (
+            requireExecutive &&
+            !isAdmin() &&
+            !hasPermission("executive", "read")
+          ) {
+            if (showAccessDenied) {
+              setAccessResult({
+                hasAccess: false,
+                component: (
+                  <AccessDeniedPage
+                    type="executive"
+                    fallbackPath={fallbackPath}
+                    userRole={user.role}
+                  />
+                ),
+              });
+            } else {
+              setAccessResult({
+                hasAccess: false,
+                component: <Navigate to={fallbackPath} replace />,
+              });
+            }
+            setIsLoading(false);
+            return;
+          }
+
+          // Check specific permission
+          if (requiredPermission && !isAdmin()) {
+            const [module, action] = requiredPermission.split(".");
+            if (!hasPermission(module, action)) {
+              if (showAccessDenied) {
+                setAccessResult({
+                  hasAccess: false,
+                  component: (
+                    <AccessDeniedPage
+                      type="permission"
+                      permission={requiredPermission}
+                      fallbackPath={fallbackPath}
+                      userRole={user.role}
+                    />
+                  ),
+                });
+              } else {
+                setAccessResult({
+                  hasAccess: false,
+                  component: <Navigate to={fallbackPath} replace />,
+                });
+              }
+              setIsLoading(false);
+              return;
+            }
+          }
+
+          // Check specific role
+          if (requiredRole && user.role !== requiredRole && !isAdmin()) {
+            if (showAccessDenied) {
+              setAccessResult({
+                hasAccess: false,
+                component: (
+                  <AccessDeniedPage
+                    type="role"
+                    requiredRole={requiredRole}
+                    fallbackPath={fallbackPath}
+                    userRole={user.role}
+                  />
+                ),
+              });
+            } else {
+              setAccessResult({
+                hasAccess: false,
+                component: <Navigate to={fallbackPath} replace />,
+              });
+            }
+            setIsLoading(false);
+            return;
+          }
+
+          // All checks passed
+          setAccessResult({ hasAccess: true });
+          setIsLoading(false);
+        });
+      } catch (error) {
+        console.error("Error in access check:", error);
+        startTransition(() => {
+          setAccessResult({
+            hasAccess: false,
+            component: <Navigate to={fallbackPath} replace />,
+          });
+          setIsLoading(false);
+        });
       }
-      return <Navigate to={fallbackPath} replace />;
-    }
+    };
+
+    checkAccess();
+  }, [
+    user,
+    isAdminMode,
+    isClientMode,
+    canSwitchToAdmin,
+    requireAdmin,
+    requireExecutive,
+    requiredPermission,
+    requiredRole,
+    adminModeOnly,
+    clientModeOnly,
+    location.pathname,
+  ]);
+
+  // Show loading while checking access
+  if (isLoading || isPending) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <PageLoading />
+      </div>
+    );
   }
 
-  // Check specific role
-  if (requiredRole && user.role !== requiredRole && !isAdmin()) {
-    if (showAccessDenied) {
-      return (
-        <AccessDeniedPage
-          type="role"
-          requiredRole={requiredRole}
-          fallbackPath={fallbackPath}
-          userRole={user.role}
-        />
-      );
-    }
-    return <Navigate to={fallbackPath} replace />;
+  // Return access result
+  if (!accessResult.hasAccess) {
+    return <>{accessResult.component}</>;
   }
 
-  // All checks passed, render children
+  // Render children with transition
   return <>{children}</>;
 };
 
@@ -157,6 +308,7 @@ const ModeRedirectPage: React.FC<ModeRedirectPageProps> = ({
   fallbackPath,
   currentPath,
 }) => {
+  const [isPending, startTransition] = useTransition();
   const isAdminRequired = type === "admin-required";
 
   const config = {
@@ -181,11 +333,13 @@ const ModeRedirectPage: React.FC<ModeRedirectPageProps> = ({
   const Icon = config.icon;
 
   const handleSwitch = () => {
-    onSwitchMode();
-    // Small delay to allow mode switch to complete
-    setTimeout(() => {
-      window.location.href = currentPath;
-    }, 100);
+    startTransition(() => {
+      onSwitchMode();
+      // Small delay to allow mode switch to complete
+      setTimeout(() => {
+        window.location.href = currentPath;
+      }, 100);
+    });
   };
 
   return (
@@ -215,16 +369,18 @@ const ModeRedirectPage: React.FC<ModeRedirectPageProps> = ({
           <div className="pt-4 space-y-3">
             <Button
               onClick={handleSwitch}
+              disabled={isPending}
               className={`w-full ${config.buttonClass}`}
             >
-              {config.buttonText}
+              {isPending ? "Alternando..." : config.buttonText}
             </Button>
             <Button
               onClick={() => (window.location.href = fallbackPath)}
               variant="outline"
               className="w-full"
+              disabled={isPending}
             >
-              Voltar ao Dashboard
+              Voltar ao Painel
             </Button>
           </div>
 
@@ -381,7 +537,7 @@ const AccessDeniedPage: React.FC<AccessDeniedPageProps> = ({
               onClick={() => (window.location.href = fallbackPath)}
               className="w-full"
             >
-              Ir para Dashboard
+              Ir para Painel
             </Button>
           </div>
 
