@@ -106,7 +106,8 @@ const Settings = createLazyComponent(() => import("./pages/Settings"));
 const Tarefas = createLazyComponent(() => import("./pages/Tarefas"));
 const Publicacoes = createLazyComponent(() => import("./pages/Publicacoes"));
 const Contratos = createLazyComponent(() => import("./pages/Contratos"));
-const ContratosEnhanced = createLazyComponent(
+const ContratosEnhanced = createLazyComponent(() => import("./pages/CRM/Contratos/ContratosEnhanced"));
+const TestContratosEnhanced = createLazyComponent(() => import("./pages/TestContratosEnhanced"));
   () => import("./pages/CRM/Contratos/ContratosEnhanced"),
 );
 const Financeiro = createLazyComponent(() => import("./pages/Financeiro"));
