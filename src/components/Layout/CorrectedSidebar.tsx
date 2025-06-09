@@ -61,11 +61,49 @@ const clientMenuItems = [
     description: "Visão geral e métricas",
   },
   {
-    title: "CRM",
+    title: "CRM Jurídico",
     href: "/crm",
     icon: Users,
     permission: { module: "crm", action: "read" },
-    description: "Clientes e processos",
+    description: "Sistema CRM Unicorn",
+    submenu: [
+      {
+        title: "Clientes",
+        href: "/crm/clientes",
+        icon: Users,
+        description: "Gestão de clientes",
+      },
+      {
+        title: "Processos",
+        href: "/crm/processos",
+        icon: Scale,
+        description: "Acompanhamento processual",
+      },
+      {
+        title: "Contratos",
+        href: "/crm/contratos",
+        icon: FileText,
+        description: "Gestão contratual",
+      },
+      {
+        title: "Tarefas por Cliente",
+        href: "/crm/tarefas",
+        icon: CheckSquare,
+        description: "Workflow personalizado",
+      },
+      {
+        title: "Financeiro Individual",
+        href: "/crm/financeiro",
+        icon: DollarSign,
+        description: "Gestão financeira",
+      },
+      {
+        title: "GED Vinculado",
+        href: "/crm/ged",
+        icon: FolderOpen,
+        description: "Documentos inteligentes",
+      },
+    ],
   },
   {
     title: "Agenda",
