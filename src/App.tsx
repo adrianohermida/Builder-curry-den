@@ -295,18 +295,100 @@ const App = () => (
                             />
                           }
                         />
-                        <Route
-                          path="crm"
-                          element={
-                            <SafeRoute
-                              element={
-                                <PageWrapper>
-                                  <CRMModerno />
-                                </PageWrapper>
-                              }
-                            />
-                          }
-                        />
+                        {/* CRM Routes with nested routing */}
+                        <Route path="crm">
+                          <Route
+                            index
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <CRMModerno />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
+
+                          {/* Nested CRM routes for direct access */}
+                          <Route
+                            path="clientes"
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <CRMModerno />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
+
+                          <Route
+                            path="clientes/:id"
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <CRMModerno />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
+
+                          <Route
+                            path="processos"
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <CRMModerno />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
+
+                          <Route
+                            path="processos/:id"
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <CRMModerno />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
+
+                          <Route
+                            path="contratos"
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <CRMModerno />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
+
+                          <Route
+                            path="contratos/:id"
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <CRMModerno />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
+                        </Route>
                         <Route
                           path="crm-legacy"
                           element={

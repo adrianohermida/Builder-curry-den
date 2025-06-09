@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Users,
   Scale,
@@ -35,7 +36,31 @@ interface CRMDashboardProps {
 }
 
 const CRMDashboard: React.FC<CRMDashboardProps> = ({ onNavigateToModule }) => {
-  const { estatisticas, atualizarFiltros, filtros } = useCRM();
+  const {
+    estatisticas,
+    atualizarFiltros,
+    filtros,
+    moduloAtivo,
+    setModuloAtivo,
+  } = useCRM();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Detectar módulo ativo baseado na rota
+  useEffect(() => {
+    const path = location.pathname;
+
+    if (path.includes("/crm/clientes")) {
+      setModuloAtivo("clientes");
+    } else if (path.includes("/crm/processos")) {
+      setModuloAtivo("processos");
+    } else if (path.includes("/crm/contratos")) {
+      setModuloAtivo("contratos");
+    } else if (path === "/crm") {
+      // Se estiver na rota base do CRM, redirecionar para processos por padrão
+      navigate("/crm/processos", { replace: true });
+    }
+  }, [location.pathname, setModuloAtivo, navigate]);
 
   const metricas = [
     {
@@ -283,7 +308,15 @@ const CRMDashboard: React.FC<CRMDashboardProps> = ({ onNavigateToModule }) => {
 };
 
 const CRMJuridicoModerno: React.FC = () => {
-  const { moduloAtivo, setModuloAtivo, viewMode, setViewMode } = useCRM();
+  // Função para mudar módulo via navegação
+  const handleModuleChange = (modulo: ModuloCRM) => {
+    setModuloAtivo(modulo);
+    navigate(`/crm/${modulo}`, { replace: true });
+
+    if (onNavigateToModule) {
+      onNavigateToModule(modulo);
+    }
+  };
   const [showDashboard, setShowDashboard] = useState(true);
 
   const handleNavigateToModule = (modulo: ModuloCRM) => {
@@ -347,7 +380,7 @@ const CRMJuridicoModerno: React.FC = () => {
           {/* Tabs para navegação entre módulos */}
           <Tabs
             value={moduloAtivo}
-            onValueChange={(value) => setModuloAtivo(value as ModuloCRM)}
+            onValueChange={(value) => handleModuleChange(value as ModuloCRM)}
             className="mt-6"
           >
             <TabsList className="grid w-full max-w-md grid-cols-3">
