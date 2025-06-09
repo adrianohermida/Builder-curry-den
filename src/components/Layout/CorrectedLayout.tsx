@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { CorrectedSidebar } from "./CorrectedSidebar";
-import { OptimizedTopbar } from "./OptimizedTopbar";
+import { CorrectedTopbar } from "./CorrectedTopbar";
 import { ConversacaoWidget } from "@/components/Chat/ConversacaoWidget";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/providers/ThemeProvider";
