@@ -99,7 +99,7 @@ const Tickets = createLazyComponent(() => import("./pages/Tickets"));
 const AtendimentoEnhanced = createLazyComponent(
   () => import("./pages/AtendimentoEnhanced"),
 );
-const Calendar = createLazyComponent(() => import("./pages/Calendar"));
+const AgendaJuridica = createLazyComponent(() => import("./pages/Agenda"));
 const AI = createLazyComponent(() => import("./pages/AI"));
 const AIEnhanced = createLazyComponent(() => import("./pages/AIEnhanced"));
 const Settings = createLazyComponent(() => import("./pages/Settings"));
@@ -508,7 +508,7 @@ const App = () => (
                             <SafeRoute
                               element={
                                 <PageWrapper>
-                                  <Calendar />
+                                  <AgendaJuridica />
                                 </PageWrapper>
                               }
                             />
