@@ -1,4 +1,11 @@
-import { Suspense, lazy, useTransition, useEffect, useState } from "react";
+import {
+  Suspense,
+  lazy,
+  useTransition,
+  useEffect,
+  useState,
+  startTransition,
+} from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -26,75 +33,139 @@ import EnhancedNotFound from "./pages/EnhancedNotFound";
 // Import the enhanced theme styles
 import "@/styles/themes.css";
 
+// Lazy load all pages for better performance with error boundaries
+const createLazyComponent = (importFunc: () => Promise<any>) => {
+  return lazy(() => {
+    return importFunc().catch((error) => {
+      console.error("Failed to load component:", error);
+      // Return a fallback component
+      return {
+        default: () => (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Erro ao carregar componente
+              </h2>
+              <p className="text-gray-600 mb-4">
+                Houve um problema ao carregar esta página.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Recarregar
+              </button>
+            </div>
+          </div>
+        ),
+      };
+    });
+  });
+};
+
 // Lazy load all pages for better performance
-const Dashboard = lazy(() =>
+const Dashboard = createLazyComponent(() =>
   import("./pages/Dashboard").catch(() => import("./pages/TestDashboard")),
 );
-const MobileDashboard = lazy(() => import("./pages/MobileDashboard"));
-const MobileCRM = lazy(() => import("./pages/MobileCRM"));
-const MobileAdminDashboard = lazy(() => import("./pages/MobileAdminDashboard"));
-const ResponsiveDashboard = lazy(() => import("./pages/ResponsiveDashboard"));
-const ResponsiveCRM = lazy(() => import("./pages/ResponsiveCRM"));
-const CompleteResponsiveDashboard = lazy(
+const MobileDashboard = createLazyComponent(
+  () => import("./pages/MobileDashboard"),
+);
+const MobileCRM = createLazyComponent(() => import("./pages/MobileCRM"));
+const MobileAdminDashboard = createLazyComponent(
+  () => import("./pages/MobileAdminDashboard"),
+);
+const ResponsiveDashboard = createLazyComponent(
+  () => import("./pages/ResponsiveDashboard"),
+);
+const ResponsiveCRM = createLazyComponent(
+  () => import("./pages/ResponsiveCRM"),
+);
+const CompleteResponsiveDashboard = createLazyComponent(
   () => import("./pages/CompleteResponsiveDashboard"),
 );
-const DashboardExecutivo = lazy(() => import("./pages/DashboardExecutivo"));
-const CRM = lazy(() => import("./pages/CRM"));
-const CRMEnhanced = lazy(() => import("./pages/CRMEnhanced"));
-const CRMModerno = lazy(() => import("./pages/CRM"));
-const Tickets = lazy(() => import("./pages/Tickets"));
-const AtendimentoEnhanced = lazy(() => import("./pages/AtendimentoEnhanced"));
-const Calendar = lazy(() => import("./pages/Calendar"));
-const AI = lazy(() => import("./pages/AI"));
-const AIEnhanced = lazy(() => import("./pages/AIEnhanced"));
-const Settings = lazy(() => import("./pages/Settings"));
-const Tarefas = lazy(() => import("./pages/Tarefas"));
-const Publicacoes = lazy(() => import("./pages/Publicacoes"));
-const Contratos = lazy(() => import("./pages/Contratos"));
-const Financeiro = lazy(() => import("./pages/Financeiro"));
-const GEDJuridico = lazy(() => import("./pages/GEDJuridico"));
-const GEDJuridicoV2 = lazy(() => import("./pages/GEDJuridicoV2"));
-const ConfiguracaoArmazenamento = lazy(
+const DashboardExecutivo = createLazyComponent(
+  () => import("./pages/DashboardExecutivo"),
+);
+const CRM = createLazyComponent(() => import("./pages/CRM"));
+const CRMEnhanced = createLazyComponent(() => import("./pages/CRMEnhanced"));
+const CRMModerno = createLazyComponent(() => import("./pages/CRM"));
+const Tickets = createLazyComponent(() => import("./pages/Tickets"));
+const AtendimentoEnhanced = createLazyComponent(
+  () => import("./pages/AtendimentoEnhanced"),
+);
+const Calendar = createLazyComponent(() => import("./pages/Calendar"));
+const AI = createLazyComponent(() => import("./pages/AI"));
+const AIEnhanced = createLazyComponent(() => import("./pages/AIEnhanced"));
+const Settings = createLazyComponent(() => import("./pages/Settings"));
+const Tarefas = createLazyComponent(() => import("./pages/Tarefas"));
+const Publicacoes = createLazyComponent(() => import("./pages/Publicacoes"));
+const Contratos = createLazyComponent(() => import("./pages/Contratos"));
+const Financeiro = createLazyComponent(() => import("./pages/Financeiro"));
+const GEDJuridico = createLazyComponent(() => import("./pages/GEDJuridico"));
+const GEDJuridicoV2 = createLazyComponent(
+  () => import("./pages/GEDJuridicoV2"),
+);
+const ConfiguracaoArmazenamento = createLazyComponent(
   () => import("./pages/ConfiguracaoArmazenamento"),
 );
-const ConfiguracoesPrazosPage = lazy(
+const ConfiguracoesPrazosPage = createLazyComponent(
   () => import("./pages/ConfiguracoesPrazosPage"),
 );
-const WidgetConversacao = lazy(
+const WidgetConversacao = createLazyComponent(
   () => import("./pages/Configuracoes/WidgetConversacao"),
 );
 
-const Update = lazy(() => import("./pages/Update"));
-const Launch = lazy(() => import("./pages/Launch"));
-const SystemHealth = lazy(() => import("./pages/SystemHealth"));
-const Login = lazy(() => import("./pages/Login"));
+const Update = createLazyComponent(() => import("./pages/Update"));
+const Launch = createLazyComponent(() => import("./pages/Launch"));
+const SystemHealth = createLazyComponent(() => import("./pages/SystemHealth"));
+const Login = createLazyComponent(() => import("./pages/Login"));
+const Painel = createLazyComponent(() => import("./pages/Painel"));
 
 // Admin modules (lazy loaded)
-const AdminLayout = lazy(() => import("./modules/LawdeskAdmin/AdminLayout"));
-const AdminDashboard = lazy(
+const AdminLayout = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/AdminLayout"),
+);
+const AdminDashboard = createLazyComponent(
   () => import("./modules/LawdeskAdmin/AdminDashboard"),
 );
-const ExecutiveDashboard = lazy(
+const ExecutiveDashboard = createLazyComponent(
   () => import("./modules/LawdeskAdmin/ExecutiveDashboard"),
 );
-const BIPage = lazy(() => import("./modules/LawdeskAdmin/BIPage"));
-const TeamPage = lazy(() => import("./modules/LawdeskAdmin/TeamPage"));
-const DevToolsPage = lazy(() => import("./modules/LawdeskAdmin/DevToolsPage"));
-const BillingPage = lazy(() => import("./modules/LawdeskAdmin/BillingPage"));
-const SupportPage = lazy(() => import("./modules/LawdeskAdmin/SupportPage"));
-const MarketingPage = lazy(
+const BIPage = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/BIPage"),
+);
+const TeamPage = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/TeamPage"),
+);
+const DevToolsPage = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/DevToolsPage"),
+);
+const BillingPage = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/BillingPage"),
+);
+const SupportPage = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/SupportPage"),
+);
+const MarketingPage = createLazyComponent(
   () => import("./modules/LawdeskAdmin/MarketingPage"),
 );
-const ProductsPage = lazy(() => import("./modules/LawdeskAdmin/ProductsPage"));
-const SecurityPage = lazy(() => import("./modules/LawdeskAdmin/SecurityPage"));
+const ProductsPage = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/ProductsPage"),
+);
+const SecurityPage = createLazyComponent(
+  () => import("./modules/LawdeskAdmin/SecurityPage"),
+);
 
 // Test pages (lazy loaded)
-const ClienteDetalhesTest = lazy(() => import("./pages/ClienteDetalhesTest"));
-const TesteConfiguracaoStorage = lazy(
+const ClienteDetalhesTest = createLazyComponent(
+  () => import("./pages/ClienteDetalhesTest"),
+);
+const TesteConfiguracaoStorage = createLazyComponent(
   () => import("./pages/TesteConfiguracaoStorage"),
 );
-const ThemeTestPage = lazy(() => import("./pages/ThemeTestPage"));
-const Painel = lazy(() => import("./pages/Painel"));
+const ThemeTestPage = createLazyComponent(
+  () => import("./pages/ThemeTestPage"),
+);
 
 // Configure React Query with optimized defaults
 const queryClient = new QueryClient({
@@ -115,12 +186,59 @@ const queryClient = new QueryClient({
   },
 });
 
-// Page wrapper with error boundary and loading - simplified for React 18
-const PageWrapper = ({ children }: { children: React.ReactNode }) => (
-  <ErrorBoundary>
-    <Suspense fallback={<PageLoading />}>{children}</Suspense>
-  </ErrorBoundary>
-);
+// Enhanced Page wrapper with improved error boundary and loading
+const PageWrapper = ({ children }: { children: React.ReactNode }) => {
+  const [isPending, startTransition] = useTransition();
+  const [content, setContent] = useState<React.ReactNode>(null);
+
+  useEffect(() => {
+    startTransition(() => {
+      setContent(children);
+    });
+  }, [children]);
+
+  return (
+    <ErrorBoundary>
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center min-h-[400px]">
+            <PageLoading />
+          </div>
+        }
+      >
+        {isPending ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <PageLoading />
+          </div>
+        ) : (
+          content || children
+        )}
+      </Suspense>
+    </ErrorBoundary>
+  );
+};
+
+// Safe Route wrapper to handle navigation transitions
+const SafeRoute = ({ element }: { element: React.ReactElement }) => {
+  const [isPending, startTransition] = useTransition();
+  const [currentElement, setCurrentElement] = useState(element);
+
+  useEffect(() => {
+    startTransition(() => {
+      setCurrentElement(element);
+    });
+  }, [element]);
+
+  if (isPending) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <PageLoading />
+      </div>
+    );
+  }
+
+  return currentElement;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -137,16 +255,20 @@ const App = () => (
                     <Routes>
                       <Route
                         path="/"
-                        element={<Navigate to="/dashboard" replace />}
+                        element={<Navigate to="/painel" replace />}
                       />
 
                       {/* Authentication Route */}
                       <Route
                         path="/login"
                         element={
-                          <PageWrapper>
-                            <Login />
-                          </PageWrapper>
+                          <SafeRoute
+                            element={
+                              <PageWrapper>
+                                <Login />
+                              </PageWrapper>
+                            }
+                          />
                         }
                       />
 
@@ -155,136 +277,206 @@ const App = () => (
                         <Route
                           path="dashboard"
                           element={
-                            <PageWrapper>
-                              <CompleteResponsiveDashboard />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <CompleteResponsiveDashboard />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="painel"
                           element={
-                            <PageWrapper>
-                              <Painel />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <Painel />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="dashboard-executivo"
                           element={
-                            <PageWrapper>
-                              <EnhancedRouteGuard requireAdmin>
-                                <DashboardExecutivo />
-                              </EnhancedRouteGuard>
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <EnhancedRouteGuard requireAdmin>
+                                    <DashboardExecutivo />
+                                  </EnhancedRouteGuard>
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="crm"
                           element={
-                            <PageWrapper>
-                              <CRMModerno />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <CRMModerno />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="crm-legacy"
                           element={
-                            <PageWrapper>
-                              <CRM />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <CRM />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="tarefas"
                           element={
-                            <PageWrapper>
-                              <Tarefas />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <Tarefas />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="publicacoes"
                           element={
-                            <PageWrapper>
-                              <Publicacoes />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <Publicacoes />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="contratos"
                           element={
-                            <PageWrapper>
-                              <Contratos />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <Contratos />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="financeiro"
                           element={
-                            <PageWrapper>
-                              <Financeiro />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <Financeiro />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="tickets"
                           element={
-                            <PageWrapper>
-                              <Tickets />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <Tickets />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="atendimento"
                           element={
-                            <PageWrapper>
-                              <AtendimentoEnhanced />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <AtendimentoEnhanced />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="agenda"
                           element={
-                            <PageWrapper>
-                              <Calendar />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <Calendar />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="ai"
                           element={
-                            <PageWrapper>
-                              <AI />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <AI />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="ai-enhanced"
                           element={
-                            <PageWrapper>
-                              <AIEnhanced />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <AIEnhanced />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
 
                         <Route
                           path="update"
                           element={
-                            <PageWrapper>
-                              <EnhancedRouteGuard adminModeOnly requireAdmin>
-                                <Update />
-                              </EnhancedRouteGuard>
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <EnhancedRouteGuard
+                                    adminModeOnly
+                                    requireAdmin
+                                  >
+                                    <Update />
+                                  </EnhancedRouteGuard>
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="launch"
                           element={
-                            <PageWrapper>
-                              <EnhancedRouteGuard adminModeOnly requireAdmin>
-                                <Launch />
-                              </EnhancedRouteGuard>
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <EnhancedRouteGuard
+                                    adminModeOnly
+                                    requireAdmin
+                                  >
+                                    <Launch />
+                                  </EnhancedRouteGuard>
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
 
@@ -292,9 +484,13 @@ const App = () => (
                         <Route
                           path="admin"
                           element={
-                            <EnhancedRouteGuard adminModeOnly requireAdmin>
-                              <AdminLayout />
-                            </EnhancedRouteGuard>
+                            <SafeRoute
+                              element={
+                                <EnhancedRouteGuard adminModeOnly requireAdmin>
+                                  <AdminLayout />
+                                </EnhancedRouteGuard>
+                              }
+                            />
                           }
                         >
                           <Route index element={<AdminDashboard />} />
@@ -326,11 +522,18 @@ const App = () => (
                         <Route
                           path="system-health"
                           element={
-                            <PageWrapper>
-                              <EnhancedRouteGuard adminModeOnly requireAdmin>
-                                <SystemHealth />
-                              </EnhancedRouteGuard>
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <EnhancedRouteGuard
+                                    adminModeOnly
+                                    requireAdmin
+                                  >
+                                    <SystemHealth />
+                                  </EnhancedRouteGuard>
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
 
@@ -338,109 +541,182 @@ const App = () => (
                         <Route
                           path="ged"
                           element={
-                            <PageWrapper>
-                              <GEDJuridicoV2 />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <GEDJuridicoV2 />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="ged-juridico"
                           element={
-                            <PageWrapper>
-                              <GEDJuridicoV2 />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <GEDJuridicoV2 />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="ged-legacy"
                           element={
-                            <PageWrapper>
-                              <GEDJuridico />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <GEDJuridico />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
 
-                        {/* Settings and Configuration Routes */}
+                        {/* Settings Routes */}
                         <Route
                           path="settings"
                           element={
-                            <PageWrapper>
-                              <Settings />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <Settings />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
-                          path="profile"
+                          path="configuracao-armazenamento"
                           element={
-                            <PageWrapper>
-                              <Settings />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <ConfiguracaoArmazenamento />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
-                        <Route path="configuracoes">
-                          <Route
-                            path="armazenamento"
-                            element={
-                              <PageWrapper>
-                                <ConfiguracaoArmazenamento />
-                              </PageWrapper>
-                            }
-                          />
-                          <Route
-                            path="prazos"
-                            element={
-                              <PageWrapper>
-                                <ConfiguracoesPrazosPage />
-                              </PageWrapper>
-                            }
-                          />
-                          <Route
-                            path="widget-conversacao"
-                            element={
-                              <PageWrapper>
-                                <EnhancedRouteGuard requireAdmin>
+                        <Route
+                          path="configuracoes-prazos"
+                          element={
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <ConfiguracoesPrazosPage />
+                                </PageWrapper>
+                              }
+                            />
+                          }
+                        />
+                        <Route
+                          path="configuracoes/widget-conversacao"
+                          element={
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
                                   <WidgetConversacao />
-                                </EnhancedRouteGuard>
-                              </PageWrapper>
-                            }
-                          />
-                        </Route>
+                                </PageWrapper>
+                              }
+                            />
+                          }
+                        />
 
-                        {/* Development/Test Routes */}
+                        {/* Test Routes */}
                         <Route
-                          path="cliente-detalhes-test"
+                          path="teste-cliente-detalhes"
                           element={
-                            <PageWrapper>
-                              <ClienteDetalhesTest />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <ClienteDetalhesTest />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="teste-configuracao-storage"
                           element={
-                            <PageWrapper>
-                              <TesteConfiguracaoStorage />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <TesteConfiguracaoStorage />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
                         <Route
                           path="theme-test"
                           element={
-                            <PageWrapper>
-                              <ThemeTestPage />
-                            </PageWrapper>
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <ThemeTestPage />
+                                </PageWrapper>
+                              }
+                            />
                           }
                         />
 
-                        {/* Legacy route for backward compatibility */}
+                        {/* Mobile Specific Routes */}
                         <Route
-                          path="publicacoes-example"
-                          element={<Navigate to="/publicacoes" replace />}
+                          path="mobile/dashboard"
+                          element={
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <MobileDashboard />
+                                </PageWrapper>
+                              }
+                            />
+                          }
+                        />
+                        <Route
+                          path="mobile/crm"
+                          element={
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <MobileCRM />
+                                </PageWrapper>
+                              }
+                            />
+                          }
+                        />
+                        <Route
+                          path="mobile/admin"
+                          element={
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <EnhancedRouteGuard requireAdmin>
+                                    <MobileAdminDashboard />
+                                  </EnhancedRouteGuard>
+                                </PageWrapper>
+                              }
+                            />
+                          }
+                        />
+
+                        {/* 404 Route */}
+                        <Route
+                          path="*"
+                          element={
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <EnhancedNotFound />
+                                </PageWrapper>
+                              }
+                            />
+                          }
                         />
                       </Route>
-
-                      {/* Catch-all route for 404 */}
-                      <Route path="*" element={<EnhancedNotFound />} />
                     </Routes>
                   </BrowserRouter>
                 </TooltipProvider>
