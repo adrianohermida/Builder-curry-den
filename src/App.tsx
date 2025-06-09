@@ -849,6 +849,18 @@ const App = () => (
                           }
                         />
                         <Route
+                          path="agenda-integrada"
+                          element={
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <AgendaJuridica />
+                                </PageWrapper>
+                              }
+                            />
+                          }
+                        />
+                        <Route
                           path="theme-test"
                           element={
                             <SafeRoute
