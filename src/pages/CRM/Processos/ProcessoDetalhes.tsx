@@ -328,54 +328,50 @@ export default function ProcessoDetalhes() {
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {processo.assunto}
                   </p>
+                </nav>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Badge className={getStatusColor(processo.status)}>
+                  {processo.status}
+                </Badge>
+
+                <div className={`flex items-center gap-1 ${getRiscoColor(processo.risco)}`}>
+                  {getRiscoIcon(processo.risco)}
+                  <span className="text-sm font-medium capitalize">{processo.risco}</span>
                 </div>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setShowEditForm(true)}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Editar Processo
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Download className="h-4 w-4 mr-2" />
+                      Exportar PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Compartilhar
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                      <Bell className="h-4 w-4 mr-2" />
+                      Configurar Alertas
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-red-600">
+                      <X className="h-4 w-4 mr-2" />
+                      Arquivar Processo
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Badge className={getStatusColor(processo.status)}>
-                {processo.status}
-              </Badge>
-
-              <div
-                className={`flex items-center gap-1 ${getRiscoColor(processo.risco)}`}
-              >
-                {getRiscoIcon(processo.risco)}
-                <span className="text-sm font-medium capitalize">
-                  {processo.risco}
-                </span>
-              </div>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setShowEditForm(true)}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar Processo
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Download className="h-4 w-4 mr-2" />
-                    Exportar PDF
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Compartilhar
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Bell className="h-4 w-4 mr-2" />
-                    Configurar Alertas
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="text-red-600">
-                    <X className="h-4 w-4 mr-2" />
-                    Arquivar Processo
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           </div>
         </div>
