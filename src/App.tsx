@@ -41,6 +41,7 @@ const CompleteResponsiveDashboard = lazy(
 const DashboardExecutivo = lazy(() => import("./pages/DashboardExecutivo"));
 const CRM = lazy(() => import("./pages/CRM"));
 const CRMEnhanced = lazy(() => import("./pages/CRMEnhanced"));
+const CRMModerno = lazy(() => import("./pages/CRM"));
 const Tickets = lazy(() => import("./pages/Tickets"));
 const AtendimentoEnhanced = lazy(() => import("./pages/AtendimentoEnhanced"));
 const Calendar = lazy(() => import("./pages/Calendar"));
