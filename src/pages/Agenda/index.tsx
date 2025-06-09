@@ -63,7 +63,6 @@ import {
   AlertCircle,
   Wifi,
   WifiOff,
-  TeamIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -101,59 +100,80 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Calendar } from "@/components/ui/calendar";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import {
+  TooltipProvider,
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Calendar } from "@/components/ui/calendar";
-import { Progress } from "@/components/ui/progress";
-import { usePermissions } from "@/hooks/usePermissions";
-import {
-  useAuditSystem,
-  AUDIT_ACTIONS,
-  AUDIT_MODULES,
-} from "@/hooks/useAuditSystem";
-import { useTarefaIntegration } from "@/hooks/useTarefaIntegration";
 import { toast } from "sonner";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useAuditSystem } from "@/hooks/useAuditSystem";
+import { useTarefaIntegration } from "@/hooks/useTarefaIntegration";
 import {
   format,
+  parseISO,
+  isPast,
   addDays,
   startOfWeek,
   endOfWeek,
   startOfMonth,
   endOfMonth,
-  addMonths,
-  isSameDay,
-  parseISO,
-  isToday,
-  isPast,
-  isFuture,
-  startOfDay,
-  endOfDay,
-  addWeeks,
-  subWeeks,
-  subMonths,
-  differenceInMinutes,
-  differenceInHours,
-  differenceInDays,
   isWithinInterval,
-  startOfHour,
-  endOfHour,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-// Tipos para agenda
-export interface Appointment {
+// Interfaces
+interface TeamMember {
+  id: string;
+  nome: string;
+  cargo: string;
+  departamento: string;
+  ativo: boolean;
+  cor: string;
+  avatar?: string;
+}
+
+interface Cliente {
+  id: string;
+  nome: string;
+  documento: string;
+  telefone: string;
+  email: string;
+}
+
+interface Local {
+  nome: string;
+  endereco: string;
+  sala?: string;
+  tipo: "presencial" | "virtual" | "hibrido";
+  link_virtual?: string;
+}
+
+interface Participante {
+  id: string;
+  nome: string;
+  email: string;
+  tipo: "cliente" | "advogado" | "terceiro";
+  confirmado: boolean;
+  obrigatorio: boolean;
+}
+
+interface Lembrete {
+  tipo: "email" | "sms" | "push";
+  antecedencia: number; // em minutos
+  ativo: boolean;
+}
+
+interface Appointment {
   id: string;
   titulo: string;
   descricao?: string;
@@ -176,124 +196,39 @@ export interface Appointment {
     | "adiado"
     | "concluido";
   prioridade: "baixa" | "media" | "alta" | "urgente" | "critica";
-
-  // Localização e acesso
-  local?: {
-    nome: string;
-    endereco?: string;
-    sala?: string;
-    tipo: "presencial" | "online" | "hibrido";
-    link?: string;
-  };
-
-  // Participantes
-  participantes: Array<{
-    id: string;
-    nome: string;
-    email?: string;
-    telefone?: string;
-    tipo: "cliente" | "advogado" | "interno" | "externo";
-    confirmado: boolean;
-    obrigatorio: boolean;
-    avatar?: string;
-  }>;
-
-  // Cliente relacionado (interno ao sistema)
-  cliente?: {
-    id: string;
-    nome: string;
-    avatar?: string;
-    documento?: string;
-    telefone?: string;
-    email?: string;
-  };
-
-  // Responsável
-  responsavel: {
-    id: string;
-    nome: string;
-    avatar?: string;
-    cargo?: string;
-    departamento?: string;
-  };
-
-  // Sistema de notificações
-  lembretes: Array<{
-    tipo: "email" | "sms" | "push" | "whatsapp";
-    antecedencia: number; // em minutos
-    ativo: boolean;
-  }>;
-
-  // Anexos e documentos
-  anexos: Array<{
-    id: string;
-    nome: string;
-    url: string;
-    tipo: string;
-    tamanho?: number;
-  }>;
-
-  // Recorrência
-  recorrencia?: {
-    tipo: "diaria" | "semanal" | "mensal" | "anual";
-    intervalo: number;
-    dias_semana?: number[];
-    data_fim?: string;
-  };
-
-  // Configurações de acesso
-  publico: boolean;
-  link_publico?: string;
-  equipe_visivel: boolean;
-  organizacao_visivel: boolean;
-
-  // Sistema
-  observacoes?: string;
-  tags?: string[];
-  cor?: string;
-  criado: string;
-  atualizado: string;
-  criado_por: string;
-}
-
-interface AgendaView {
-  type: "month" | "week" | "day" | "list" | "timeline" | "team";
-  date: Date;
-}
-
-interface TeamMember {
-  id: string;
-  nome: string;
-  cargo: string;
-  departamento: string;
-  avatar?: string;
-  ativo: boolean;
+  local?: Local;
+  cliente?: Cliente;
+  participantes: Participante[];
+  responsavel: TeamMember;
+  lembretes: Lembrete[];
+  anexos: any[];
+  tags: string[];
   cor: string;
+  publico?: boolean;
+  link_publico?: string;
+  observacoes?: string;
+  processo_id?: string;
+  categoria?: string;
+  valor?: number;
+  forma_cobranca?: "fixo" | "por_hora" | "gratuito";
+  tempo_estimado?: number; // em minutos
+  notificacoes_enviadas?: boolean;
+  criado_em: string;
+  criado_por: string;
+  atualizado_em?: string;
+  sincronizado_google?: boolean;
 }
 
 interface GoogleCalendarConfig {
   conectado: boolean;
-  email?: string;
-  ultima_sincronizacao?: string;
   sincronizacao_automatica: boolean;
-  calendario_padrao?: string;
-  calendarios_disponiveis: Array<{
-    id: string;
-    nome: string;
-    cor: string;
-    principal: boolean;
-  }>;
+  calendarios_disponiveis: string[];
 }
 
 interface CalendlyConfig {
   ativo: boolean;
   link_publico: string;
-  tipos_eventos: Array<{
-    id: string;
-    nome: string;
-    duracao: number;
-    disponivel: boolean;
-  }>;
+  tipos_eventos: string[];
   horarios_disponibilidade: {
     segunda: { inicio: string; fim: string; ativo: boolean };
     terca: { inicio: string; fim: string; ativo: boolean };
@@ -303,6 +238,11 @@ interface CalendlyConfig {
     sabado: { inicio: string; fim: string; ativo: boolean };
     domingo: { inicio: string; fim: string; ativo: boolean };
   };
+}
+
+interface AgendaView {
+  type: "month" | "week" | "day" | "list" | "team";
+  date: Date;
 }
 
 export default function AgendaJuridica() {
@@ -588,6 +528,8 @@ export default function AgendaJuridica() {
             nome: "Dr. Pedro Costa",
             cargo: "Advogado Sênior",
             departamento: "Trabalhista",
+            ativo: true,
+            cor: "#3B82F6",
           },
           lembretes: [
             { tipo: "email", antecedencia: 1440, ativo: true },
@@ -598,184 +540,111 @@ export default function AgendaJuridica() {
           tags: ["trabalhista", "conciliação", "urgente"],
           cor: "#3B82F6",
           publico: false,
-          equipe_visivel: true,
-          organizacao_visivel: true,
-          observacoes: "Audiência obrigatória - preparar documentos",
-          criado: "2024-01-20T10:00:00Z",
-          atualizado: "2024-01-22T14:30:00Z",
-          criado_por: "tm-001",
+          processo_id: "proc-001",
+          categoria: "trabalhista",
+          valor: 500,
+          forma_cobranca: "fixo",
+          tempo_estimado: 90,
+          notificacoes_enviadas: true,
+          criado_em: "2024-01-20T10:00:00Z",
+          criado_por: "user-001",
+          sincronizado_google: false,
         },
         {
           id: "apt-002",
-          titulo: "Reunião de Planejamento - Equipe",
-          descricao: "Reunião mensal de planejamento estratégico",
-          dataInicio: "2024-01-26T09:00:00Z",
-          dataFim: "2024-01-26T10:30:00Z",
+          titulo: "Reunião de Estratégia - Processo ABC",
+          descricao: "Reunião para definir estratégia processual",
+          dataInicio: "2024-01-26T10:00:00Z",
+          dataFim: "2024-01-26T11:30:00Z",
           diaInteiro: false,
           tipo: "reuniao",
           status: "agendado",
           prioridade: "media",
           local: {
-            nome: "Sala de Reuniões - Escritório",
+            nome: "Escritório Lawdesk",
             endereco: "Av. Paulista, 1000 - Bela Vista, São Paulo - SP",
+            sala: "Sala de Reuniões 2",
             tipo: "presencial",
           },
           participantes: [
             {
               id: "part-003",
               nome: "Dr. Pedro Costa",
-              tipo: "interno",
+              email: "pedro.costa@lawdesk.com",
+              tipo: "advogado",
               confirmado: true,
               obrigatorio: true,
             },
             {
               id: "part-004",
               nome: "Dra. Ana Lima",
-              tipo: "interno",
-              confirmado: true,
-              obrigatorio: true,
-            },
-            {
-              id: "part-005",
-              nome: "Dr. Luis Santos",
-              tipo: "interno",
-              confirmado: false,
-              obrigatorio: true,
-            },
-          ],
-          responsavel: {
-            id: "tm-002",
-            nome: "Dra. Ana Lima",
-            cargo: "Sócia",
-            departamento: "Administração",
-          },
-          lembretes: [
-            { tipo: "email", antecedencia: 1440, ativo: true },
-            { tipo: "push", antecedencia: 60, ativo: true },
-          ],
-          anexos: [],
-          tags: ["equipe", "planejamento", "mensal"],
-          cor: "#10B981",
-          publico: false,
-          equipe_visivel: true,
-          organizacao_visivel: true,
-          observacoes: "Reunião de alinhamento mensal da equipe",
-          criado: "2024-01-22T08:00:00Z",
-          atualizado: "2024-01-22T08:00:00Z",
-          criado_por: "tm-002",
-        },
-        {
-          id: "apt-003",
-          titulo: "Consulta Jurídica - Link Público",
-          descricao: "Consulta inicial para cliente potencial",
-          dataInicio: "2024-01-24T16:00:00Z",
-          dataFim: "2024-01-24T17:00:00Z",
-          diaInteiro: false,
-          tipo: "consulta",
-          status: "confirmado",
-          prioridade: "media",
-          local: {
-            nome: "Videoconferência",
-            tipo: "online",
-            link: "https://meet.google.com/abc-defg-hij",
-          },
-          participantes: [
-            {
-              id: "part-006",
-              nome: "Cliente Potencial",
-              email: "cliente@exemplo.com",
-              tipo: "externo",
-              confirmado: true,
-              obrigatorio: true,
-            },
-            {
-              id: "part-007",
-              nome: "Dr. Luis Santos",
+              email: "ana.lima@lawdesk.com",
               tipo: "advogado",
-              confirmado: true,
-              obrigatorio: true,
+              confirmado: false,
+              obrigatorio: false,
             },
           ],
           responsavel: {
-            id: "tm-003",
-            nome: "Dr. Luis Santos",
-            cargo: "Advogado Júnior",
-            departamento: "Atendimento",
+            id: "tm-001",
+            nome: "Dr. Pedro Costa",
+            cargo: "Advogado Sênior",
+            departamento: "Trabalhista",
+            ativo: true,
+            cor: "#3B82F6",
           },
           lembretes: [
             { tipo: "email", antecedencia: 60, ativo: true },
-            { tipo: "whatsapp", antecedencia: 30, ativo: true },
+            { tipo: "push", antecedencia: 15, ativo: true },
           ],
           anexos: [],
-          tags: ["consulta", "primeiro_contato", "online"],
-          cor: "#06B6D4",
-          publico: true,
-          link_publico: "https://agenda.lawdesk.com/consulta/luis-santos",
-          equipe_visivel: false,
-          organizacao_visivel: false,
-          observacoes: "Consulta inicial - agendar via link público",
-          criado: "2024-01-22T11:00:00Z",
-          atualizado: "2024-01-22T11:00:00Z",
-          criado_por: "tm-003",
+          tags: ["estratégia", "interno"],
+          cor: "#10B981",
+          publico: false,
+          processo_id: "proc-002",
+          categoria: "empresarial",
+          forma_cobranca: "gratuito",
+          tempo_estimado: 90,
+          notificacoes_enviadas: false,
+          criado_em: "2024-01-22T14:30:00Z",
+          criado_por: "user-001",
+          sincronizado_google: false,
         },
       ];
 
       setAppointments(mockAppointments);
       setFilteredAppointments(mockAppointments);
       setIsLoading(false);
-
-      // Log da ação
-      logAction(AUDIT_ACTIONS.READ, AUDIT_MODULES.CALENDAR, {
-        appointments_loaded: mockAppointments.length,
-      });
     };
 
     loadData();
-  }, [logAction]);
+  }, []);
 
-  // Verificar permissões
-  if (!hasPermission("agenda", "read")) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <AlertTriangle className="h-12 w-12 text-orange-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Acesso Negado</h3>
-              <p className="text-muted-foreground">
-                Você não tem permissão para acessar a agenda jurídica.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Filtrar compromissos
+  // Filtrar appointments
   useEffect(() => {
     let filtered = appointments;
 
+    // Filtro por termo de busca
     if (searchTerm) {
       filtered = filtered.filter(
         (apt) =>
           apt.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
           apt.descricao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           apt.cliente?.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          apt.tags?.some((tag) =>
-            tag.toLowerCase().includes(searchTerm.toLowerCase()),
-          ),
+          apt.responsavel.nome.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
+    // Filtro por tipo
     if (filterType !== "all") {
       filtered = filtered.filter((apt) => apt.tipo === filterType);
     }
 
+    // Filtro por status
     if (filterStatus !== "all") {
       filtered = filtered.filter((apt) => apt.status === filterStatus);
     }
 
+    // Filtro por responsável
     if (filterResponsavel !== "all") {
       filtered = filtered.filter(
         (apt) => apt.responsavel.id === filterResponsavel,
@@ -783,7 +652,7 @@ export default function AgendaJuridica() {
     }
 
     // Filtro por membros da equipe selecionados
-    if (selectedTeamMembers.length > 0) {
+    if (selectedTeamMembers.length > 0 && view.type === "team") {
       filtered = filtered.filter((apt) =>
         selectedTeamMembers.includes(apt.responsavel.id),
       );
@@ -797,34 +666,35 @@ export default function AgendaJuridica() {
     filterStatus,
     filterResponsavel,
     selectedTeamMembers,
+    view.type,
   ]);
 
-  // Navegação de datas
+  // Funções de navegação
   const navigateDate = (direction: "prev" | "next") => {
-    const newDate = new Date(view.date);
+    const currentDate = view.date;
+    let newDate: Date;
 
     switch (view.type) {
       case "month":
-        if (direction === "prev") {
-          newDate.setMonth(newDate.getMonth() - 1);
-        } else {
-          newDate.setMonth(newDate.getMonth() + 1);
-        }
+        newDate =
+          direction === "next"
+            ? addDays(currentDate, 30)
+            : addDays(currentDate, -30);
         break;
       case "week":
-        if (direction === "prev") {
-          newDate.setDate(newDate.getDate() - 7);
-        } else {
-          newDate.setDate(newDate.getDate() + 7);
-        }
+        newDate =
+          direction === "next"
+            ? addDays(currentDate, 7)
+            : addDays(currentDate, -7);
         break;
       case "day":
-        if (direction === "prev") {
-          newDate.setDate(newDate.getDate() - 1);
-        } else {
-          newDate.setDate(newDate.getDate() + 1);
-        }
+        newDate =
+          direction === "next"
+            ? addDays(currentDate, 1)
+            : addDays(currentDate, -1);
         break;
+      default:
+        newDate = currentDate;
     }
 
     setView({ ...view, date: newDate });
@@ -835,18 +705,18 @@ export default function AgendaJuridica() {
     setSelectedDate(new Date());
   };
 
-  // Formatação de título da visualização
   const getViewTitle = () => {
-    const locale = ptBR;
+    const date = view.date;
+
     switch (view.type) {
       case "month":
-        return format(view.date, "MMMM yyyy", { locale });
+        return format(date, "MMMM yyyy", { locale: ptBR });
       case "week":
-        const weekStart = startOfWeek(view.date, { weekStartsOn: 0 });
-        const weekEnd = endOfWeek(view.date, { weekStartsOn: 0 });
-        return `${format(weekStart, "dd MMM", { locale })} - ${format(weekEnd, "dd MMM yyyy", { locale })}`;
+        const weekStart = startOfWeek(date, { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
+        return `${format(weekStart, "dd MMM", { locale: ptBR })} - ${format(weekEnd, "dd MMM yyyy", { locale: ptBR })}`;
       case "day":
-        return format(view.date, "dd 'de' MMMM yyyy", { locale });
+        return format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
       case "list":
         return "Lista de Compromissos";
       case "team":
@@ -856,47 +726,11 @@ export default function AgendaJuridica() {
     }
   };
 
-  // Conectar Google Calendar
-  const handleGoogleConnect = async () => {
-    try {
-      // Simular processo de autenticação OAuth
-      setIsLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      setGoogleConfig({
-        conectado: true,
-        email: "usuario@lawdesk.com",
-        ultima_sincronizacao: new Date().toISOString(),
-        sincronizacao_automatica: true,
-        calendarios_disponiveis: [
-          {
-            id: "primary",
-            nome: "Agenda Principal",
-            cor: "#3B82F6",
-            principal: true,
-          },
-          {
-            id: "work",
-            nome: "Trabalho",
-            cor: "#10B981",
-            principal: false,
-          },
-        ],
-      });
-
-      toast.success("Google Calendar conectado com sucesso!");
-      setIsLoading(false);
-    } catch (error) {
-      toast.error("Erro ao conectar com Google Calendar");
-      setIsLoading(false);
-    }
-  };
-
-  // Gerar link público
+  // Função para gerar link público
   const generatePublicLink = () => {
-    const userId = user?.id || "usuario";
     const userName =
-      user?.name?.toLowerCase().replace(/\s+/g, "-") || "advogado";
+      user?.name?.toLowerCase().replace(/\s+/g, "-") || "usuario";
+    const userId = user?.id || "001";
     const publicLink = `https://agenda.lawdesk.com/${userName}-${userId}`;
 
     setCalendlyConfig((prev) => ({
@@ -1009,9 +843,28 @@ export default function AgendaJuridica() {
     </Sheet>
   );
 
+  // Verificar permissões
+  if (!hasPermission("agenda", "read")) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <Card className="max-w-md mx-auto">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-destructive" />
+              <h3 className="text-lg font-semibold mb-2">Acesso Negado</h3>
+              <p className="text-muted-foreground">
+                Você não tem permissão para acessar a agenda jurídica.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center">
           <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
           <h3 className="text-lg font-semibold mb-2">Carregando Agenda</h3>
@@ -1023,10 +876,10 @@ export default function AgendaJuridica() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gray-50/50">
+      <div className="agenda-container">
         <MobileSidebar />
 
-        <div className={`${isMobile ? "p-4" : "p-6"} space-y-6`}>
+        <div className={`agenda-mobile lg:agenda-desktop space-y-6`}>
           {/* Google Calendar Alert */}
           {!googleConfig.conectado && <GoogleCalendarAlert />}
 
@@ -1100,7 +953,7 @@ export default function AgendaJuridica() {
           </div>
 
           {/* Filters and Controls */}
-          <Card>
+          <Card className="agenda-card">
             <CardContent className={`${isMobile ? "p-4" : "pt-6"}`}>
               <div className="flex flex-col gap-4">
                 {/* Navigation */}
@@ -1138,7 +991,7 @@ export default function AgendaJuridica() {
                       setView({ ...view, type: value as AgendaView["type"] })
                     }
                   >
-                    <TabsList className={isMobile ? "grid-cols-3" : ""}>
+                    <TabsList className={isMobile ? "grid-cols-4" : ""}>
                       {!isMobile && (
                         <TabsTrigger value="month">Mês</TabsTrigger>
                       )}
@@ -1215,69 +1068,69 @@ export default function AgendaJuridica() {
           </Card>
 
           {/* Main Content */}
-          <div
-            className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-4"} gap-6`}
-          >
+          <div className="agenda-grid">
             {/* Desktop Mini Calendar */}
-            {!isMobile && (
-              <div className="lg:col-span-1">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Calendário</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      className="rounded-md border-0"
-                    />
+            <div className="agenda-sidebar">
+              <Card className="agenda-card">
+                <CardHeader>
+                  <CardTitle className="text-sm">Calendário</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    className="rounded-md border-0"
+                  />
 
-                    <Separator className="my-4" />
+                  <Separator className="my-4" />
 
-                    {/* Status de sincronização */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Google Calendar</span>
-                        <div className="flex items-center gap-1">
-                          {googleConfig.conectado ? (
-                            <Wifi className="h-3 w-3 text-green-600" />
-                          ) : (
-                            <WifiOff className="h-3 w-3 text-red-600" />
-                          )}
-                          <span
-                            className={`text-xs ${googleConfig.conectado ? "text-green-600" : "text-red-600"}`}
-                          >
-                            {googleConfig.conectado
-                              ? "Conectado"
-                              : "Desconectado"}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Link Público</span>
-                        <div className="flex items-center gap-1">
-                          {calendlyConfig.ativo ? (
-                            <Globe className="h-3 w-3 text-green-600" />
-                          ) : (
-                            <Globe className="h-3 w-3 text-gray-400" />
-                          )}
-                          <span
-                            className={`text-xs ${calendlyConfig.ativo ? "text-green-600" : "text-gray-500"}`}
-                          >
-                            {calendlyConfig.ativo ? "Ativo" : "Inativo"}
-                          </span>
-                        </div>
+                  {/* Status de sincronização */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        Google Calendar
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {googleConfig.conectado ? (
+                          <Wifi className="h-3 w-3 text-green-600" />
+                        ) : (
+                          <WifiOff className="h-3 w-3 text-red-600" />
+                        )}
+                        <span
+                          className={`text-xs ${googleConfig.conectado ? "text-green-600" : "text-red-600"}`}
+                        >
+                          {googleConfig.conectado
+                            ? "Conectado"
+                            : "Desconectado"}
+                        </span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        Link Público
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {calendlyConfig.ativo ? (
+                          <Globe className="h-3 w-3 text-green-600" />
+                        ) : (
+                          <Globe className="h-3 w-3 text-gray-400" />
+                        )}
+                        <span
+                          className={`text-xs ${calendlyConfig.ativo ? "text-green-600" : "text-muted-foreground"}`}
+                        >
+                          {calendlyConfig.ativo ? "Ativo" : "Inativo"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
             {/* Main View */}
-            <div className={isMobile ? "col-span-1" : "lg:col-span-3"}>
+            <div className="col-span-1">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={view.type}
@@ -1286,194 +1139,9 @@ export default function AgendaJuridica() {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {view.type === "team" ? (
-                    /* Visão da Equipe */
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="flex items-center gap-2">
-                            <Users className="h-5 w-5" />
-                            Agenda da Equipe
-                          </CardTitle>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShowTeamConfig(true)}
-                          >
-                            <Settings className="h-4 w-4 mr-2" />
-                            Configurar
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        {/* Membros da equipe */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                          {teamMembers.map((member) => {
-                            const memberAppointments =
-                              filteredAppointments.filter(
-                                (apt) => apt.responsavel.id === member.id,
-                              );
-
-                            return (
-                              <Card
-                                key={member.id}
-                                className={`cursor-pointer transition-all hover:shadow-md ${
-                                  selectedTeamMembers.includes(member.id)
-                                    ? "ring-2 ring-primary"
-                                    : ""
-                                }`}
-                                onClick={() => {
-                                  setSelectedTeamMembers((prev) =>
-                                    prev.includes(member.id)
-                                      ? prev.filter((id) => id !== member.id)
-                                      : [...prev, member.id],
-                                  );
-                                }}
-                              >
-                                <CardContent className="p-4">
-                                  <div className="flex items-center gap-3">
-                                    <Avatar className="h-10 w-10">
-                                      <AvatarImage src={member.avatar} />
-                                      <AvatarFallback
-                                        style={{ backgroundColor: member.cor }}
-                                        className="text-white"
-                                      >
-                                        {member.nome.charAt(0)}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1">
-                                      <h4 className="font-medium text-sm">
-                                        {member.nome}
-                                      </h4>
-                                      <p className="text-xs text-muted-foreground">
-                                        {member.cargo}
-                                      </p>
-                                      <p className="text-xs text-muted-foreground">
-                                        {memberAppointments.length} compromissos
-                                      </p>
-                                    </div>
-                                    <div
-                                      className="w-3 h-3 rounded-full"
-                                      style={{ backgroundColor: member.cor }}
-                                    />
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            );
-                          })}
-                        </div>
-
-                        {/* Lista de compromissos da equipe */}
-                        <div className="space-y-4">
-                          {filteredAppointments.length === 0 ? (
-                            <div className="text-center py-8">
-                              <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                              <p className="text-muted-foreground">
-                                Nenhum compromisso encontrado para os membros
-                                selecionados
-                              </p>
-                            </div>
-                          ) : (
-                            filteredAppointments
-                              .sort(
-                                (a, b) =>
-                                  new Date(a.dataInicio).getTime() -
-                                  new Date(b.dataInicio).getTime(),
-                              )
-                              .map((appointment) => {
-                                const member = teamMembers.find(
-                                  (m) => m.id === appointment.responsavel.id,
-                                );
-                                const IconComponent =
-                                  typeConfig[appointment.tipo]?.icon ||
-                                  CalendarIcon;
-
-                                return (
-                                  <motion.div
-                                    key={appointment.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="p-4 border rounded-lg hover:shadow-sm transition-all cursor-pointer"
-                                    style={{
-                                      borderLeft: `4px solid ${member?.cor || "#gray"}`,
-                                    }}
-                                    onClick={() => {
-                                      setSelectedAppointment(appointment);
-                                      setShowViewDialog(true);
-                                    }}
-                                  >
-                                    <div className="flex items-start justify-between">
-                                      <div className="flex items-start gap-3 flex-1">
-                                        <div
-                                          className={`p-2 rounded-lg ${typeConfig[appointment.tipo]?.color}`}
-                                        >
-                                          <IconComponent className="h-4 w-4 text-white" />
-                                        </div>
-                                        <div className="flex-1">
-                                          <h4 className="font-semibold mb-1">
-                                            {appointment.titulo}
-                                          </h4>
-                                          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
-                                            <div className="flex items-center gap-1">
-                                              <Clock className="h-3 w-3" />
-                                              {format(
-                                                parseISO(
-                                                  appointment.dataInicio,
-                                                ),
-                                                "dd/MM HH:mm",
-                                                { locale: ptBR },
-                                              )}
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                              <User className="h-3 w-3" />
-                                              {appointment.responsavel.nome}
-                                            </div>
-                                            {appointment.local && (
-                                              <div className="flex items-center gap-1">
-                                                <MapPin className="h-3 w-3" />
-                                                {appointment.local.nome}
-                                              </div>
-                                            )}
-                                          </div>
-                                          <div className="flex items-center gap-2">
-                                            <Badge
-                                              className={
-                                                statusConfig[appointment.status]
-                                                  ?.color
-                                              }
-                                            >
-                                              {
-                                                statusConfig[appointment.status]
-                                                  ?.label
-                                              }
-                                            </Badge>
-                                            <Badge
-                                              className={
-                                                priorityConfig[
-                                                  appointment.prioridade
-                                                ]?.color
-                                              }
-                                            >
-                                              {
-                                                priorityConfig[
-                                                  appointment.prioridade
-                                                ]?.label
-                                              }
-                                            </Badge>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </motion.div>
-                                );
-                              })
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ) : view.type === "list" ? (
+                  {view.type === "list" ? (
                     /* Lista de Compromissos */
-                    <Card>
+                    <Card className="agenda-card">
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <CardTitle>
@@ -1533,7 +1201,7 @@ export default function AgendaJuridica() {
                                       } ${
                                         isOverdue
                                           ? "bg-red-50 border-red-200"
-                                          : "bg-white"
+                                          : "bg-background"
                                       }`}
                                       onClick={() => {
                                         setSelectedAppointment(appointment);
@@ -1605,7 +1273,6 @@ export default function AgendaJuridica() {
                                                 </div>
                                               )}
                                             </div>
-
                                             <div className="flex items-center gap-2">
                                               <Badge
                                                 className={
@@ -1636,28 +1303,54 @@ export default function AgendaJuridica() {
                                             </div>
                                           </div>
                                         </div>
-
-                                        <div className="flex flex-col items-end gap-2 ml-4">
-                                          <Avatar className="h-8 w-8">
-                                            <AvatarImage
-                                              src={
-                                                appointment.responsavel.avatar
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-8 w-8 p-0"
+                                              onClick={(e) =>
+                                                e.stopPropagation()
                                               }
-                                            />
-                                            <AvatarFallback>
-                                              {appointment.responsavel.nome
-                                                .charAt(0)
-                                                .toUpperCase()}
-                                            </AvatarFallback>
-                                          </Avatar>
-                                          {appointment.participantes.length >
-                                            0 && (
-                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                              <Users className="h-3 w-3" />
-                                              {appointment.participantes.length}
-                                            </div>
-                                          )}
-                                        </div>
+                                            >
+                                              <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end">
+                                            <DropdownMenuItem
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedAppointment(
+                                                  appointment,
+                                                );
+                                                setShowViewDialog(true);
+                                              }}
+                                            >
+                                              <Eye className="h-4 w-4 mr-2" />
+                                              Visualizar
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                // TODO: Implementar edição
+                                              }}
+                                            >
+                                              <Edit className="h-4 w-4 mr-2" />
+                                              Editar
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                // TODO: Implementar exclusão
+                                              }}
+                                              className="text-destructive"
+                                            >
+                                              <Trash2 className="h-4 w-4 mr-2" />
+                                              Excluir
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
                                       </div>
                                     </motion.div>
                                   );
@@ -1668,25 +1361,23 @@ export default function AgendaJuridica() {
                       </CardContent>
                     </Card>
                   ) : (
-                    /* Other Views */
-                    <Card>
-                      <CardContent className="pt-6">
-                        <div className="text-center py-24">
+                    <Card className="agenda-card">
+                      <CardContent className="p-8">
+                        <div className="text-center">
                           <CalendarIcon className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                          <p className="text-muted-foreground mb-2">
-                            Visualização "{getViewTitle()}" em desenvolvimento
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Use a visualização "Lista" ou "Equipe" para ver os
-                            compromissos
+                          <h3 className="text-lg font-semibold mb-2">
+                            Visualização em Desenvolvimento
+                          </h3>
+                          <p className="text-muted-foreground mb-4">
+                            Esta visualização ainda está sendo desenvolvida. Use
+                            a visualização em lista por enquanto.
                           </p>
                           <Button
                             onClick={() => setView({ ...view, type: "list" })}
                             variant="outline"
-                            className="mt-4"
                           >
                             <List className="h-4 w-4 mr-2" />
-                            Ir para Lista
+                            Ver Lista
                           </Button>
                         </div>
                       </CardContent>
@@ -1697,605 +1388,6 @@ export default function AgendaJuridica() {
             </div>
           </div>
         </div>
-
-        {/* Dialog de Configuração Google Calendar */}
-        <Dialog open={showGoogleConfig} onOpenChange={setShowGoogleConfig}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Chrome className="h-5 w-5 text-blue-600" />
-                Configuração Google Calendar
-              </DialogTitle>
-              <DialogDescription>
-                Configure a integração com sua conta do Google Calendar
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-6">
-              {!googleConfig.conectado ? (
-                <div className="text-center py-8">
-                  <Chrome className="h-16 w-16 mx-auto mb-4 text-blue-600" />
-                  <h3 className="text-lg font-semibold mb-2">
-                    Conectar Google Calendar
-                  </h3>
-                  <p className="text-muted-foreground mb-6">
-                    Sincronize automaticamente seus compromissos com o Google
-                    Calendar para manter tudo organizado.
-                  </p>
-                  <Button onClick={handleGoogleConnect} className="bg-blue-600">
-                    <Chrome className="h-4 w-4 mr-2" />
-                    Conectar com Google
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <Alert className="border-green-200 bg-green-50">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <AlertTitle className="text-green-800">
-                      Conectado com sucesso!
-                    </AlertTitle>
-                    <AlertDescription className="text-green-700">
-                      Conta: {googleConfig.email}
-                      <br />
-                      Última sincronização:{" "}
-                      {googleConfig.ultima_sincronizacao &&
-                        format(
-                          parseISO(googleConfig.ultima_sincronizacao),
-                          "dd/MM/yyyy HH:mm",
-                          { locale: ptBR },
-                        )}
-                    </AlertDescription>
-                  </Alert>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Sincronização Automática</Label>
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          checked={googleConfig.sincronizacao_automatica}
-                          onCheckedChange={(checked) =>
-                            setGoogleConfig((prev) => ({
-                              ...prev,
-                              sincronizacao_automatica: checked,
-                            }))
-                          }
-                        />
-                        <span className="text-sm text-muted-foreground">
-                          Sincronizar automaticamente a cada 15 minutos
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Calendário Padrão</Label>
-                      <Select
-                        value={googleConfig.calendario_padrao || "primary"}
-                        onValueChange={(value) =>
-                          setGoogleConfig((prev) => ({
-                            ...prev,
-                            calendario_padrao: value,
-                          }))
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {googleConfig.calendarios_disponiveis.map((cal) => (
-                            <SelectItem key={cal.id} value={cal.id}>
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className="w-3 h-3 rounded-full"
-                                  style={{ backgroundColor: cal.cor }}
-                                />
-                                {cal.nome}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label>Calendários Disponíveis</Label>
-                    {googleConfig.calendarios_disponiveis.map((calendario) => (
-                      <div
-                        key={calendario.id}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-4 h-4 rounded-full"
-                            style={{ backgroundColor: calendario.cor }}
-                          />
-                          <div>
-                            <div className="font-medium">{calendario.nome}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {calendario.principal
-                                ? "Calendário Principal"
-                                : "Calendário Secundário"}
-                            </div>
-                          </div>
-                        </div>
-                        <Switch defaultChecked />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setShowGoogleConfig(false)}
-              >
-                Fechar
-              </Button>
-              {googleConfig.conectado && <Button>Salvar Configurações</Button>}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Dialog de Link Público */}
-        <Dialog open={showPublicLink} onOpenChange={setShowPublicLink}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Share className="h-5 w-5 text-green-600" />
-                Link Público de Agendamento
-              </DialogTitle>
-              <DialogDescription>
-                Configure seu link público para que clientes possam agendar
-                compromissos diretamente
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-6">
-              {!calendlyConfig.ativo ? (
-                <div className="text-center py-8">
-                  <Share className="h-16 w-16 mx-auto mb-4 text-green-600" />
-                  <h3 className="text-lg font-semibold mb-2">
-                    Ativar Link Público
-                  </h3>
-                  <p className="text-muted-foreground mb-6">
-                    Permita que clientes agendem compromissos com você
-                    diretamente através de um link personalizado.
-                  </p>
-                  <Button onClick={generatePublicLink} className="bg-green-600">
-                    <Share className="h-4 w-4 mr-2" />
-                    Gerar Link Público
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <Alert className="border-green-200 bg-green-50">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <AlertTitle className="text-green-800">
-                      Link Público Ativo
-                    </AlertTitle>
-                    <AlertDescription className="text-green-700">
-                      Seu link de agendamento está ativo e disponível para
-                      compartilhamento.
-                    </AlertDescription>
-                  </Alert>
-
-                  <div className="space-y-2">
-                    <Label>Seu Link de Agendamento</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        value={calendlyConfig.link_publico}
-                        readOnly
-                        className="flex-1"
-                      />
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          navigator.clipboard.writeText(
-                            calendlyConfig.link_publico,
-                          );
-                          toast.success("Link copiado!");
-                        }}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" asChild>
-                        <a
-                          href={calendlyConfig.link_publico}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label>Tipos de Eventos Disponíveis</Label>
-                    <div className="text-center py-4 border-2 border-dashed border-gray-200 rounded-lg">
-                      <p className="text-muted-foreground text-sm">
-                        Configuração de tipos de eventos em desenvolvimento
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label>Horários de Disponibilidade</Label>
-                    <div className="text-center py-4 border-2 border-dashed border-gray-200 rounded-lg">
-                      <p className="text-muted-foreground text-sm">
-                        Configuração de horários em desenvolvimento
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setShowPublicLink(false)}
-              >
-                Fechar
-              </Button>
-              {calendlyConfig.ativo && <Button>Salvar Configurações</Button>}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Dialog de Configuração da Equipe */}
-        <Dialog open={showTeamConfig} onOpenChange={setShowTeamConfig}>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-blue-600" />
-                Configuração da Equipe
-              </DialogTitle>
-              <DialogDescription>
-                Gerencie a visualização e permissões da agenda da equipe
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {teamMembers.map((member) => (
-                  <Card
-                    key={member.id}
-                    className={`${member.ativo ? "ring-2 ring-green-200" : "opacity-50"}`}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={member.avatar} />
-                          <AvatarFallback
-                            style={{ backgroundColor: member.cor }}
-                            className="text-white"
-                          >
-                            {member.nome.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-sm">{member.nome}</h4>
-                          <p className="text-xs text-muted-foreground">
-                            {member.cargo}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {member.departamento}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">
-                            Visível na agenda
-                          </span>
-                          <Switch checked={member.ativo} />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">
-                            Cor
-                          </span>
-                          <div
-                            className="w-6 h-6 rounded-full border-2 border-gray-200"
-                            style={{ backgroundColor: member.cor }}
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              <div className="text-center py-4 border-2 border-dashed border-gray-200 rounded-lg">
-                <UserPlus className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-muted-foreground text-sm mb-2">
-                  Adicionar novos membros
-                </p>
-                <Button variant="outline" size="sm">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Convidar Membro
-                </Button>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setShowTeamConfig(false)}
-              >
-                Fechar
-              </Button>
-              <Button>Salvar Configurações</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Dialog para Criar Compromisso */}
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Plus className="h-5 w-5" />
-                Novo Compromisso
-              </DialogTitle>
-              <DialogDescription>
-                Criar um novo compromisso na agenda
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-6">
-              <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
-                <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-muted-foreground mb-4">
-                  Formulário de criação em desenvolvimento
-                </p>
-                <p className="text-sm text-gray-500">
-                  O formulário de criação de compromissos estará disponível em
-                  breve
-                </p>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setShowCreateDialog(false)}
-              >
-                Fechar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Dialog para Visualizar Compromisso */}
-        <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            {selectedAppointment && (
-              <>
-                <DialogHeader>
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`p-2 rounded-lg ${typeConfig[selectedAppointment.tipo]?.color}`}
-                    >
-                      {(() => {
-                        const IconComponent =
-                          typeConfig[selectedAppointment.tipo]?.icon ||
-                          CalendarIcon;
-                        return <IconComponent className="h-5 w-5 text-white" />;
-                      })()}
-                    </div>
-                    <div>
-                      <DialogTitle className="text-xl">
-                        {selectedAppointment.titulo}
-                      </DialogTitle>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <Badge
-                          className={
-                            statusConfig[selectedAppointment.status]?.color
-                          }
-                        >
-                          {statusConfig[selectedAppointment.status]?.label}
-                        </Badge>
-                        <Badge
-                          className={
-                            priorityConfig[selectedAppointment.prioridade]
-                              ?.color
-                          }
-                        >
-                          {
-                            priorityConfig[selectedAppointment.prioridade]
-                              ?.label
-                          }
-                        </Badge>
-                        <Badge variant="outline">
-                          {typeConfig[selectedAppointment.tipo]?.label}
-                        </Badge>
-                        {selectedAppointment.publico && (
-                          <Badge variant="outline" className="text-green-600">
-                            <Globe className="h-3 w-3 mr-1" />
-                            Público
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </DialogHeader>
-
-                <ScrollArea className="max-h-[60vh]">
-                  <div className="space-y-6 pr-4">
-                    {selectedAppointment.descricao && (
-                      <div>
-                        <h4 className="font-semibold mb-2">Descrição</h4>
-                        <p className="text-muted-foreground">
-                          {selectedAppointment.descricao}
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <h4 className="font-semibold mb-3 flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          Data e Hora
-                        </h4>
-                        <div className="space-y-2">
-                          <div className="font-medium">
-                            {format(
-                              parseISO(selectedAppointment.dataInicio),
-                              "EEEE, dd 'de' MMMM 'de' yyyy",
-                              { locale: ptBR },
-                            )}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {selectedAppointment.diaInteiro ? (
-                              "Dia inteiro"
-                            ) : (
-                              <>
-                                {format(
-                                  parseISO(selectedAppointment.dataInicio),
-                                  "HH:mm",
-                                )}{" "}
-                                -{" "}
-                                {format(
-                                  parseISO(selectedAppointment.dataFim),
-                                  "HH:mm",
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {selectedAppointment.local && (
-                        <div>
-                          <h4 className="font-semibold mb-3 flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            Local
-                          </h4>
-                          <div className="space-y-2">
-                            <div className="font-medium">
-                              {selectedAppointment.local.nome}
-                            </div>
-                            {selectedAppointment.local.endereco && (
-                              <div className="text-sm text-muted-foreground">
-                                {selectedAppointment.local.endereco}
-                              </div>
-                            )}
-                            {selectedAppointment.local.link && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                asChild
-                                className="mt-2"
-                              >
-                                <a
-                                  href={selectedAppointment.local.link}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  <ExternalLink className="h-4 w-4 mr-2" />
-                                  Acessar Link
-                                </a>
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Participantes */}
-                    {selectedAppointment.participantes.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold mb-3 flex items-center gap-2">
-                          <Users className="h-4 w-4" />
-                          Participantes (
-                          {selectedAppointment.participantes.length})
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {selectedAppointment.participantes.map(
-                            (participante) => (
-                              <div
-                                key={participante.id}
-                                className="flex items-center justify-between p-3 border rounded-lg"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <Avatar className="h-8 w-8">
-                                    <AvatarImage src={participante.avatar} />
-                                    <AvatarFallback>
-                                      {participante.nome
-                                        .charAt(0)
-                                        .toUpperCase()}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    <div className="text-sm font-medium">
-                                      {participante.nome}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground capitalize">
-                                      {participante.tipo}
-                                    </div>
-                                  </div>
-                                </div>
-                                <Badge
-                                  variant={
-                                    participante.confirmado
-                                      ? "default"
-                                      : "secondary"
-                                  }
-                                  className="text-xs"
-                                >
-                                  {participante.confirmado
-                                    ? "Confirmado"
-                                    : "Pendente"}
-                                </Badge>
-                              </div>
-                            ),
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedAppointment.observacoes && (
-                      <div>
-                        <h4 className="font-semibold mb-2">Observações</h4>
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                          {selectedAppointment.observacoes}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-
-                <DialogFooter className="flex justify-between border-t pt-4">
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Editar
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Copy className="h-4 w-4 mr-2" />
-                      Duplicar
-                    </Button>
-                    {selectedAppointment.publico && (
-                      <Button variant="outline" size="sm">
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Compartilhar
-                      </Button>
-                    )}
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowViewDialog(false)}
-                  >
-                    Fechar
-                  </Button>
-                </DialogFooter>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
     </TooltipProvider>
   );

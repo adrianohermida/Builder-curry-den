@@ -57,10 +57,11 @@ body {
   --secondary: 210 40% 96%; /* Light gray */
   --secondary-foreground: 222.2 84% 4.9%; /* Dark text */
 
-  --muted: 210 40% 96%; /* Light gray backgrounds */
+  /* FIXED: Light gray instead of black backgrounds */
+  --muted: 210 40% 98%; /* Very light gray backgrounds */
   --muted-foreground: 215.4 16.3% 46.9%; /* Medium gray text */
 
-  --accent: 210 40% 96%; /* Light accent */
+  --accent: 210 40% 98%; /* Light accent */
   --accent-foreground: 222.2 84% 4.9%; /* Dark text on accent */
 
   --destructive: 0 84.2% 60.2%; /* Red for errors */
@@ -149,10 +150,24 @@ body {
   --ring: 0 84% 60% !important;
 }
 
+/* CLIENT MODE (DEFAULT BLUE) */
+.client-mode {
+  --primary: 221.2 83.2% 53.3% !important; /* Blue for client */
+  --primary-foreground: 210 40% 98% !important;
+  --accent: 221.2 83.2% 53.3% !important;
+  --accent-foreground: 210 40% 98% !important;
+  --ring: 221.2 83.2% 53.3% !important;
+}
+
 /* Ensure admin mode applies to body as well */
 body.admin-mode {
   --primary: 0 84% 60% !important;
   --accent: 0 84% 60% !important;
+}
+
+body.client-mode {
+  --primary: 221.2 83.2% 53.3% !important;
+  --accent: 221.2 83.2% 53.3% !important;
 }
 
 /* ===== DARK THEME (Only when explicitly enabled) ===== */
@@ -424,7 +439,7 @@ html.dark {
   color: hsl(var(--muted-foreground));
 }
 
-/* FIXED: Modern Modal/Dialog */
+/* FIXED: Modern Modal/Dialog with light backdrop */
 .modern-modal {
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
@@ -436,7 +451,7 @@ html.dark {
 }
 
 .modern-modal-backdrop {
-  background: rgb(0 0 0 / 0.6);
+  background: rgb(0 0 0 / 0.3); /* FIXED: Lighter backdrop instead of black */
   backdrop-filter: blur(4px);
   z-index: var(--z-modal-backdrop);
 }
@@ -583,21 +598,21 @@ html.dark {
   text-wrap: pretty;
 }
 
-/* FIXED: Visual utilities */
+/* FIXED: Visual utilities - NO GRADIENTS */
 .glass-effect {
   background: hsl(var(--background) / 0.8);
   backdrop-filter: blur(20px);
   border: 1px solid hsl(var(--border) / 0.5);
 }
 
-.gradient-border {
-  background:
-    linear-gradient(hsl(var(--background)), hsl(var(--background))) padding-box,
-    linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent))) border-box;
-  border: 1px solid transparent;
+/* REMOVED: Gradient border - using solid border instead */
+.modern-border {
+  background: hsl(var(--background));
+  border: 2px solid hsl(var(--primary));
+  border-radius: var(--radius);
 }
 
-/* FIXED: Status indicators */
+/* FIXED: Status indicators - solid colors, no gradients */
 .status-online {
   background: hsl(142.1 76.2% 36.3%);
   color: white;
@@ -616,6 +631,59 @@ html.dark {
 .status-away {
   background: hsl(45.4 93.4% 47.5%);
   color: hsl(222.2 84% 4.9%);
+}
+
+/* ===== FIXED TAB SYSTEM - NO BLACK BACKGROUNDS ===== */
+
+/* Override default tab styles to use light colors */
+.tabs-list-light {
+  background: hsl(var(--muted)) !important;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.tabs-trigger-light {
+  background: transparent !important;
+  color: hsl(var(--muted-foreground)) !important;
+  border-radius: var(--radius-sm);
+}
+
+.tabs-trigger-light[data-state="active"] {
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--primary)) !important;
+  box-shadow: var(--shadow-sm);
+  font-weight: 500;
+}
+
+.tabs-trigger-light:hover:not([data-state="active"]) {
+  background: hsl(var(--muted) / 0.8) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* ===== ICON STYLING - NO GRADIENTS ===== */
+.icon-solid {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.icon-primary {
+  color: hsl(var(--primary));
+}
+
+.icon-secondary {
+  color: hsl(var(--muted-foreground));
+}
+
+.icon-success {
+  color: hsl(142.1 76.2% 36.3%);
+}
+
+.icon-warning {
+  color: hsl(45.4 93.4% 47.5%);
+}
+
+.icon-error {
+  color: hsl(0 84% 60%);
 }
 
 /* ===== SAFE AREA SUPPORT ===== */
@@ -669,25 +737,20 @@ html.dark {
   contain: strict;
 }
 
-/* ===== MODERN LOADING STATES ===== */
+/* ===== MODERN LOADING STATES - NO GRADIENTS ===== */
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    hsl(var(--muted)) 25%,
-    hsl(var(--muted) / 0.5) 50%,
-    hsl(var(--muted)) 75%
-  );
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
+  background: hsl(var(--muted));
+  animation: skeleton-pulse 1.5s infinite;
   border-radius: var(--radius);
 }
 
-@keyframes skeleton-loading {
-  0% {
-    background-position: -200% 0;
-  }
+@keyframes skeleton-pulse {
+  0%,
   100% {
-    background-position: 200% 0;
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
   }
 }
 
@@ -775,4 +838,73 @@ html.dark {
 
 .toast-container {
   z-index: var(--z-toast);
+}
+
+/* ===== RESPONSIVE AGENDA FIXES ===== */
+.agenda-container {
+  min-height: 100vh;
+  background: hsl(var(--background));
+}
+
+.agenda-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-lg);
+  transition: all var(--animation-duration-normal) ease;
+}
+
+.agenda-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.agenda-mobile {
+  padding: 1rem;
+}
+
+.agenda-desktop {
+  padding: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .agenda-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .agenda-sidebar {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .agenda-grid {
+    grid-template-columns: 300px 1fr;
+    gap: 1.5rem;
+  }
+
+  .agenda-sidebar {
+    display: block;
+  }
+}
+
+/* ===== MODERNIZED COMPONENT OVERRIDES ===== */
+
+/* Fix for dialog/modal backdrops */
+[data-radix-portal] .fixed.inset-0 {
+  background: hsl(var(--background) / 0.8) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* Fix for dropdown menu styling */
+[data-radix-menu-content] {
+  background: hsl(var(--background)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* Fix for toast styling */
+[data-sonner-toast] {
+  background: hsl(var(--background)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
 }
