@@ -48,16 +48,7 @@ export interface ViewOption {
   icon: any;
   description: string;
   premium?: boolean;
-  availableFor: string[];
-  shortcut?: string;
-}
-
-interface ViewSelectorProps {
-  currentView: ViewType;
-  onViewChange: (view: ViewType) => void;
-  module: "crm" | "tasks" | "calendar" | "publications" | "tickets";
-  userPlan?: "basic" | "pro" | "premium";
-  className?: string;
+  disabled?: boolean;
 }
 
 const viewOptions: ViewOption[] = [
@@ -66,271 +57,248 @@ const viewOptions: ViewOption[] = [
     label: "Lista",
     icon: List,
     description: "Visualização em tabela tradicional",
-    availableFor: ["crm", "tasks", "calendar", "publications", "tickets"],
-    shortcut: "L",
   },
   {
     type: "kanban",
     label: "Kanban",
     icon: Kanban,
-    description: "Quadros por status, área ou responsável",
-    availableFor: ["crm", "tasks", "tickets"],
-    shortcut: "K",
-  },
-  {
-    type: "pipeline",
-    label: "Pipeline",
-    icon: Workflow,
-    description: "Funil de vendas e etapas processuais",
-    premium: true,
-    availableFor: ["crm"],
-    shortcut: "P",
-  },
-  {
-    type: "gantt",
-    label: "Gantt",
-    icon: BarChart3,
-    description: "Cronograma e dependências",
-    premium: true,
-    availableFor: ["tasks", "calendar"],
-    shortcut: "G",
-  },
-  {
-    type: "timeline",
-    label: "Timeline",
-    icon: Clock,
-    description: "Linha do tempo vertical com eventos",
-    availableFor: ["publications", "tasks", "crm"],
-    shortcut: "T",
+    description: "Quadro visual estilo Trello",
   },
   {
     type: "cards",
     label: "Cards",
     icon: LayoutGrid,
-    description: "Cards compactos - ideal para mobile",
-    availableFor: ["crm", "tasks", "publications", "tickets"],
-    shortcut: "C",
+    description: "Grade de cartões informativos",
+  },
+  {
+    type: "pipeline",
+    label: "Pipeline",
+    icon: Workflow,
+    description: "Funil de vendas/processos",
+    premium: true,
+  },
+  {
+    type: "timeline",
+    label: "Timeline",
+    icon: Clock,
+    description: "Linha do tempo cronológica",
+    premium: true,
   },
   {
     type: "calendar",
     label: "Calendário",
     icon: CalendarDays,
-    description: "Visualização mensal/semanal/diária",
-    availableFor: ["calendar", "tasks"],
-    shortcut: "M",
+    description: "Visualização por data",
+  },
+  {
+    type: "gantt",
+    label: "Gantt",
+    icon: BarChart3,
+    description: "Gráfico de Gantt para projetos",
+    premium: true,
   },
 ];
+
+export interface ViewSelectorProps {
+  currentView: ViewType;
+  onViewChange: (view: ViewType) => void;
+  module?: string;
+  userPlan?: "free" | "pro" | "enterprise";
+  className?: string;
+  compact?: boolean;
+}
 
 export function ViewSelector({
   currentView,
   onViewChange,
-  module,
-  userPlan = "basic",
+  module = "general",
+  userPlan = "pro",
   className,
+  compact = false,
 }: ViewSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const availableViews = viewOptions.filter((view) =>
-    view.availableFor.includes(module),
-  );
-
-  const currentViewOption = availableViews.find(
-    (view) => view.type === currentView,
-  );
-
-  const canUseView = (view: ViewOption) => {
-    if (!view.premium) return true;
-    return userPlan === "pro" || userPlan === "premium";
+  const getCurrentViewOption = () => {
+    return viewOptions.find((option) => option.type === currentView);
   };
 
-  const handleViewChange = (viewType: ViewType) => {
-    const view = viewOptions.find((v) => v.type === viewType);
-    if (view && !canUseView(view)) {
-      // Show upgrade modal/toast
-      return;
+  const isViewAvailable = (option: ViewOption) => {
+    if (option.premium && userPlan === "free") {
+      return false;
     }
-    onViewChange(viewType);
-    setIsOpen(false);
+    return !option.disabled;
   };
 
-  return (
-    <TooltipProvider>
-      <div className={cn("flex items-center gap-2", className)}>
-        {/* Main View Selector */}
+  const handleViewChange = (view: ViewType) => {
+    const option = viewOptions.find((opt) => opt.type === view);
+    if (option && isViewAvailable(option)) {
+      onViewChange(view);
+      setIsOpen(false);
+    }
+  };
+
+  const currentOption = getCurrentViewOption();
+
+  if (compact) {
+    return (
+      <div className={cn("flex items-center gap-1", className)}>
+        {viewOptions.slice(0, 3).map((option) => {
+          const Icon = option.icon;
+          const isActive = option.type === currentView;
+          const isAvailable = isViewAvailable(option);
+
+          return (
+            <TooltipProvider key={option.type}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={isActive ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => handleViewChange(option.type)}
+                    disabled={!isAvailable}
+                    className={cn(
+                      "h-8 w-8 p-0",
+                      !isAvailable && "opacity-50 cursor-not-allowed",
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="text-center">
+                    <div className="font-medium">{option.label}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {option.description}
+                    </div>
+                    {option.premium && userPlan === "free" && (
+                      <Badge variant="outline" className="mt-1">
+                        <Crown className="h-3 w-3 mr-1" />
+                        Pro
+                      </Badge>
+                    )}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        })}
+
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2 min-w-[120px]">
-              {currentViewOption && (
-                <currentViewOption.icon className="h-4 w-4" />
-              )}
-              <span className="hidden sm:inline">
-                {currentViewOption?.label || "Visualização"}
-              </span>
-              <Badge variant="secondary" className="ml-auto">
-                {availableViews.length}
-              </Badge>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Settings2 className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-80">
-            <DropdownMenuLabel className="flex items-center gap-2">
-              <Settings2 className="h-4 w-4" />
-              Visualizações Disponíveis
-            </DropdownMenuLabel>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Mais Visualizações</DropdownMenuLabel>
             <DropdownMenuSeparator />
-
-            {availableViews.map((view) => {
-              const canUse = canUseView(view);
-              const isActive = currentView === view.type;
+            {viewOptions.slice(3).map((option) => {
+              const Icon = option.icon;
+              const isActive = option.type === currentView;
+              const isAvailable = isViewAvailable(option);
 
               return (
                 <DropdownMenuItem
-                  key={view.type}
-                  onClick={() => handleViewChange(view.type)}
-                  disabled={!canUse}
-                  className={cn(
-                    "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                    isActive && "bg-accent",
-                    !canUse && "opacity-50",
-                  )}
+                  key={option.type}
+                  onClick={() => handleViewChange(option.type)}
+                  disabled={!isAvailable}
+                  className={cn(isActive && "bg-accent")}
                 >
-                  <div className="flex items-center gap-2 w-full">
-                    <view.icon className="h-4 w-4" />
-                    <span className="font-medium">{view.label}</span>
-                    {view.shortcut && (
-                      <Badge variant="outline" className="ml-auto text-xs">
-                        {view.shortcut}
-                      </Badge>
-                    )}
-                    {view.premium && (
-                      <Crown className="h-3 w-3 text-amber-500" />
-                    )}
-                    {isActive && (
-                      <div className="w-2 h-2 bg-primary rounded-full ml-auto" />
-                    )}
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {view.description}
-                  </span>
-                  {!canUse && (
-                    <div className="flex items-center gap-1 mt-1">
-                      <Crown className="h-3 w-3 text-amber-500" />
-                      <span className="text-xs text-amber-600">
-                        Disponível no plano Pro
-                      </span>
+                  <Icon className="h-4 w-4 mr-2" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span>{option.label}</span>
+                      {option.premium && userPlan === "free" && (
+                        <Badge variant="outline" className="text-xs">
+                          <Crown className="h-2 w-2 mr-1" />
+                          Pro
+                        </Badge>
+                      )}
                     </div>
-                  )}
+                    <div className="text-xs text-muted-foreground">
+                      {option.description}
+                    </div>
+                  </div>
                 </DropdownMenuItem>
               );
             })}
-
-            {userPlan === "basic" && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <Crown className="h-4 w-4 text-amber-600" />
-                      <span className="font-medium text-amber-800">
-                        Upgrade para Pro
-                      </span>
-                    </div>
-                    <span className="text-xs text-amber-700">
-                      Desbloqueie Pipeline, Gantt e recursos avançados
-                    </span>
-                    <Button
-                      size="sm"
-                      className="mt-2 bg-amber-600 hover:bg-amber-700"
-                    >
-                      <Zap className="h-3 w-3 mr-1" />
-                      Fazer Upgrade
-                    </Button>
-                  </div>
-                </DropdownMenuItem>
-              </>
-            )}
           </DropdownMenuContent>
         </DropdownMenu>
-
-        {/* Quick Actions */}
-        <div className="flex items-center gap-1">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <Search className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Busca Global (Ctrl+K)</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <Filter className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Filtros Avançados</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <ArrowUpDown className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Ordenação</TooltipContent>
-          </Tooltip>
-
-          {/* Mobile Toggle */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="md:hidden"
-                onClick={() => handleViewChange("cards")}
-              >
-                <Smartphone className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Modo Mobile</TooltipContent>
-          </Tooltip>
-        </div>
       </div>
-    </TooltipProvider>
+    );
+  }
+
+  return (
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className={cn("gap-2", className)}>
+          {currentOption && <currentOption.icon className="h-4 w-4" />}
+          <span>{currentOption?.label || "Visualização"}</span>
+          <ArrowUpDown className="h-4 w-4 opacity-50" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-64">
+        <DropdownMenuLabel className="flex items-center gap-2">
+          <Zap className="h-4 w-4" />
+          Visualizações Disponíveis
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+
+        {viewOptions.map((option) => {
+          const Icon = option.icon;
+          const isActive = option.type === currentView;
+          const isAvailable = isViewAvailable(option);
+
+          return (
+            <DropdownMenuItem
+              key={option.type}
+              onClick={() => handleViewChange(option.type)}
+              disabled={!isAvailable}
+              className={cn(
+                "flex items-start gap-3 p-3",
+                isActive && "bg-accent",
+                !isAvailable && "opacity-50 cursor-not-allowed",
+              )}
+            >
+              <Icon className="h-5 w-5 mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-medium">{option.label}</span>
+                  {option.premium && userPlan === "free" && (
+                    <Badge variant="outline" className="text-xs">
+                      <Crown className="h-2 w-2 mr-1" />
+                      Pro
+                    </Badge>
+                  )}
+                  {isActive && (
+                    <Badge variant="secondary" className="text-xs">
+                      Ativo
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {option.description}
+                </p>
+              </div>
+            </DropdownMenuItem>
+          );
+        })}
+
+        {userPlan === "free" && (
+          <>
+            <DropdownMenuSeparator />
+            <div className="p-3 text-center">
+              <p className="text-xs text-muted-foreground mb-2">
+                Desbloqueie todas as visualizações
+              </p>
+              <Button size="sm" variant="default" className="w-full">
+                <Crown className="h-3 w-3 mr-1" />
+                Upgrade para Pro
+              </Button>
+            </div>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
-}
-
-// Hook for keyboard shortcuts
-export function useViewShortcuts(
-  onViewChange: (view: ViewType) => void,
-  module: string,
-) {
-  useState(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        const key = e.key.toLowerCase();
-        const shortcuts: Record<string, ViewType> = {
-          l: "list",
-          k: "kanban",
-          p: "pipeline",
-          g: "gantt",
-          t: "timeline",
-          c: "cards",
-          m: "calendar",
-        };
-
-        if (shortcuts[key]) {
-          e.preventDefault();
-          const viewType = shortcuts[key];
-          const view = viewOptions.find((v) => v.type === viewType);
-          if (view && view.availableFor.includes(module)) {
-            onViewChange(viewType);
-          }
-        }
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyPress);
-    return () => document.removeEventListener("keydown", handleKeyPress);
-  });
 }
