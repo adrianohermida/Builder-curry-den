@@ -219,7 +219,7 @@ const ConfiguracaoArmazenamento = createLazyComponent(
   "Configuração Armazenamento",
 );
 const ConfiguracoesPrazosPage = createLazyComponent(
-  () => import("./pages/Publicacoes/ConfiguracoesPrazos"),
+  () => import("./components/Publicacoes/ConfiguracoesPrazos"),
   "Configurações Prazos",
 );
 const WidgetConversacao = createLazyComponent(
