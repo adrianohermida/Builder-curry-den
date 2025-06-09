@@ -1,4 +1,4 @@
-import {
+import React, {
   Suspense,
   lazy,
   useTransition,
@@ -239,15 +239,35 @@ const SafeRoute = ({ element }: { element: React.ReactElement }) => {
   return currentElement;
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ErrorBoundary>
-      <ThemeProvider>
-        <StorageProvider>
-          <RegrasProcessuaisProvider>
-            <PermissionProvider>
-              <ViewModeProvider>
-                <TooltipProvider>
+// FIXED: Force light theme application on app startup
+const App = () => {
+  // Force light theme on initial load
+  React.useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+
+    // Remove any existing dark classes
+    html.classList.remove('dark');
+    body.classList.remove('dark');
+
+    // Force light theme
+    html.classList.add('light');
+    body.style.backgroundColor = '#ffffff';
+    body.style.color = '#0f172a';
+
+    // Set color scheme
+    html.style.colorScheme = 'light';
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ErrorBoundary>
+        <ThemeProvider>
+          <StorageProvider>
+            <RegrasProcessuaisProvider>
+              <PermissionProvider>
+                <ViewModeProvider>
+                  <TooltipProvider>
                   <Toaster />
                   <Sonner />
                   <BrowserRouter>
