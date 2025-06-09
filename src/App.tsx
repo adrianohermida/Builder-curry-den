@@ -126,6 +126,7 @@ const Launch = createLazyComponent(() => import("./pages/Launch"));
 const SystemHealth = createLazyComponent(() => import("./pages/SystemHealth"));
 const Login = createLazyComponent(() => import("./pages/Login"));
 const Painel = createLazyComponent(() => import("./pages/Painel"));
+const Index = createLazyComponent(() => import("./pages/Index"));
 
 // Admin modules - Only lazy load the layout, not individual pages to prevent nested suspension
 const AdminLayout = createLazyComponent(
@@ -261,6 +262,20 @@ const App = () => (
                       />
 
                       <Route path="/" element={<CorrectedLayout />}>
+                        {/* Home Page */}
+                        <Route
+                          path="home"
+                          element={
+                            <SafeRoute
+                              element={
+                                <PageWrapper>
+                                  <Index />
+                                </PageWrapper>
+                              }
+                            />
+                          }
+                        />
+
                         {/* Core Application Routes */}
                         <Route
                           path="dashboard"
