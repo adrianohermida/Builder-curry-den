@@ -432,6 +432,7 @@ export function CorrectedSidebar({
                   );
                 }
 
+                const IconComponent = item.icon;
                 return (
                   <Link
                     key={item.href}
@@ -448,7 +449,7 @@ export function CorrectedSidebar({
                     )}
                   >
                     <div className="flex items-center space-x-3">
-                      <item.icon className="w-4 h-4 flex-shrink-0" />
+                      <IconComponent className="w-4 h-4 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="truncate">{item.title}</div>
                         {item.description && (
