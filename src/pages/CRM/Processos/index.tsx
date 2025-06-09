@@ -89,6 +89,13 @@ import ProcessoForm from "./ProcessoForm";
 import ProcessoDetalhes from "./ProcessoDetalhes";
 import ProcessosMobile from "./ProcessosMobile";
 
+// Declaração global para o timeout da busca
+declare global {
+  interface Window {
+    searchTimeout: NodeJS.Timeout;
+  }
+}
+
 // Detecta se é mobile
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -1206,15 +1213,26 @@ const ProcessosModule: React.FC = () => {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showProcessoForm, setShowProcessoForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [visibleColumns, setVisibleColumns] = useState({
-    numero: true,
-    cliente: true,
-    area: true,
-    status: true,
-    risco: true,
-    valor: true,
-    audiencia: true,
-    responsavel: true,
+  // Carregar preferências de colunas do localStorage
+  const [visibleColumns, setVisibleColumns] = useState(() => {
+    const saved = localStorage.getItem("crm-processos-columns");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        console.warn("Erro ao carregar preferências de colunas:", error);
+      }
+    }
+    return {
+      numero: true,
+      cliente: true,
+      area: true,
+      status: true,
+      risco: true,
+      valor: true,
+      audiencia: true,
+      responsavel: true,
+    };
   });
 
   const isMobile = useIsMobile();
