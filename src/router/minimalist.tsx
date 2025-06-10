@@ -244,13 +244,30 @@ const MinimalistRouter: React.FC = () => {
                   {/* Home redirect */}
                   <Route index element={<Navigate to="/painel" replace />} />
 
-                  {/* Dashboard */}
+                  {/* Dashboard Profissional */}
                   <Route
                     path="painel"
                     element={
                       <PageWrapper
-                        title="Painel de Controle"
-                        breadcrumb={["Home", "Painel"]}
+                        title="Dashboard"
+                        breadcrumb={["Home", "Dashboard"]}
+                      >
+                        <Suspense
+                          fallback={<PageLoadingFallback title="dashboard" />}
+                        >
+                          <CleanProfessionalDashboard />
+                        </Suspense>
+                      </PageWrapper>
+                    }
+                  />
+
+                  {/* Dashboard Anterior (Backup) */}
+                  <Route
+                    path="painel-anterior"
+                    element={
+                      <PageWrapper
+                        title="Painel Anterior"
+                        breadcrumb={["Home", "Painel Anterior"]}
                       >
                         <Suspense
                           fallback={<PageLoadingFallback title="painel" />}
@@ -575,7 +592,7 @@ const MinimalistRouter: React.FC = () => {
                       >
                         <Suspense
                           fallback={
-                            <PageLoadingFallback title="configurações" />
+                            <PageLoadingFallback title="configuraç��es" />
                           }
                         >
                           <Configuracoes />
