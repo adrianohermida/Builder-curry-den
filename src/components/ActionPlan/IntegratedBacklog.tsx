@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-} from "react-beautiful-dnd";
+import { Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import { SafeDragDropContext } from "../Common/SafeDragDropContext";
 import {
   Plus,
   Search,
