@@ -155,6 +155,10 @@ const Publicacoes = createLazyComponent(
   () => import("./pages/Publicacoes"),
   "Publicações",
 );
+const AtendimentoEnhanced = createLazyComponent(
+  () => import("./pages/AtendimentoEnhanced"),
+  "Atendimento",
+);
 const AgendaJuridica = createLazyComponent(
   () => import("./pages/Agenda"),
   "Agenda Jurídica",
