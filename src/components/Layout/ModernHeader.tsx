@@ -371,14 +371,23 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
                   <DropdownMenuItem onClick={() => applyTheme("light")}>
                     <Sun size={16} className="mr-2" />
                     Claro
+                    {themeConfig.mode === "light" && (
+                      <span className="ml-auto text-xs">✓</span>
+                    )}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => applyTheme("dark")}>
                     <Moon size={16} className="mr-2" />
                     Escuro
+                    {themeConfig.mode === "dark" && (
+                      <span className="ml-auto text-xs">✓</span>
+                    )}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => applyTheme("system")}>
                     <Monitor size={16} className="mr-2" />
                     Sistema
+                    {themeConfig.mode === "system" && (
+                      <span className="ml-auto text-xs">✓</span>
+                    )}
                   </DropdownMenuItem>
 
                   <DropdownMenuSeparator />
