@@ -59,7 +59,7 @@ const baseMenuItems = [
   },
   {
     title: "GED Jurídico",
-    href: "/ged-juridico",
+    href: "/crm/ged",
     icon: FolderOpen,
     description: "Gestão Eletrônica de Documentos",
     permission: { module: "ged", action: "read" },
@@ -263,8 +263,8 @@ export function MobileNav({ className }: MobileNavProps) {
                   .map((item) => {
                     const isActive =
                       location.pathname === item.href ||
-                      (item.href === "/ged-juridico" &&
-                        location.pathname.startsWith("/ged")) ||
+                      (item.href === "/crm/ged" &&
+                        location.pathname.startsWith("/crm/ged")) ||
                       (item.href === "/atendimento" &&
                         (location.pathname === "/tickets" ||
                           location.pathname === "/atendimento"));
