@@ -436,24 +436,6 @@ export default function CRMUnicorn({
           </Card>
         </div>
       )}
-
-      {/* Styles específicos */}
-      <style jsx>{`
-        .crm-unicorn-container {
-          --primary: 221.2 83.2% 53.3%;
-          --primary-foreground: 210 40% 98%;
-        }
-
-        .crm-unicorn-container .client-mode {
-          --primary: 221.2 83.2% 53.3%;
-        }
-
-        @media (max-width: 768px) {
-          .crm-unicorn-container {
-            padding: 0;
-          }
-        }
-      `}</style>
     </div>
   );
 }
