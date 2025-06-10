@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 
 // Debug Panel (development only)
 import DebugPanel from "@/components/Debug/DebugPanel";
@@ -159,8 +160,9 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <BrowserRouter>
+      <ThemeProvider>
+        <TooltipProvider>
+          <BrowserRouter>
           <Suspense fallback={<GlobalLoadingFallback />}>
             <Routes>
               {/* Public Routes */}

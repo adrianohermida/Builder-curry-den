@@ -1,4 +1,21 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+/**
+ * 🎨 THEME PROVIDER - SISTEMA DE TEMA COMPLETO
+ *
+ * Provedor de tema robusto com:
+ * - Múltiplos temas (claro, escuro, sistema)
+ * - Acessibilidade (alto contraste, movimento reduzido)
+ * - Persistência no localStorage
+ * - Detecção automática de preferências do sistema
+ * - Transições suaves
+ */
+
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 export type ThemeMode = "light" | "dark" | "system";
@@ -47,219 +64,310 @@ interface ThemeContextType {
   exportTheme: () => string;
   importTheme: (themeData: string) => boolean;
   isDark: boolean;
-  isSystemDark: boolean;
   effectiveMode: "light" | "dark";
+  isSystemTheme: boolean;
 }
 
-// CRITICAL: Always force light mode
-const defaultThemeConfig: ThemeConfig = {
-  mode: "light", // ALWAYS LIGHT
-  colorTheme: "default",
-  accessibility: {
-    highContrast: false,
-    reducedMotion: false,
-    largeText: false,
-    focusVisible: true,
-  },
-  branding: {
-    companyName: "Lawdesk",
-    primaryColor: "221.2 83.2% 53.3%", // Blue for client mode
-    secondaryColor: "210 40% 96%",
-    accentColor: "221.2 83.2% 53.3%",
-    borderRadius: 8,
-    fontFamily: "Inter, system-ui, sans-serif",
-  },
+// Default configurations
+const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
+  highContrast: false,
+  reducedMotion: false,
+  largeText: false,
+  focusVisible: true,
 };
 
-// Enhanced color theme mappings with client/admin distinction
-const colorThemeMap: Record<ColorTheme, string> = {
-  default: "221.2 83.2% 53.3%", // Blue (client default)
-  blue: "221.2 83.2% 53.3%", // Client mode primary
-  green: "142.1 76.2% 36.3%",
-  purple: "262.1 83.3% 57.8%",
-  orange: "24.6 95% 53.1%",
-  red: "0 84% 60%", // Admin mode primary
-  custom: "221.2 83.2% 53.3%", // fallback
+const DEFAULT_BRANDING: BrandingSettings = {
+  companyName: "Lawdesk CRM",
+  primaryColor: "#3b82f6",
+  secondaryColor: "#64748b",
+  accentColor: "#f59e0b",
+  borderRadius: 0.5,
+  fontFamily: "Inter",
+};
+
+const DEFAULT_THEME_CONFIG: ThemeConfig = {
+  mode: "system",
+  colorTheme: "default",
+  accessibility: DEFAULT_ACCESSIBILITY,
+  branding: DEFAULT_BRANDING,
+};
+
+// Color theme palettes
+const COLOR_THEMES = {
+  default: {
+    primary: "#3b82f6",
+    secondary: "#64748b",
+    accent: "#f59e0b",
+    success: "#10b981",
+    warning: "#f59e0b",
+    error: "#ef4444",
+  },
+  blue: {
+    primary: "#2563eb",
+    secondary: "#64748b",
+    accent: "#0ea5e9",
+    success: "#10b981",
+    warning: "#f59e0b",
+    error: "#ef4444",
+  },
+  green: {
+    primary: "#059669",
+    secondary: "#64748b",
+    accent: "#10b981",
+    success: "#22c55e",
+    warning: "#f59e0b",
+    error: "#ef4444",
+  },
+  purple: {
+    primary: "#7c3aed",
+    secondary: "#64748b",
+    accent: "#a855f7",
+    success: "#10b981",
+    warning: "#f59e0b",
+    error: "#ef4444",
+  },
+  orange: {
+    primary: "#ea580c",
+    secondary: "#64748b",
+    accent: "#f97316",
+    success: "#10b981",
+    warning: "#f59e0b",
+    error: "#ef4444",
+  },
+  red: {
+    primary: "#dc2626",
+    secondary: "#64748b",
+    accent: "#ef4444",
+    success: "#10b981",
+    warning: "#f59e0b",
+    error: "#f87171",
+  },
+  custom: {
+    primary: "#3b82f6",
+    secondary: "#64748b",
+    accent: "#f59e0b",
+    success: "#10b981",
+    warning: "#f59e0b",
+    error: "#ef4444",
+  },
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export const useTheme = (): ThemeContextType => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error("useTheme must be used within a ThemeProvider");
+  }
+  return context;
+};
+
+interface ThemeProviderProps {
+  children: React.ReactNode;
+  defaultTheme?: Partial<ThemeConfig>;
+  storageKey?: string;
+}
+
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({
+  children,
+  defaultTheme,
+  storageKey = "lawdesk-theme",
+}) => {
+  // Merge default theme with provided overrides
+  const initialTheme = { ...DEFAULT_THEME_CONFIG, ...defaultTheme };
+
+  // Persistent theme state
   const [config, setConfig] = useLocalStorage<ThemeConfig>(
-    "lawdesk-theme-config-v5", // Updated version to reset problematic configs
-    defaultThemeConfig,
+    storageKey,
+    initialTheme,
   );
 
-  // FORCE: Always false for dark mode
-  const [isSystemDark] = useState(false);
+  // System theme detection
+  const [systemTheme, setSystemTheme] = useState<"light" | "dark">("light");
 
-  // CRITICAL: Force light mode application
+  // Computed values
+  const isSystemTheme = config.mode === "system";
+  const effectiveMode = isSystemTheme ? systemTheme : config.mode;
+  const isDark = effectiveMode === "dark";
+
+  // Detect system theme preference
   useEffect(() => {
-    const html = document.documentElement;
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const updateSystemTheme = (e: MediaQueryListEvent | MediaQueryList) => {
+      setSystemTheme(e.matches ? "dark" : "light");
+    };
+
+    // Set initial value
+    updateSystemTheme(mediaQuery);
+
+    // Listen for changes
+    mediaQuery.addEventListener("change", updateSystemTheme);
+    return () => mediaQuery.removeEventListener("change", updateSystemTheme);
+  }, []);
+
+  // Apply theme to document
+  useEffect(() => {
+    const root = document.documentElement;
     const body = document.body;
 
-    // Remove ALL dark classes
-    html.classList.remove("dark", "system", "auto");
-    body.classList.remove("dark", "system", "auto");
+    // Remove existing theme classes
+    root.classList.remove("light", "dark", "high-contrast");
 
-    // FORCE light classes
-    html.classList.add("light");
-    body.classList.add("light");
+    // Apply theme mode
+    root.classList.add(effectiveMode);
+    root.setAttribute("data-theme", effectiveMode);
 
-    // Force light color scheme
-    html.style.colorScheme = "light";
-    body.style.backgroundColor = "#ffffff";
-    body.style.color = "#0f172a";
+    // Apply accessibility settings
+    if (config.accessibility.highContrast) {
+      root.classList.add("high-contrast");
+    }
 
-    // Set CSS custom properties to force light mode
-    const root = document.documentElement;
-
-    // Light mode colors
-    root.style.setProperty("--background", "0 0% 100%");
-    root.style.setProperty("--foreground", "222.2 84% 4.9%");
-    root.style.setProperty("--card", "0 0% 100%");
-    root.style.setProperty("--card-foreground", "222.2 84% 4.9%");
-    root.style.setProperty("--popover", "0 0% 100%");
-    root.style.setProperty("--popover-foreground", "222.2 84% 4.9%");
-    root.style.setProperty("--secondary", "210 40% 96%");
-    root.style.setProperty("--secondary-foreground", "222.2 84% 4.9%");
-    root.style.setProperty("--muted", "210 40% 98%");
-    root.style.setProperty("--muted-foreground", "215.4 16.3% 46.9%");
-    root.style.setProperty("--accent", "210 40% 98%");
-    root.style.setProperty("--accent-foreground", "222.2 84% 4.9%");
-    root.style.setProperty("--border", "214.3 31.8% 91.4%");
-    root.style.setProperty("--input", "214.3 31.8% 91.4%");
-    root.style.setProperty("--destructive", "0 84.2% 60.2%");
-    root.style.setProperty("--destructive-foreground", "210 40% 98%");
-
-    // Set primary color based on current theme
-    const primaryColor =
-      colorThemeMap[config.colorTheme] || colorThemeMap.default;
-    root.style.setProperty("--primary", primaryColor);
-    root.style.setProperty("--primary-foreground", "210 40% 98%");
-    root.style.setProperty("--ring", primaryColor);
-
-    // Accessibility
     if (config.accessibility.reducedMotion) {
-      html.classList.add("reduced-motion");
+      root.style.setProperty("--motion-reduce", "1");
     } else {
-      html.classList.remove("reduced-motion");
+      root.style.removeProperty("--motion-reduce");
     }
 
     if (config.accessibility.largeText) {
-      html.classList.add("large-text");
+      body.classList.add("large-text");
     } else {
-      html.classList.remove("large-text");
+      body.classList.remove("large-text");
     }
 
-    if (config.accessibility.highContrast) {
-      html.classList.add("high-contrast");
+    if (config.accessibility.focusVisible) {
+      body.classList.add("focus-visible");
     } else {
-      html.classList.remove("high-contrast");
+      body.classList.remove("focus-visible");
     }
 
-    // Force mobile layout detection
-    const checkMobile = () => {
-      if (window.innerWidth < 768) {
-        html.classList.add("mobile");
-        body.classList.add("mobile-layout");
-      } else {
-        html.classList.remove("mobile");
-        body.classList.remove("mobile-layout");
+    // Apply color theme
+    const colors =
+      config.colorTheme === "custom"
+        ? config.customColors || COLOR_THEMES.default
+        : COLOR_THEMES[config.colorTheme];
+
+    Object.entries(colors).forEach(([key, value]) => {
+      root.style.setProperty(`--color-${key}`, value);
+    });
+
+    // Apply branding
+    root.style.setProperty("--font-family", config.branding.fontFamily);
+    root.style.setProperty(
+      "--border-radius",
+      `${config.branding.borderRadius}rem`,
+    );
+    root.style.setProperty("--brand-primary", config.branding.primaryColor);
+    root.style.setProperty("--brand-secondary", config.branding.secondaryColor);
+    root.style.setProperty("--brand-accent", config.branding.accentColor);
+
+    // Update meta theme color for mobile browsers
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute("content", isDark ? "#1e293b" : "#ffffff");
+    }
+  }, [config, effectiveMode, isDark]);
+
+  // Theme update functions
+  const updateTheme = useCallback(
+    (updates: Partial<ThemeConfig>) => {
+      setConfig((prev) => ({ ...prev, ...updates }));
+    },
+    [setConfig],
+  );
+
+  const setMode = useCallback(
+    (mode: ThemeMode) => {
+      updateTheme({ mode });
+    },
+    [updateTheme],
+  );
+
+  const setColorTheme = useCallback(
+    (colorTheme: ColorTheme) => {
+      updateTheme({ colorTheme });
+    },
+    [updateTheme],
+  );
+
+  const setAccessibility = useCallback(
+    (settings: Partial<AccessibilitySettings>) => {
+      updateTheme({
+        accessibility: { ...config.accessibility, ...settings },
+      });
+    },
+    [config.accessibility, updateTheme],
+  );
+
+  const setBranding = useCallback(
+    (settings: Partial<BrandingSettings>) => {
+      updateTheme({
+        branding: { ...config.branding, ...settings },
+      });
+    },
+    [config.branding, updateTheme],
+  );
+
+  const resetTheme = useCallback(() => {
+    setConfig(initialTheme);
+  }, [setConfig, initialTheme]);
+
+  const exportTheme = useCallback((): string => {
+    return JSON.stringify(config, null, 2);
+  }, [config]);
+
+  const importTheme = useCallback(
+    (themeData: string): boolean => {
+      try {
+        const importedTheme = JSON.parse(themeData);
+        // Validate the imported theme structure
+        if (
+          typeof importedTheme === "object" &&
+          importedTheme.mode &&
+          importedTheme.colorTheme
+        ) {
+          setConfig({ ...DEFAULT_THEME_CONFIG, ...importedTheme });
+          return true;
+        }
+        return false;
+      } catch {
+        return false;
+      }
+    },
+    [setConfig],
+  );
+
+  // Keyboard shortcuts for theme switching
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl/Cmd + Shift + D for dark mode toggle
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.shiftKey &&
+        event.key === "D"
+      ) {
+        event.preventDefault();
+        setMode(isDark ? "light" : "dark");
+      }
+
+      // Ctrl/Cmd + Shift + H for high contrast toggle
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.shiftKey &&
+        event.key === "H"
+      ) {
+        event.preventDefault();
+        setAccessibility({
+          highContrast: !config.accessibility.highContrast,
+        });
       }
     };
 
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isDark, config.accessibility.highContrast, setMode, setAccessibility]);
 
-    // Clean up any problematic styles
-    const cleanupStyles = () => {
-      // Remove any elements with dark backgrounds
-      const darkElements = document.querySelectorAll(
-        '[style*="rgb(2, 8, 23)"], [style*="background-color: rgb(2, 8, 23)"], [style*="bg-gray-900"], [style*="bg-slate-900"]',
-      );
-
-      darkElements.forEach((element) => {
-        if (element instanceof HTMLElement) {
-          element.style.backgroundColor = "#ffffff";
-          element.style.color = "#0f172a";
-        }
-      });
-    };
-
-    // Initial cleanup
-    cleanupStyles();
-
-    // Set up mutation observer to catch dynamic style changes
-    const observer = new MutationObserver(() => {
-      cleanupStyles();
-    });
-
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ["style", "class"],
-      subtree: true,
-    });
-
-    return () => {
-      window.removeEventListener("resize", checkMobile);
-      observer.disconnect();
-    };
-  }, [config]);
-
-  const updateTheme = (updates: Partial<ThemeConfig>) => {
-    // Always force light mode
-    const newConfig = {
-      ...config,
-      ...updates,
-      mode: "light" as ThemeMode, // FORCE LIGHT
-    };
-    setConfig(newConfig);
-  };
-
-  const setMode = (mode: ThemeMode) => {
-    // Ignore mode changes, always stay light
-    updateTheme({ mode: "light" });
-  };
-
-  const setColorTheme = (theme: ColorTheme) => {
-    updateTheme({ colorTheme: theme });
-  };
-
-  const setAccessibility = (settings: Partial<AccessibilitySettings>) => {
-    updateTheme({
-      accessibility: { ...config.accessibility, ...settings },
-    });
-  };
-
-  const setBranding = (settings: Partial<BrandingSettings>) => {
-    updateTheme({
-      branding: { ...config.branding, ...settings },
-    });
-  };
-
-  const resetTheme = () => {
-    setConfig({ ...defaultThemeConfig, mode: "light" });
-  };
-
-  const exportTheme = (): string => {
-    return JSON.stringify({ ...config, mode: "light" }, null, 2);
-  };
-
-  const importTheme = (themeData: string): boolean => {
-    try {
-      const imported = JSON.parse(themeData);
-      // Always force light mode on import
-      updateTheme({ ...imported, mode: "light" });
-      return true;
-    } catch (error) {
-      console.error("Failed to import theme:", error);
-      return false;
-    }
-  };
-
-  const value: ThemeContextType = {
-    config: { ...config, mode: "light" }, // Always return light mode
+  const contextValue: ThemeContextType = {
+    config,
     updateTheme,
     setMode,
     setColorTheme,
@@ -268,34 +376,43 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     resetTheme,
     exportTheme,
     importTheme,
-    isDark: false, // ALWAYS FALSE
-    isSystemDark: false, // ALWAYS FALSE
-    effectiveMode: "light", // ALWAYS LIGHT
+    isDark,
+    effectiveMode,
+    isSystemTheme,
   };
 
   return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+    <ThemeContext.Provider value={contextValue}>
+      {children}
+    </ThemeContext.Provider>
   );
-}
+};
 
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    // Return safe defaults if context is not available
-    return {
-      config: defaultThemeConfig,
-      updateTheme: () => {},
-      setMode: () => {},
-      setColorTheme: () => {},
-      setAccessibility: () => {},
-      setBranding: () => {},
-      resetTheme: () => {},
-      exportTheme: () => "{}",
-      importTheme: () => false,
-      isDark: false,
-      isSystemDark: false,
-      effectiveMode: "light" as const,
-    };
-  }
-  return context;
-}
+// Hook for theme-aware styling
+export const useThemeAwareStyles = () => {
+  const { effectiveMode, config } = useTheme();
+
+  const getThemeAwareClass = useCallback(
+    (lightClass: string, darkClass: string) => {
+      return effectiveMode === "dark" ? darkClass : lightClass;
+    },
+    [effectiveMode],
+  );
+
+  const getThemeAwareStyle = useCallback(
+    (lightStyle: React.CSSProperties, darkStyle: React.CSSProperties) => {
+      return effectiveMode === "dark" ? darkStyle : lightStyle;
+    },
+    [effectiveMode],
+  );
+
+  return {
+    getThemeAwareClass,
+    getThemeAwareStyle,
+    isDark: effectiveMode === "dark",
+    isLight: effectiveMode === "light",
+    config,
+  };
+};
+
+export default ThemeProvider;
