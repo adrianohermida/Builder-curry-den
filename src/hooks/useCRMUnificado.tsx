@@ -22,18 +22,24 @@ import {
   DollarSign,
   FolderOpen,
   Bell,
+  Briefcase,
 } from "lucide-react";
 // import { ProcessoApiService } from "@/services/ProcessoApiService";
 
 // ===== UNIFIED TYPES =====
-export interface Cliente {
+export interface Contato {
   id: string;
   nome: string;
   email: string;
   telefone: string;
   documento: string;
   tipo: "PF" | "PJ";
-  status: "ativo" | "inativo" | "prospecto" | "vip" | "inadimplente";
+  classificacao:
+    | "cliente"
+    | "parceiro"
+    | "fornecedor"
+    | "oportunidade"
+    | "interno";
   endereco: {
     cep: string;
     logradouro: string;
@@ -44,16 +50,30 @@ export interface Cliente {
     uf: string;
   };
   dataCadastro: Date;
-  ultimoContato?: Date;
-  valorTotal: number;
-  scoreEngajamento: number; // 0-100
+  ultimaInteracao?: Date;
   responsavel: string;
   origem: string;
   tags: string[];
   observacoes?: string;
-  processos: string[];
-  contratos: string[];
-  tarefas: string[];
+  ativo: boolean;
+  favorito: boolean;
+}
+
+export interface Negocio {
+  id: string;
+  nome: string;
+  contatoId: string;
+  contatoNome: string;
+  valor: number;
+  etapaAtual: string;
+  pipelineId: string;
+  status: "ativo" | "ganho" | "perdido" | "pausado";
+  dataEstimadaFechamento: Date;
+  dataCriacao: Date;
+  responsavel: string;
+  probabilidadeConversao: number;
+  tags: string[];
+  observacoes?: string;
 }
 
 export interface Processo {
@@ -179,7 +199,8 @@ export interface FilterOptions {
 // ===== MAIN HOOK =====
 export const useCRMUnificado = () => {
   // ===== STATE =====
-  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [contatos, setContatos] = useState<Contato[]>([]);
+  const [negocios, setNegocios] = useState<Negocio[]>([]);
   const [processos, setProcessos] = useState<Processo[]>([]);
   const [contratos, setContratos] = useState<Contrato[]>([]);
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);
@@ -191,7 +212,8 @@ export const useCRMUnificado = () => {
 
   // ===== COMPUTED DASHBOARD STATS =====
   const dashboardStats = useMemo((): DashboardStat[] => {
-    const clientesAtivos = clientes.filter((c) => c.status === "ativo").length;
+    const contatosAtivos = contatos.filter((c) => c.ativo).length;
+    const negociosAtivos = negocios.filter((n) => n.status === "ativo").length;
     const processosAtivos = processos.filter(
       (p) => p.status === "ativo",
     ).length;
@@ -201,9 +223,10 @@ export const useCRMUnificado = () => {
     const tarefasPendentes = tarefas.filter(
       (t) => t.status === "pendente",
     ).length;
-    const publicacoesPendentes = publicacoes.filter(
-      (p) => p.status === "pendente",
-    ).length;
+
+    const valorTotalNegocios = negocios
+      .filter((n) => n.status === "ativo")
+      .reduce((sum, n) => sum + n.valor, 0);
 
     const valorTotalProcessos = processos
       .filter((p) => p.status === "ativo")
@@ -215,14 +238,26 @@ export const useCRMUnificado = () => {
 
     return [
       {
-        label: "Clientes",
-        value: clientesAtivos,
-        description: `${clientes.length} total cadastrados`,
+        label: "Contatos",
+        value: contatosAtivos,
+        description: `${contatos.length} total cadastrados`,
         icon: Users,
         color: "var(--primary-500)",
-        module: "clientes",
+        module: "contatos",
         trend: {
           value: 12,
+          direction: "up",
+        },
+      },
+      {
+        label: "Negócios",
+        value: negociosAtivos,
+        description: `R$ ${(valorTotalNegocios / 1000).toFixed(0)}k em pipeline`,
+        icon: Briefcase,
+        color: "var(--color-success)",
+        module: "negocios",
+        trend: {
+          value: 15,
           direction: "up",
         },
       },
@@ -263,19 +298,31 @@ export const useCRMUnificado = () => {
         },
       },
       {
-        label: "Publicações",
-        value: publicacoesPendentes,
-        description: `${publicacoes.length} total monitoradas`,
-        icon: Bell,
-        color: "var(--color-error)",
-        module: "publicacoes",
+        label: "Financeiro",
+        value: `R$ ${((valorTotalNegocios + valorTotalContratos) / 1000).toFixed(0)}k`,
+        description: "Receita total estimada",
+        icon: DollarSign,
+        color: "var(--color-success)",
+        module: "financeiro",
         trend: {
-          value: 15,
+          value: 10,
+          direction: "up",
+        },
+      },
+      {
+        label: "Documentos",
+        value: 150,
+        description: "Arquivos organizados",
+        icon: FolderOpen,
+        color: "var(--text-secondary)",
+        module: "documentos",
+        trend: {
+          value: 7,
           direction: "up",
         },
       },
     ];
-  }, [clientes, processos, contratos, tarefas, publicacoes]);
+  }, [contatos, negocios, processos, contratos, tarefas]);
 
   // ===== DATA LOADING =====
   const loadData = useCallback(
@@ -285,7 +332,8 @@ export const useCRMUnificado = () => {
       const cacheTime = 5 * 60 * 1000; // 5 minutes
 
       if (!force && cached && Date.now() - cached.timestamp < cacheTime) {
-        setClientes(cached.clientes);
+        setContatos(cached.contatos);
+        setNegocios(cached.negocios);
         setProcessos(cached.processos);
         setContratos(cached.contratos);
         setTarefas(cached.tarefas);
@@ -300,7 +348,8 @@ export const useCRMUnificado = () => {
 
         const mockData = generateMockData();
 
-        setClientes(mockData.clientes);
+        setContatos(mockData.contatos);
+        setNegocios(mockData.negocios);
         setProcessos(mockData.processos);
         setContratos(mockData.contratos);
         setTarefas(mockData.tarefas);
@@ -327,19 +376,19 @@ export const useCRMUnificado = () => {
   );
 
   // ===== CRUD OPERATIONS =====
-  const createClient = useCallback(async (clientData: Partial<Cliente>) => {
+  const createContato = useCallback(async (contatoData: Partial<Contato>) => {
     try {
       setIsLoadingData(true);
 
-      const newClient: Cliente = {
-        id: `client-${Date.now()}`,
-        nome: clientData.nome || "",
-        email: clientData.email || "",
-        telefone: clientData.telefone || "",
-        documento: clientData.documento || "",
-        tipo: clientData.tipo || "PF",
-        status: clientData.status || "prospecto",
-        endereco: clientData.endereco || {
+      const newContato: Contato = {
+        id: `contato-${Date.now()}`,
+        nome: contatoData.nome || "",
+        email: contatoData.email || "",
+        telefone: contatoData.telefone || "",
+        documento: contatoData.documento || "",
+        tipo: contatoData.tipo || "PF",
+        classificacao: contatoData.classificacao || "oportunidade",
+        endereco: contatoData.endereco || {
           cep: "",
           logradouro: "",
           numero: "",
@@ -348,22 +397,53 @@ export const useCRMUnificado = () => {
           uf: "",
         },
         dataCadastro: new Date(),
-        valorTotal: 0,
-        scoreEngajamento: 0,
         responsavel: "Usuário Atual",
         origem: "manual",
         tags: [],
-        processos: [],
-        contratos: [],
-        tarefas: [],
+        ativo: true,
+        favorito: false,
       };
 
-      setClientes((prev) => [...prev, newClient]);
-      toast.success("Cliente criado com sucesso");
-      return newClient;
+      setContatos((prev) => [...prev, newContato]);
+      toast.success("Contato criado com sucesso");
+      return newContato;
     } catch (error) {
-      console.error("Error creating client:", error);
-      toast.error("Erro ao criar cliente");
+      console.error("Error creating contact:", error);
+      toast.error("Erro ao criar contato");
+      throw error;
+    } finally {
+      setIsLoadingData(false);
+    }
+  }, []);
+
+  const createNegocio = useCallback(async (negocioData: Partial<Negocio>) => {
+    try {
+      setIsLoadingData(true);
+
+      const newNegocio: Negocio = {
+        id: `negocio-${Date.now()}`,
+        nome: negocioData.nome || "",
+        contatoId: negocioData.contatoId || "",
+        contatoNome: negocioData.contatoNome || "",
+        valor: negocioData.valor || 0,
+        etapaAtual: negocioData.etapaAtual || "qualificacao",
+        pipelineId: negocioData.pipelineId || "pipeline-servicos",
+        status: negocioData.status || "ativo",
+        dataEstimadaFechamento:
+          negocioData.dataEstimadaFechamento || new Date(),
+        dataCriacao: new Date(),
+        responsavel: "Usuário Atual",
+        probabilidadeConversao: negocioData.probabilidadeConversao || 20,
+        tags: [],
+        observacoes: negocioData.observacoes,
+      };
+
+      setNegocios((prev) => [...prev, newNegocio]);
+      toast.success("Negócio criado com sucesso");
+      return newNegocio;
+    } catch (error) {
+      console.error("Error creating business:", error);
+      toast.error("Erro ao criar negócio");
       throw error;
     } finally {
       setIsLoadingData(false);
@@ -448,7 +528,8 @@ export const useCRMUnificado = () => {
   // ===== RETURN =====
   return {
     // Data
-    clientes,
+    contatos,
+    negocios,
     processos,
     contratos,
     tarefas,
@@ -460,7 +541,8 @@ export const useCRMUnificado = () => {
     lastUpdate,
 
     // Operations
-    createClient,
+    createContato,
+    createNegocio,
     createProcess,
     updateData,
     deleteData,
@@ -476,15 +558,21 @@ export const useCRMUnificado = () => {
 
 // ===== MOCK DATA GENERATOR =====
 const generateMockData = () => {
-  // Generate mock clients
-  const mockClientes: Cliente[] = Array.from({ length: 25 }, (_, i) => ({
-    id: `client-${i + 1}`,
-    nome: `Cliente ${i + 1}`,
-    email: `cliente${i + 1}@email.com`,
+  // Generate mock contatos
+  const mockContatos: Contato[] = Array.from({ length: 25 }, (_, i) => ({
+    id: `contato-${i + 1}`,
+    nome: `${i % 3 === 0 ? "Empresa" : "Cliente"} ${i + 1}`,
+    email: `contato${i + 1}@email.com`,
     telefone: `(11) 9999-${String(1000 + i).slice(-4)}`,
     documento: `${String(Math.random()).slice(2, 13)}`,
     tipo: i % 3 === 0 ? "PJ" : "PF",
-    status: ["ativo", "inativo", "prospecto", "vip"][i % 4] as any,
+    classificacao: [
+      "cliente",
+      "parceiro",
+      "fornecedor",
+      "oportunidade",
+      "interno",
+    ][i % 5] as any,
     endereco: {
       cep: `${String(i + 1).padStart(2, "0")}000-000`,
       logradouro: `Rua ${i + 1}`,
@@ -494,23 +582,38 @@ const generateMockData = () => {
       uf: "SP",
     },
     dataCadastro: new Date(2023, i % 12, (i % 28) + 1),
-    ultimoContato: new Date(),
-    valorTotal: (i + 1) * 5000,
-    scoreEngajamento: Math.floor(Math.random() * 100),
+    ultimaInteracao: i % 4 === 0 ? new Date() : undefined,
     responsavel: "Advogado Principal",
     origem: ["site", "indicacao", "marketing", "cold_call"][i % 4],
     tags: [`tag-${i % 5}`, `categoria-${i % 3}`],
-    processos: [],
-    contratos: [],
-    tarefas: [],
+    ativo: i % 10 !== 0,
+    favorito: i % 8 === 0,
+  }));
+
+  // Generate mock negocios
+  const mockNegocios: Negocio[] = Array.from({ length: 15 }, (_, i) => ({
+    id: `negocio-${i + 1}`,
+    nome: `Negócio ${i + 1}`,
+    contatoId: mockContatos[i % mockContatos.length].id,
+    contatoNome: mockContatos[i % mockContatos.length].nome,
+    valor: (i + 1) * 5000,
+    etapaAtual: ["qualificacao", "proposta", "negociacao", "fechamento"][i % 4],
+    pipelineId: "pipeline-servicos",
+    status: ["ativo", "ganho", "perdido", "pausado"][i % 4] as any,
+    dataEstimadaFechamento: new Date(2024, i % 12, (i % 28) + 1),
+    dataCriacao: new Date(2023, i % 12, (i % 28) + 1),
+    responsavel: "Advogado Principal",
+    probabilidadeConversao: [20, 40, 70, 90][i % 4],
+    tags: [`tag-${i % 3}`, `area-${i % 4}`],
+    observacoes: i % 3 === 0 ? `Observação sobre negócio ${i + 1}` : undefined,
   }));
 
   // Generate mock processes
   const mockProcessos: Processo[] = Array.from({ length: 15 }, (_, i) => ({
     id: `process-${i + 1}`,
     numero: `${String(i + 1).padStart(7, "0")}-12.2023.8.26.${String(i + 1).padStart(4, "0")}`,
-    clienteId: mockClientes[i % mockClientes.length].id,
-    cliente: mockClientes[i % mockClientes.length].nome,
+    clienteId: mockContatos[i % mockContatos.length].id,
+    cliente: mockContatos[i % mockContatos.length].nome,
     area: ["Civil", "Trabalhista", "Empresarial", "Tributário"][i % 4],
     status: ["ativo", "arquivado", "suspenso", "encerrado"][i % 4] as any,
     valor: (i + 1) * 10000,
@@ -530,8 +633,8 @@ const generateMockData = () => {
   const mockContratos: Contrato[] = Array.from({ length: 10 }, (_, i) => ({
     id: `contract-${i + 1}`,
     titulo: `Contrato ${i + 1}`,
-    clienteId: mockClientes[i % mockClientes.length].id,
-    cliente: mockClientes[i % mockClientes.length].nome,
+    clienteId: mockContatos[i % mockContatos.length].id,
+    cliente: mockContatos[i % mockContatos.length].nome,
     tipo: ["prestacao_servicos", "societario", "trabalhista", "civil"][
       i % 4
     ] as any,
@@ -582,7 +685,8 @@ const generateMockData = () => {
   }));
 
   return {
-    clientes: mockClientes,
+    contatos: mockContatos,
+    negocios: mockNegocios,
     processos: mockProcessos,
     contratos: mockContratos,
     tarefas: mockTarefas,

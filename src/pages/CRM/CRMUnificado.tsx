@@ -38,6 +38,7 @@ import {
   BarChart3,
   Settings,
   RefreshCw,
+  Briefcase,
 } from "lucide-react";
 
 // Design System Components
@@ -51,7 +52,8 @@ import { performanceUtils } from "@/lib/performanceUtils";
 import { useCRMUnificado } from "@/hooks/useCRMUnificado";
 
 // Lazy-loaded subcomponents for performance
-const ClientesCard = lazy(() => import("@/components/CRM/ClientesCard"));
+const ContatosCard = lazy(() => import("@/components/CRM/ContatosCard"));
+const NegociosCard = lazy(() => import("@/components/CRM/NegociosCard"));
 const ProcessosTimeline = lazy(
   () => import("@/components/CRM/ProcessosTimeline"),
 );
@@ -63,20 +65,17 @@ const FinanceiroMetrics = lazy(
 const DocumentosGallery = lazy(
   () => import("@/components/CRM/DocumentosGallery"),
 );
-const PublicacoesStream = lazy(
-  () => import("@/components/CRM/PublicacoesStream"),
-);
 
 // ===== TYPES =====
 export type CRMModule =
   | "dashboard"
-  | "clientes"
+  | "contatos"
+  | "negocios"
   | "processos"
   | "contratos"
   | "tarefas"
   | "financeiro"
-  | "documentos"
-  | "publicacoes";
+  | "documentos";
 
 export type ViewMode = "cards" | "table" | "kanban" | "timeline";
 
@@ -99,13 +98,23 @@ interface ModuleConfig {
 // ===== MODULE CONFIGURATION =====
 const MODULE_CONFIG: ModuleConfig[] = [
   {
-    id: "clientes",
-    title: "Clientes",
-    description: "Gestão de clientes e prospects",
+    id: "contatos",
+    title: "Contatos",
+    description: "Gestão completa de contatos PF/PJ",
     icon: Users,
-    component: ClientesCard,
-    shortcut: "C",
+    component: ContatosCard,
+    shortcut: "1",
     color: "var(--primary-500)",
+    enabled: true,
+  },
+  {
+    id: "negocios",
+    title: "Negócios",
+    description: "Pipeline de negócios e oportunidades",
+    icon: Briefcase,
+    component: NegociosCard,
+    shortcut: "2",
+    color: "var(--color-success)",
     enabled: true,
   },
   {
@@ -114,7 +123,7 @@ const MODULE_CONFIG: ModuleConfig[] = [
     description: "Acompanhamento processual",
     icon: Scale,
     component: ProcessosTimeline,
-    shortcut: "P",
+    shortcut: "3",
     color: "var(--color-info)",
     enabled: true,
   },
@@ -124,7 +133,7 @@ const MODULE_CONFIG: ModuleConfig[] = [
     description: "Gestão de contratos e documentos",
     icon: FileSignature,
     component: ContratosGrid,
-    shortcut: "O",
+    shortcut: "4",
     color: "var(--color-warning)",
     enabled: true,
   },
@@ -134,8 +143,8 @@ const MODULE_CONFIG: ModuleConfig[] = [
     description: "Organização e produtividade",
     icon: CheckSquare,
     component: TarefasKanban,
-    shortcut: "T",
-    color: "var(--color-success)",
+    shortcut: "5",
+    color: "var(--text-accent)",
     enabled: true,
   },
   {
@@ -144,7 +153,7 @@ const MODULE_CONFIG: ModuleConfig[] = [
     description: "Controle financeiro e faturamento",
     icon: DollarSign,
     component: FinanceiroMetrics,
-    shortcut: "F",
+    shortcut: "6",
     color: "var(--color-success)",
     enabled: true,
   },
@@ -154,18 +163,8 @@ const MODULE_CONFIG: ModuleConfig[] = [
     description: "GED e biblioteca de documentos",
     icon: FolderOpen,
     component: DocumentosGallery,
-    shortcut: "D",
+    shortcut: "7",
     color: "var(--text-secondary)",
-    enabled: true,
-  },
-  {
-    id: "publicacoes",
-    title: "Publicações",
-    description: "Monitoramento de publicações",
-    icon: Bell,
-    component: PublicacoesStream,
-    shortcut: "U",
-    color: "var(--color-error)",
     enabled: true,
   },
 ];
@@ -254,19 +253,23 @@ const CRMUnificado: React.FC<CRMUnificadoProps> = ({
   // ===== QUICK ACTIONS =====
   const handleQuickAction = useCallback((action: string) => {
     switch (action) {
-      case "new-client":
-        setActiveModule("clientes");
-        // TODO: Open new client modal
+      case "new-contato":
+        setActiveModule("contatos");
+        // TODO: Open new contact modal
         break;
-      case "new-process":
+      case "new-negocio":
+        setActiveModule("negocios");
+        // TODO: Open new business modal
+        break;
+      case "new-processo":
         setActiveModule("processos");
         // TODO: Open new process modal
         break;
-      case "new-contract":
+      case "new-contrato":
         setActiveModule("contratos");
         // TODO: Open new contract modal
         break;
-      case "new-task":
+      case "new-tarefa":
         setActiveModule("tarefas");
         // TODO: Open new task modal
         break;
@@ -316,7 +319,7 @@ const CRMUnificado: React.FC<CRMUnificadoProps> = ({
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey) {
         const moduleConfig = MODULE_CONFIG.find(
-          (m) => m.shortcut.toLowerCase() === event.key.toLowerCase(),
+          (m) => m.shortcut === event.key,
         );
         if (moduleConfig) {
           event.preventDefault();
@@ -513,11 +516,31 @@ const CRMUnificado: React.FC<CRMUnificadoProps> = ({
             <Button
               variant="primary"
               icon={Plus}
-              onClick={() =>
-                handleQuickAction(
-                  `new-${activeModule === "dashboard" ? "client" : activeModule.slice(0, -1)}`,
-                )
-              }
+              onClick={() => {
+                let action = "new-contato";
+                if (activeModule !== "dashboard") {
+                  switch (activeModule) {
+                    case "contatos":
+                      action = "new-contato";
+                      break;
+                    case "negocios":
+                      action = "new-negocio";
+                      break;
+                    case "processos":
+                      action = "new-processo";
+                      break;
+                    case "contratos":
+                      action = "new-contrato";
+                      break;
+                    case "tarefas":
+                      action = "new-tarefa";
+                      break;
+                    default:
+                      action = "new-contato";
+                  }
+                }
+                handleQuickAction(action);
+              }}
             >
               Adicionar
             </Button>
@@ -539,6 +562,7 @@ const CRMUnificado: React.FC<CRMUnificadoProps> = ({
             icon={BarChart3}
             onClick={() => handleModuleChange("dashboard")}
             size="sm"
+            title="Dashboard (⌘+D)"
           >
             Dashboard
           </Button>
@@ -549,12 +573,24 @@ const CRMUnificado: React.FC<CRMUnificadoProps> = ({
               icon={module.icon}
               onClick={() => handleModuleChange(module.id)}
               size="sm"
+              title={`${module.title} (⌘+${module.shortcut})`}
               style={{
                 minWidth: "fit-content",
                 whiteSpace: "nowrap",
+                position: "relative",
               }}
             >
               {module.title}
+              <span
+                style={{
+                  fontSize: "0.625rem",
+                  opacity: 0.7,
+                  marginLeft: "0.25rem",
+                  fontWeight: "400",
+                }}
+              >
+                ⌘{module.shortcut}
+              </span>
             </Button>
           ))}
         </div>
