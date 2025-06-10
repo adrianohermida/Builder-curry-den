@@ -5,8 +5,14 @@
  * with domain-based architecture and existing pages.
  */
 
-import React from "react";
+import React, { useEffect } from "react";
 import OptimizedRouter from "@/router/optimized";
+
+// Corrected theme system
+import { applyThemeToDocument } from "@/lib/correctedThemeSystem";
+
+// Global styles
+import "@/styles/globals.css";
 
 // Import environment utilities
 import { IS_DEVELOPMENT } from "@/lib/env";
@@ -15,6 +21,11 @@ import { IS_DEVELOPMENT } from "@/lib/env";
 import DebugPanel from "@/components/Debug/DebugPanel";
 
 function App() {
+  // Apply corrected theme on mount
+  useEffect(() => {
+    applyThemeToDocument();
+  }, []);
+
   return (
     <>
       <OptimizedRouter />
