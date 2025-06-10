@@ -146,7 +146,7 @@ const ProfessionalCleanLayout: React.FC = () => {
       }}
     >
       {/* Topbar */}
-      <UnifiedTopbar />
+      <UnifiedTopbar onToggleSidebar={toggleSidebar} />
 
       {/* Sidebar */}
       <UnifiedSidebar
