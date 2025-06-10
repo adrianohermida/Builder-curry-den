@@ -712,9 +712,6 @@ export const orphanDiagnostic = OrphanDiagnosticService.getInstance();
 
 // Hook para usar o diagnóstico
 export const useOrphanDiagnostic = () => {
-  // Import useMemo and useCallback at the top if not already imported
-  const { useMemo } = require("react");
-
   return useMemo(
     () => ({
       generateReport:
