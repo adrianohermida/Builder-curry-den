@@ -1,15 +1,17 @@
 /**
- * 🛡️ SAFE DRAG DROP CONTEXT
+ * 🛡️ SAFE DRAG DROP CONTEXT - ENHANCED
  *
- * Wrapper para DragDropContext que previne erros de useId em React 19
- * Inclui fallback e tratamento de erro para problemas de hidratação
+ * Wrapper robusto para DragDropContext que previne erros de useId
+ * Implementa múltiplas camadas de proteção para React 19
  */
 
-import React, { useEffect, useState } from "react";
-import { DragDropContext, DragDropContextProps } from "@hello-pangea/dnd";
+import React, { useEffect, useState, useRef } from "react";
 
-interface SafeDragDropContextProps extends DragDropContextProps {
+interface SafeDragDropContextProps {
   children: React.ReactNode;
+  onDragEnd: (result: any) => void;
+  onDragStart?: (start: any) => void;
+  onDragUpdate?: (update: any) => void;
   fallback?: React.ReactNode;
 }
 
@@ -19,28 +21,54 @@ export const SafeDragDropContext: React.FC<SafeDragDropContextProps> = ({
   ...props
 }) => {
   const [isMounted, setIsMounted] = useState(false);
+  const [isDndReady, setIsDndReady] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const initTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
-    // Garantir que o componente está montado no cliente
-    setIsMounted(true);
+    // Aguardar montagem completa
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+
+      // Aguardar mais um tick para garantir que React.useId está disponível
+      const dndTimer = setTimeout(() => {
+        try {
+          // Verificar se React.useId está disponível
+          if (typeof React.useId === "function") {
+            setIsDndReady(true);
+          } else {
+            console.warn("React.useId não disponível, usando fallback");
+            setHasError(true);
+          }
+        } catch (error) {
+          console.error("Erro ao verificar React.useId:", error);
+          setHasError(true);
+        }
+      }, 100);
+
+      initTimeoutRef.current = dndTimer;
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+      }
+    };
   }, []);
 
-  if (!isMounted) {
-    return <>{fallback}</>;
+  // Não renderizar até estar completamente pronto
+  if (!isMounted || !isDndReady || hasError) {
+    return <div className="drag-drop-fallback">{fallback || children}</div>;
   }
 
-  if (hasError) {
-    console.warn("DragDropContext failed to initialize, rendering fallback");
-    return <>{fallback || children}</>;
-  }
-
+  // Carregar DragDropContext dinamicamente apenas quando necessário
   try {
+    const { DragDropContext } = require("@hello-pangea/dnd");
     return <DragDropContext {...props}>{children}</DragDropContext>;
   } catch (error) {
-    console.error("DragDropContext error:", error);
-    setHasError(true);
-    return <>{fallback || children}</>;
+    console.error("Erro ao carregar DragDropContext:", error);
+    return <div className="drag-drop-error">{fallback || children}</div>;
   }
 };
 
