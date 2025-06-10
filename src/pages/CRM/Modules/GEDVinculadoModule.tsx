@@ -63,10 +63,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-// Hooks
-import { useGEDUnicorn } from "@/hooks/useGEDUnicorn";
-import { useOCRProcessing } from "@/hooks/useOCRProcessing";
-import { useAIDocumentClassification } from "@/hooks/useAIDocumentClassification";
+// Hooks (using temporary stubs)
+const useGEDUnicorn = () => ({
+  documentos: [],
+  pastas: [],
+  loading: false,
+  uploadDocument: async () => {},
+  deleteDocument: async () => {},
+  shareDocument: async () => {},
+});
+
+const useOCRProcessing = () => ({
+  processDocument: async () => {},
+  extractText: async () => {},
+  loading: false,
+});
+
+const useAIDocumentClassification = () => ({
+  classifyDocument: async () => {},
+  suggestTags: async () => {},
+  findSimilarDocuments: async () => {},
+  loading: false,
+});
 
 // Tipos
 interface Documento {
@@ -738,7 +756,7 @@ export function GEDVinculadoModule({
               </div>
             </div>
 
-            {/* Vincula��ões */}
+            {/* Vinculações */}
             <div className="mb-3">
               {documento.processoNumero && (
                 <div className="flex items-center text-xs text-muted-foreground mb-1">
