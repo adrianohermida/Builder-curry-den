@@ -213,6 +213,16 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
   }) => {
     const location = useLocation();
     const navigate = useNavigate();
+
+    // DEBUG LOG
+    React.useEffect(() => {
+      console.log("📋 UnifiedSidebar rendered with props:", {
+        isOpen,
+        isCollapsed,
+        isMobile,
+        className,
+      });
+    }, [isOpen, isCollapsed, isMobile, className]);
     const {
       colors,
       config,
