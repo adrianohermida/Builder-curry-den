@@ -61,10 +61,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-// Hooks
-import { useTarefasClienteUnicorn } from "@/hooks/useTarefasClienteUnicorn";
-import { useWorkflowAutomation } from "@/hooks/useWorkflowAutomation";
-import { useAITaskRecommendations } from "@/hooks/useAITaskRecommendations";
+// Hooks (using temporary stubs)
+const useTarefasClienteUnicorn = () => ({
+  tarefas: [],
+  loading: false,
+  createTask: async () => {},
+  updateTask: async () => {},
+  deleteTask: async () => {},
+  completeTask: async () => {},
+});
+
+const useWorkflowAutomation = () => ({
+  getWorkflowRecommendations: async () => {},
+  automateRecurringTasks: async () => {},
+  executeWorkflow: async () => {},
+});
+
+const useAITaskRecommendations = () => ({
+  getDeadlineRecommendations: async () => {},
+  getClientTaskRecommendations: async () => {},
+  analyzeTaskEfficiency: async () => {},
+});
 
 // Tipos
 interface Tarefa {
