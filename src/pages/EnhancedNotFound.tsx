@@ -60,7 +60,7 @@ const NotFound = () => {
   }, [isAdminMode, isAdmin]);
 
   const getErrorContext = () => {
-    const path = location.pathname;
+    const path = location?.pathname || "";
 
     if (path.startsWith("/admin") && !isAdminMode) {
       return {
