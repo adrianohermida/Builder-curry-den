@@ -3,8 +3,10 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-// Ultimate Optimized Layout V2 - Single consolidated layout
-import UltimateOptimizedLayout from "@/components/Layout/UltimateOptimizedLayout";
+// New Consolidated Layout System
+import MainLayout from "@/components/Layout/MainLayout";
+import LawdeskLayoutSaaS from "@/components/Layout/LawdeskLayoutSaaS";
+import PublicLayout from "@/components/Layout/PublicLayout";
 
 // Componente de Loading global
 const GlobalLoadingFallback = () => (
@@ -162,7 +164,19 @@ function App() {
           <Suspense fallback={<GlobalLoadingFallback />}>
             <Routes>
               {/* Ultimate Optimized Layout - Single unified system */}
-              <Route path="/" element={<UltimateOptimizedLayout />}>
+              {/* Public Routes */}
+              <Route path="/login" element={<PublicLayout variant="centered" />}>
+                <Route index element={<div>Login Page</div>} />
+              </Route>
+              <Route path="/registro" element={<PublicLayout variant="centered" />}>
+                <Route index element={<div>Registro Page</div>} />
+              </Route>
+              <Route path="/onboarding-start" element={<PublicLayout variant="default" />}>
+                <Route index element={<OnboardingLandingPage />} />
+              </Route>
+
+              {/* Private Routes with Main Layout */}
+              <Route path="/" element={<MainLayout />}>
                 {/* Home redirect */}
                 <Route index element={<Navigate to="/painel" replace />} />
 
@@ -409,10 +423,19 @@ function App() {
               />
 
               {/* Fallback para rotas não encontradas */}
-              <Route path="*" element={<Navigate to="/painel" replace />} />
+                </Route>
+              </Route>
+
+              {/* SaaS Routes with Enhanced Layout */}
+              <Route path="/saas" element={<LawdeskLayoutSaaS />}>
+                <Route index element={<Navigate to="/saas/dashboard" replace />} />
+                <Route path="dashboard" element={<PainelControle />} />
+                <Route path="crm/*" element={<CRMUnificado />} />
+                <Route path="analytics" element={<div>SaaS Analytics</div>} />
+                <Route path="billing" element={<div>SaaS Billing</div>} />
+              </Route>
             </Routes>
-          </Suspense>
-        </BrowserRouter>
+          </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );
