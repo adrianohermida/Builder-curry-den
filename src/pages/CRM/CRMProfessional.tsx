@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import FeedIntegrationPanel from "@/components/Feed/FeedIntegrationPanel";
+import GlobalNotificationsWidget from "@/components/Feed/GlobalNotificationsWidget";
 import { cn } from "@/lib/utils";
 
 // Types
