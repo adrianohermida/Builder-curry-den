@@ -60,10 +60,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-// Hooks
-import { useFinanceiroUnicorn } from "@/hooks/useFinanceiroUnicorn";
-import { useStripeIntegration } from "@/hooks/useStripeIntegration";
-import { useFinancialAnalytics } from "@/hooks/useFinancialAnalytics";
+// Hooks (using temporary stubs)
+const useFinanceiroUnicorn = () => ({
+  transacoes: [],
+  loading: false,
+  createTransaction: async () => {},
+  updateTransaction: async () => {},
+  deleteTransaction: async () => {},
+});
+
+const useStripeIntegration = () => ({
+  createPaymentLink: async () => "https://pay.stripe.com/test_123",
+  getPaymentStatus: async () => {},
+  processRefund: async () => {},
+  loading: false,
+});
+
+const useFinancialAnalytics = () => ({
+  getClientAnalytics: async () => {},
+  getRevenueProjection: async () => {},
+  calculateMetrics: async () => {},
+});
 
 // Tipos
 interface Transacao {
