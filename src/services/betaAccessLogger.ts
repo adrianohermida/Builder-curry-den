@@ -405,30 +405,22 @@ export const useBetaAccessLogger = () => {
   };
 };
 
-// Hook para componentes Beta
-export const useBetaPageTracking = (
+// Funções utilitárias para tracking Beta
+export const trackBetaPageAccess = (
   pageName: string,
   pageUrl: string,
   category: BetaPageAccess["category"],
-) => {
-  const { logAccess, logAction, logExit } = useBetaAccessLogger();
+): string => {
+  return betaAccessLogger.logPageAccess(pageName, pageUrl, category);
+};
 
-  // Note: Este hook requer React import no componente que usar
-  // React.useEffect(() => {
-    const accessId = logAccess(pageName, pageUrl, category);
+export const trackBetaPageAction = (accessId: string, action: string): void => {
+  betaAccessLogger.logPageAction(accessId, action);
+};
 
-    // Log da entrada
-    logAction(accessId, "page_load");
-
-    // Cleanup na saída
-    return () => {
-      logExit(accessId, window.location.pathname);
-    };
-  }, [pageName, pageUrl, category, logAccess, logAction, logExit]);
-
-  return {
-    logUserAction: (action: string) => {
-      // Implementar quando necessário
-    },
-  };
+export const trackBetaPageExit = (
+  accessId: string,
+  exitPath?: string,
+): void => {
+  betaAccessLogger.logPageExit(accessId, exitPath);
 };
