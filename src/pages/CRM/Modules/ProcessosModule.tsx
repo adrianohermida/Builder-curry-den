@@ -33,7 +33,7 @@ import {
   DollarSign,
   Zap,
   Brain,
-  Sync,
+  RefreshCw,
 } from "lucide-react";
 
 // Using existing UI components from the project
@@ -161,7 +161,7 @@ const MOCK_PROCESSOS: Processo[] = [
     responsavel: "Dr. João Santos",
     tribunal: "TJSP",
     vara: "4ª Vara Cível",
-    assunto: "Repetição de Indébito Tributário",
+    assunto: "Repetição de Indébito Tribut��rio",
     risco: "baixo",
     progresso: 75,
     proximaAudiencia: new Date("2025-02-10"),
