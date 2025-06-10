@@ -306,7 +306,7 @@ const UnifiedLayout: React.FC = () => {
 
   // ===== COMPUTED CLASSES =====
   const mainClasses = useMemo(() => {
-    const classes = ["min-h-screen", "bg-gray-50", "dark:bg-gray-900", "pt-16"];
+    const classes = ["min-h-screen", "bg-gray-50", "dark:bg-gray-900", "pt-14"];
 
     if (layoutState.sidebarOpen && !layoutState.isMobile) {
       if (layoutState.sidebarCollapsed) {
@@ -317,8 +317,7 @@ const UnifiedLayout: React.FC = () => {
     }
 
     return classes.join(" ");
-  }, [
-    layoutState.sidebarOpen,
+  }, [layoutState.sidebarOpen, layoutState.sidebarCollapsed, layoutState.isMobile]);
     layoutState.sidebarCollapsed,
     layoutState.isMobile,
   ]);
