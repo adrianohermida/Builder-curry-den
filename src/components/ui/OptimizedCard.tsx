@@ -1,10 +1,11 @@
 /**
- * OPTIMIZED CARD COMPONENT V2
- * Standardized card following design system
+ * OPTIMIZED CARD COMPONENT V3
+ * Standardized card using TailwindCSS classes
  * Focus: Performance, Accessibility, Visual Hierarchy
  */
 
-import React, { forwardRef, useMemo } from "react";
+import React, { forwardRef } from "react";
+import { cn } from "@/lib/utils";
 
 // ===== TYPES =====
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -26,6 +27,21 @@ export interface CardContentProps
 
 export interface CardFooterProps extends React.HTMLAttributes<HTMLDivElement> {}
 
+// ===== VARIANT STYLES =====
+const cardVariants = {
+  default: "bg-white border border-gray-200 shadow-sm",
+  elevated: "bg-white border border-gray-200 shadow-lg",
+  outlined: "bg-white border-2 border-gray-300 shadow-none",
+  ghost: "bg-transparent border-0 shadow-none",
+};
+
+const paddingVariants = {
+  none: "",
+  sm: "p-3",
+  md: "p-4",
+  lg: "p-6",
+};
+
 // ===== MAIN CARD COMPONENT =====
 const OptimizedCard = forwardRef<HTMLDivElement, CardProps>(
   (
@@ -36,271 +52,111 @@ const OptimizedCard = forwardRef<HTMLDivElement, CardProps>(
       interactive = false,
       loading = false,
       children,
-      className = "",
-      style,
+      className,
       ...props
     },
     ref,
   ) => {
-    // ===== COMPUTED STYLES =====
-    const cardStyles = useMemo(() => {
-      const baseStyles = {
-        borderRadius: "var(--radius-lg)",
-        transition: "all var(--duration-normal) var(--easing-default)",
-        position: "relative" as const,
-        overflow: "hidden",
-        cursor: interactive ? "pointer" : "default",
-      };
+    // ===== COMPUTED CLASSES =====
+    const cardClasses = cn(
+      // Base styles
+      "rounded-lg transition-all duration-200",
 
       // Variant styles
-      const variantStyles = {
-        default: {
-          backgroundColor: "var(--surface-primary)",
-          border: "1px solid var(--border-primary)",
-          boxShadow: "var(--shadow-sm)",
-        },
-        elevated: {
-          backgroundColor: "var(--surface-primary)",
-          border: "1px solid var(--border-primary)",
-          boxShadow: "var(--shadow-md)",
-        },
-        outlined: {
-          backgroundColor: "transparent",
-          border: "2px solid var(--border-primary)",
-          boxShadow: "none",
-        },
-        ghost: {
-          backgroundColor: "transparent",
-          border: "none",
-          boxShadow: "none",
-        },
-      };
+      cardVariants[variant],
 
-      // Padding styles
-      const paddingStyles = {
-        none: { padding: "0" },
-        sm: { padding: "var(--spacing-md)" },
-        md: { padding: "var(--spacing-lg)" },
-        lg: { padding: "var(--spacing-xl)" },
-      };
+      // Padding
+      paddingVariants[padding],
 
-      return {
-        ...baseStyles,
-        ...variantStyles[variant],
-        ...paddingStyles[padding],
-        ...style,
-      };
-    }, [variant, padding, interactive, style]);
+      // Interactive states
+      hover && "hover:shadow-md",
+      interactive && "cursor-pointer hover:scale-[1.02] active:scale-[0.98]",
 
-    // ===== HOVER HANDLERS =====
-    const handleMouseEnter = React.useCallback(
-      (e: React.MouseEvent) => {
-        if (!hover && !interactive) return;
+      // Loading state
+      loading && "opacity-60 pointer-events-none",
 
-        const card = e.currentTarget as HTMLDivElement;
-        card.style.transform = "translateY(-2px)";
-        card.style.boxShadow =
-          variant === "ghost" ? "var(--shadow-sm)" : "var(--shadow-lg)";
-      },
-      [hover, interactive, variant],
+      // Custom className
+      className,
     );
-
-    const handleMouseLeave = React.useCallback(
-      (e: React.MouseEvent) => {
-        if (!hover && !interactive) return;
-
-        const card = e.currentTarget as HTMLDivElement;
-        card.style.transform = "translateY(0)";
-        card.style.boxShadow =
-          variant === "ghost" ? "none" : (cardStyles.boxShadow as string);
-      },
-      [hover, interactive, variant, cardStyles.boxShadow],
-    );
-
-    // ===== LOADING OVERLAY =====
-    const LoadingOverlay = useMemo(() => {
-      if (!loading) return null;
-
-      return (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(255, 255, 255, 0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 10,
-          }}
-        >
-          <div
-            className="loading-skeleton"
-            style={{ width: "60%", height: "20px" }}
-          />
-        </div>
-      );
-    }, [loading]);
 
     // ===== RENDER =====
     return (
-      <div
-        ref={ref}
-        style={cardStyles}
-        className={`optimized-card ${className}`}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        role={interactive ? "button" : undefined}
-        tabIndex={interactive ? 0 : undefined}
-        {...props}
-      >
-        {LoadingOverlay}
+      <div ref={ref} className={cardClasses} {...props}>
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/50 rounded-lg">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+          </div>
+        )}
         {children}
       </div>
     );
   },
 );
 
-// ===== CARD HEADER COMPONENT =====
+// ===== CARD HEADER =====
 const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
-  (
-    { title, subtitle, actions, children, className = "", style, ...props },
-    ref,
-  ) => {
-    const headerStyles = useMemo(
-      () => ({
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-        marginBottom: "var(--spacing-md)",
-        ...style,
-      }),
-      [style],
-    );
-
+  ({ title, subtitle, actions, children, className, ...props }, ref) => {
     return (
       <div
         ref={ref}
-        style={headerStyles}
-        className={`card-header ${className}`}
+        className={cn("flex items-start justify-between mb-4", className)}
         {...props}
       >
-        <div style={{ flex: 1 }}>
+        <div className="min-w-0 flex-1">
           {title && (
-            <h3
-              style={{
-                margin: 0,
-                fontSize: "1.125rem",
-                fontWeight: "600",
-                color: "var(--text-primary)",
-                lineHeight: 1.4,
-              }}
-            >
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">
               {title}
             </h3>
           )}
-          {subtitle && (
-            <p
-              style={{
-                margin: "var(--spacing-xs) 0 0 0",
-                fontSize: "0.875rem",
-                color: "var(--text-secondary)",
-                lineHeight: 1.4,
-              }}
-            >
-              {subtitle}
-            </p>
-          )}
+          {subtitle && <p className="text-sm text-gray-600 mb-2">{subtitle}</p>}
           {children}
         </div>
-        {actions && (
-          <div style={{ marginLeft: "var(--spacing-md)" }}>{actions}</div>
-        )}
+        {actions && <div className="ml-4 flex-shrink-0">{actions}</div>}
       </div>
     );
   },
 );
 
-// ===== CARD CONTENT COMPONENT =====
+// ===== CARD CONTENT =====
 const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
-  ({ children, className = "", style, ...props }, ref) => {
-    const contentStyles = useMemo(
-      () => ({
-        fontSize: "0.875rem",
-        lineHeight: 1.6,
-        color: "var(--text-primary)",
-        ...style,
-      }),
-      [style],
-    );
-
+  ({ className, ...props }, ref) => {
     return (
-      <div
-        ref={ref}
-        style={contentStyles}
-        className={`card-content ${className}`}
-        {...props}
-      >
-        {children}
-      </div>
+      <div ref={ref} className={cn("text-gray-700", className)} {...props} />
     );
   },
 );
 
-// ===== CARD FOOTER COMPONENT =====
+// ===== CARD FOOTER =====
 const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
-  ({ children, className = "", style, ...props }, ref) => {
-    const footerStyles = useMemo(
-      () => ({
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        gap: "var(--spacing-sm)",
-        marginTop: "var(--spacing-lg)",
-        paddingTop: "var(--spacing-md)",
-        borderTop: "1px solid var(--border-primary)",
-        ...style,
-      }),
-      [style],
-    );
-
+  ({ className, ...props }, ref) => {
     return (
       <div
         ref={ref}
-        style={footerStyles}
-        className={`card-footer ${className}`}
+        className={cn(
+          "flex items-center justify-between pt-4 mt-4 border-t border-gray-200",
+          className,
+        )}
         {...props}
-      >
-        {children}
-      </div>
+      />
     );
   },
 );
 
-// ===== MEMOIZED EXPORTS =====
-const OptimizedCardMemo = React.memo(OptimizedCard);
-const CardHeaderMemo = React.memo(CardHeader);
-const CardContentMemo = React.memo(CardContent);
-const CardFooterMemo = React.memo(CardFooter);
+// ===== DISPLAY NAMES =====
+OptimizedCard.displayName = "OptimizedCard";
+CardHeader.displayName = "CardHeader";
+CardContent.displayName = "CardContent";
+CardFooter.displayName = "CardFooter";
 
-// Set display names
-OptimizedCardMemo.displayName = "OptimizedCard";
-CardHeaderMemo.displayName = "CardHeader";
-CardContentMemo.displayName = "CardContent";
-CardFooterMemo.displayName = "CardFooter";
+// ===== EXPORTS =====
+export default OptimizedCard;
+export { CardHeader, CardContent, CardFooter };
 
 // ===== COMPOUND COMPONENT =====
-const Card = Object.assign(OptimizedCardMemo, {
-  Header: CardHeaderMemo,
-  Content: CardContentMemo,
-  Footer: CardFooterMemo,
+const Card = Object.assign(OptimizedCard, {
+  Header: CardHeader,
+  Content: CardContent,
+  Footer: CardFooter,
 });
 
-export default Card;
-export {
-  CardHeaderMemo as CardHeader,
-  CardContentMemo as CardContent,
-  CardFooterMemo as CardFooter,
-};
+export { Card };
