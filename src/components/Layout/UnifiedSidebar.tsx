@@ -316,10 +316,10 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
       const itemStyles = getItemColors();
 
       const itemClasses = `
-        group flex items-center w-full px-3 py-3 text-sm font-medium rounded-xl
-        transition-all duration-200 ease-in-out
+        menu-item group flex items-center w-full px-3 py-3 text-sm font-medium rounded-xl
+        transition-all duration-200 ease-in-out hover-effect
         ${item.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
-        ${isActive ? "" : "hover:transform hover:scale-[1.02] hover:shadow-sm"}
+        ${isActive ? "active" : ""}
       `;
 
       const content = (
