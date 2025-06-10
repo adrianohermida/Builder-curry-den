@@ -1,12 +1,12 @@
 /**
- * 🎯 UNIFIED SIDEBAR - SIDEBAR SIMPLES E FIXO
+ * 🎯 UNIFIED SIDEBAR - REFATORADO COM SISTEMA DE TEMAS
  *
- * Sidebar simplificado sem categorias colapsáveis:
- * - Lista plana de itens
- * - Ícones no modo fechado
- * - Ícone + texto no modo expandido
- * - Sem animações de movimento
- * - Cores baseadas no sistema de temas
+ * Sidebar refatorado com:
+ * - Sem cor preta de fundo no hover
+ * - Azul no modo cliente (tema claro)
+ * - Vermelho no modo admin
+ * - Modo escuro com switch
+ * - Cores personalizáveis baseadas no tema
  */
 
 import React, { useCallback } from "react";
@@ -22,18 +22,28 @@ import {
   BarChart3,
   FlaskConical,
   Settings,
-  Bell,
+  Moon,
+  Sun,
+  Palette,
 } from "lucide-react";
 
 // UI Components
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Theme system
 import { useTheme } from "@/lib/themeSystem";
@@ -59,7 +69,7 @@ interface UnifiedSidebarProps {
   className?: string;
 }
 
-// ===== MENU ITEMS (LISTA PLANA) =====
+// ===== MENU ITEMS =====
 const MENU_ITEMS: MenuItem[] = [
   {
     id: "dashboard",
@@ -158,18 +168,22 @@ const getBadgeStyles = (type: string = "info", colors: any) => {
     info: {
       backgroundColor: `${colors.primary}20`,
       color: colors.primary,
+      border: `1px solid ${colors.primary}30`,
     },
     success: {
       backgroundColor: "#10b98120",
       color: "#10b981",
+      border: "1px solid #10b98130",
     },
     warning: {
       backgroundColor: "#f59e0b20",
       color: "#f59e0b",
+      border: "1px solid #f59e0b30",
     },
     error: {
       backgroundColor: "#ef444420",
       color: "#ef4444",
+      border: "1px solid #ef444430",
     },
   };
   return styles[type as keyof typeof styles] || styles.info;
@@ -187,7 +201,15 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
   }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { colors } = useTheme();
+    const {
+      colors,
+      config,
+      toggleTheme,
+      setUserMode,
+      setThemeMode,
+      isAdminMode,
+      isClientMode,
+    } = useTheme();
 
     // ===== HANDLERS =====
     const handleNavigation = useCallback(
@@ -223,6 +245,21 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
       [location.pathname, location.search],
     );
 
+    // ===== THEME HANDLERS =====
+    const handleUserModeChange = useCallback(
+      (mode: "client" | "admin") => {
+        setUserMode(mode);
+      },
+      [setUserMode],
+    );
+
+    const handleThemeModeChange = useCallback(
+      (mode: "light" | "dark" | "custom") => {
+        setThemeMode(mode);
+      },
+      [setThemeMode],
+    );
+
     // ===== RENDER HELPERS =====
     const renderBadge = (item: MenuItem) => {
       if (!item.badge) return null;
@@ -230,7 +267,7 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
       return (
         <Badge
           variant="secondary"
-          className="ml-auto text-xs px-1.5 py-0.5 border-0"
+          className="ml-auto text-xs px-1.5 py-0.5 rounded-full font-medium"
           style={badgeStyles}
         >
           {item.badge}
@@ -242,30 +279,54 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
       const Icon = item.icon;
       const isActive = isActiveItem(item);
 
-      const itemClasses = `
-        group flex items-center w-full px-3 py-3 text-sm font-medium rounded-lg
-        transition-colors duration-150
-        ${
-          isActive
-            ? `text-white shadow-sm`
-            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-        }
-        ${item.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
-      `;
-
-      const activeStyle = isActive
-        ? {
+      // Cores dinâmicas baseadas no estado e tema
+      const getItemColors = () => {
+        if (isActive) {
+          return {
             backgroundColor: colors.primary,
-            color: "white",
-          }
-        : {};
+            color: colors.primaryText,
+            boxShadow: `0 2px 8px ${colors.primary}30`,
+          };
+        }
+
+        if (config.themeMode === "dark") {
+          return {
+            color: colors.text,
+            backgroundColor: "transparent",
+            ":hover": {
+              backgroundColor: `${colors.primary}15`,
+              color: colors.primary,
+            },
+          };
+        }
+
+        return {
+          color: colors.textMuted,
+          backgroundColor: "transparent",
+          ":hover": {
+            backgroundColor: `${colors.primary}08`,
+            color: colors.primary,
+          },
+        };
+      };
+
+      const itemStyles = getItemColors();
+
+      const itemClasses = `
+        group flex items-center w-full px-3 py-3 text-sm font-medium rounded-xl
+        transition-all duration-200 ease-in-out
+        ${item.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+        ${isActive ? "" : "hover:transform hover:scale-[1.02] hover:shadow-sm"}
+      `;
 
       const content = (
         <>
           <Icon size={20} className="flex-shrink-0" />
           {!isCollapsed && (
             <>
-              <span className="ml-3 flex-1 truncate">{item.label}</span>
+              <span className="ml-3 flex-1 truncate font-medium">
+                {item.label}
+              </span>
               {renderBadge(item)}
             </>
           )}
@@ -280,8 +341,20 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
                 <TooltipTrigger asChild>
                   <button
                     className={itemClasses}
-                    style={activeStyle}
+                    style={itemStyles}
                     onClick={() => handleNavigation(item)}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor = `${colors.primary}15`;
+                        e.currentTarget.style.color = colors.primary;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                        e.currentTarget.style.color = colors.textMuted;
+                      }
+                    }}
                   >
                     {content}
                   </button>
@@ -301,8 +374,20 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
           ) : (
             <button
               className={itemClasses}
-              style={activeStyle}
+              style={itemStyles}
               onClick={() => handleNavigation(item)}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = `${colors.primary}15`;
+                  e.currentTarget.style.color = colors.primary;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.color = colors.textMuted;
+                }
+              }}
             >
               {content}
             </button>
@@ -311,13 +396,159 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
       );
     };
 
-    // Sempre renderizar, sem transform
+    const renderThemeControls = () => {
+      if (isCollapsed) {
+        return (
+          <div className="px-2 space-y-2">
+            {/* Dark Mode Toggle */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleTheme}
+                    className="w-full h-10 p-0 rounded-xl"
+                    style={{
+                      color: colors.textMuted,
+                      backgroundColor: "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = `${colors.primary}15`;
+                      e.currentTarget.style.color = colors.primary;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                      e.currentTarget.style.color = colors.textMuted;
+                    }}
+                  >
+                    {config.themeMode === "dark" ? (
+                      <Sun size={20} />
+                    ) : (
+                      <Moon size={20} />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>
+                    {config.themeMode === "dark" ? "Modo Claro" : "Modo Escuro"}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        );
+      }
+
+      return (
+        <div className="px-2 space-y-3">
+          {/* Theme Mode Controls */}
+          <div className="space-y-2">
+            <p
+              className="text-xs font-medium px-2"
+              style={{ color: colors.textMuted }}
+            >
+              Tema
+            </p>
+
+            {/* Dark/Light Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTheme}
+              className="w-full justify-start rounded-xl h-10"
+              style={{
+                color: colors.textMuted,
+                backgroundColor: "transparent",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = `${colors.primary}15`;
+                e.currentTarget.style.color = colors.primary;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = colors.textMuted;
+              }}
+            >
+              {config.themeMode === "dark" ? (
+                <Sun size={16} className="mr-2" />
+              ) : (
+                <Moon size={16} className="mr-2" />
+              )}
+              {config.themeMode === "dark" ? "Modo Claro" : "Modo Escuro"}
+            </Button>
+
+            {/* User Mode Toggle */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start rounded-xl h-10"
+                  style={{
+                    color: colors.textMuted,
+                    backgroundColor: "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = `${colors.primary}15`;
+                    e.currentTarget.style.color = colors.primary;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = colors.textMuted;
+                  }}
+                >
+                  <Palette size={16} className="mr-2" />
+                  {isAdminMode() ? "Modo Admin" : "Modo Cliente"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                className="w-48"
+                style={{
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                }}
+              >
+                <DropdownMenuItem
+                  onClick={() => handleUserModeChange("client")}
+                  className={isClientMode() ? "bg-blue-50 text-blue-700" : ""}
+                >
+                  <div className="w-3 h-3 rounded-full bg-blue-500 mr-2" />
+                  Modo Cliente (Azul)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleUserModeChange("admin")}
+                  className={isAdminMode() ? "bg-red-50 text-red-700" : ""}
+                >
+                  <div className="w-3 h-3 rounded-full bg-red-500 mr-2" />
+                  Modo Admin (Vermelho)
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => handleThemeModeChange("custom")}
+                  className={
+                    config.themeMode === "custom"
+                      ? "bg-purple-50 text-purple-700"
+                      : ""
+                  }
+                >
+                  <Palette size={16} className="mr-2" />
+                  Personalizado
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      );
+    };
+
     return (
       <div
         className={`
           fixed left-0 z-40 h-full
           ${isCollapsed ? "w-16" : "w-64"}
-          bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shadow-lg
+          border-r shadow-lg
           flex flex-col
           ${isMobile ? "top-0" : "top-14 h-[calc(100vh-3.5rem)]"}
           ${isOpen ? "block" : "hidden"}
@@ -335,6 +566,38 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
             {MENU_ITEMS.map((item) => renderMenuItem(item))}
           </nav>
         </ScrollArea>
+
+        {/* Theme Controls */}
+        <div
+          className="border-t py-4"
+          style={{ borderTopColor: colors.border }}
+        >
+          {renderThemeControls()}
+        </div>
+
+        {/* Mode Indicator */}
+        {!isCollapsed && (
+          <div
+            className="px-4 py-2 border-t"
+            style={{ borderTopColor: colors.border }}
+          >
+            <div className="flex items-center space-x-2">
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{
+                  backgroundColor: isAdminMode() ? "#dc2626" : "#3b82f6",
+                }}
+              />
+              <span
+                className="text-xs font-medium"
+                style={{ color: colors.textMuted }}
+              >
+                {isAdminMode() ? "Admin" : "Cliente"} •{" "}
+                {config.themeMode === "dark" ? "Escuro" : "Claro"}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     );
   },
