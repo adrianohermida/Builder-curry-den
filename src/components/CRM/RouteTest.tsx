@@ -76,6 +76,11 @@ export const RouteTest: React.FC = () => {
       label: "GED (Redirect)",
       description: "Deve redirecionar para /crm/ged",
     },
+    {
+      path: "/configuracoes",
+      label: "Configurações",
+      description: "Sistema e preferências",
+    },
   ];
 
   return (
