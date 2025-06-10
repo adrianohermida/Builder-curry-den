@@ -809,7 +809,7 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
       );
     };
 
-    // Don't render if not open (temporariamente sempre renderizar para debug)
+    // Sempre renderizar, usar transform para mostrar/esconder
     // if (!isOpen) return null;
 
     return (
