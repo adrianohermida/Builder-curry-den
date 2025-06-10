@@ -216,8 +216,8 @@ const AppRouter: React.FC = () => {
                   />
                 </Route>
 
-                {/* ===== ROTAS PRIVADAS (MAIN LAYOUT) ===== */}
-                <Route path="/" element={<MainLayout />}>
+                {/* ===== ROTAS PRIVADAS (UNIFIED LAYOUT) ===== */}
+                <Route path="/" element={<UnifiedLayout />}>
                   {/* Home redirect para painel */}
                   <Route index element={<Navigate to="/painel" replace />} />
 
