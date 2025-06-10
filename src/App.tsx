@@ -3,8 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-// Layout principal otimizado
-import DefinitiveCleanLayout from "@/components/Layout/DefinitiveCleanLayout";
+// Layout principal otimizado - ULTIMATE MODERN
+import UltimateModernLayout from "@/components/Layout/UltimateModernLayout";
 
 // Componente de Loading global
 const GlobalLoadingFallback = () => (
