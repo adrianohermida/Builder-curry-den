@@ -236,8 +236,8 @@ const MinimalistRouter: React.FC = () => {
                   />
                 </Route>
 
-                {/* ===== PRIVATE ROUTES (MINIMALIST LAYOUT) ===== */}
-                <Route path="/" element={<MinimalistSaaSLayout />}>
+                {/* ===== PRIVATE ROUTES (PROFESSIONAL CLEAN LAYOUT) ===== */}
+                <Route path="/" element={<ProfessionalCleanLayout />}>
                   {/* Home redirect */}
                   <Route index element={<Navigate to="/painel" replace />} />
 
