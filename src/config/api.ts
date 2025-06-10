@@ -60,6 +60,21 @@ export const API_ENDPOINTS = {
     ANALYSIS: "/ai/analysis",
     RECOMMENDATIONS: "/ai/recommendations",
   },
+
+  // Integrations
+  INTEGRATIONS: {
+    BASE: "/integrations",
+    PROVIDERS: "/integrations/providers",
+    ADAPTERS: "/integrations/adapters",
+    TEST: "/integrations/test",
+    VALIDATE: "/integrations/validate",
+    REFRESH_TOKEN: "/integrations/refresh-token",
+    WEBHOOK: "/integrations/webhook",
+    SYNC: "/integrations/sync",
+    METRICS: "/integrations/metrics",
+    LOGS: "/integrations/logs",
+    HEALTH: "/integrations/health",
+  },
 } as const;
 
 // HTTP Status Codes
@@ -83,6 +98,7 @@ export const TIMEOUTS = {
   DEFAULT: 10000, // 10 seconds
   UPLOAD: 60000, // 60 seconds for file uploads
   AI: 30000, // 30 seconds for AI operations
+  INTEGRATION: 15000, // 15 seconds for integration calls
 } as const;
 
 // Retry configuration
@@ -119,4 +135,5 @@ export const CACHE_CONFIG = {
   DEFAULT_STALE_TIME: 5 * 60 * 1000, // 5 minutes
   DEFAULT_CACHE_TIME: 10 * 60 * 1000, // 10 minutes
   LONG_CACHE_TIME: 60 * 60 * 1000, // 1 hour
+  INTEGRATION_CACHE_TIME: 2 * 60 * 1000, // 2 minutes for integration status
 } as const;
