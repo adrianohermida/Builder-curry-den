@@ -41,7 +41,7 @@ export default function MobileDashboard() {
       icon: FileText,
       color: "text-blue-600",
       bg: "bg-blue-50",
-      href: "/ged-juridico",
+      href: "/crm/ged",
     },
     {
       title: "Clientes",
@@ -149,7 +149,7 @@ export default function MobileDashboard() {
         {
           title: "Documentos",
           icon: FileText,
-          href: "/ged-juridico",
+          href: "/crm/ged",
           color: "text-yellow-600",
         },
         {
