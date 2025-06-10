@@ -139,6 +139,10 @@ const Contratos = createLazyComponent(
   () => import("./pages/Contratos"),
   "Contratos",
 );
+const Financeiro = createLazyComponent(
+  () => import("./pages/Financeiro"),
+  "Financeiro",
+);
 const AgendaJuridica = createLazyComponent(
   () => import("./pages/Agenda"),
   "Agenda Jurídica",
