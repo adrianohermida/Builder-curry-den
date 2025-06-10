@@ -89,7 +89,7 @@ const UltimateOptimizedLayout: React.FC = () => {
   // Initialize theme on mount
   useEffect(() => {
     applyTheme(layoutState.theme);
-    ultimateDesignSystem.performance.preloadCriticalResources();
+    performanceUtils.loadingPerformance.preloadCriticalResources();
 
     // Start color violation monitoring
     ultimateDesignSystem.colorViolationDetector.startMonitoring(
