@@ -226,6 +226,7 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
   }) => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { colors } = useTheme();
 
     // ===== STATE =====
     const [expandedSections, setExpandedSections] = useState<Set<string>>(
