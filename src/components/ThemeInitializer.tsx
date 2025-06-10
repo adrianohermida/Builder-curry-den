@@ -1,237 +1,124 @@
-import { useEffect } from "react";
-import { useTheme } from "@/providers/ThemeProvider";
-import { useViewMode } from "@/contexts/ViewModeContext";
-
 /**
- * ThemeInitializer - Forces light mode and proper admin/client colors
- * Removes any dark mode remnants and ensures consistent theming
+ * 🎨 THEME INITIALIZER - SISTEMA DE TEMAS LAWDESK
+ *
+ * Inicializador de temas otimizado e limpo:
+ * - Tema claro como padrão
+ * - Azul para modo cliente
+ * - Vermelho para modo admin
+ * - Sem efeitos visuais excessivos
  */
-export function ThemeInitializer() {
-  const { config } = useTheme();
-  const { isAdminMode } = useViewMode();
 
+import React, { useEffect } from "react";
+
+interface ThemeInitializerProps {
+  defaultMode?: "client" | "admin";
+}
+
+export const ThemeInitializer: React.FC<ThemeInitializerProps> = ({
+  defaultMode = "client",
+}) => {
   useEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
-
-    // CRITICAL: Remove ALL dark mode classes and force light
-    const darkClasses = [
-      "dark",
-      "system",
-      "auto",
-      "bg-gray-900",
-      "bg-slate-900",
-      "bg-stone-900",
-      "bg-zinc-900",
-      "bg-neutral-900",
-      "text-gray-100",
-      "text-slate-100",
-      "text-white",
-    ];
-
-    darkClasses.forEach((cls) => {
-      html.classList.remove(cls);
-      body.classList.remove(cls);
-    });
-
-    // FORCE light mode classes
-    html.classList.add("light");
-    body.classList.add("light");
-
-    // CRITICAL: Force light color scheme
-    html.style.colorScheme = "light";
-    body.style.backgroundColor = "#ffffff";
-    body.style.color = "#0f172a";
-
-    // Apply admin/client mode classes AFTER forcing light
-    if (isAdminMode) {
-      html.classList.add("admin-mode");
-      body.classList.add("admin-mode");
-      html.classList.remove("client-mode");
-      body.classList.remove("client-mode");
-    } else {
-      html.classList.add("client-mode");
-      body.classList.add("client-mode");
-      html.classList.remove("admin-mode");
-      body.classList.remove("admin-mode");
-    }
-
-    // Apply CSS custom properties for consistent theming
+    // Set default theme variables
     const root = document.documentElement;
 
-    // CRITICAL: Force light mode variables
-    root.style.setProperty("--background", "0 0% 100%");
-    root.style.setProperty("--foreground", "222.2 84% 4.9%");
-    root.style.setProperty("--card", "0 0% 100%");
-    root.style.setProperty("--card-foreground", "222.2 84% 4.9%");
-    root.style.setProperty("--popover", "0 0% 100%");
-    root.style.setProperty("--popover-foreground", "222.2 84% 4.9%");
-    root.style.setProperty("--secondary", "210 40% 96%");
-    root.style.setProperty("--secondary-foreground", "222.2 84% 4.9%");
-    root.style.setProperty("--muted", "210 40% 98%");
-    root.style.setProperty("--muted-foreground", "215.4 16.3% 46.9%");
-    root.style.setProperty("--accent", "210 40% 98%");
-    root.style.setProperty("--accent-foreground", "222.2 84% 4.9%");
-    root.style.setProperty("--border", "214.3 31.8% 91.4%");
-    root.style.setProperty("--input", "214.3 31.8% 91.4%");
-    root.style.setProperty("--destructive", "0 84.2% 60.2%");
-    root.style.setProperty("--destructive-foreground", "210 40% 98%");
+    // Always use light theme as requested
+    root.classList.remove("dark");
+    root.classList.add("light");
 
-    // Set colors based on admin/client mode
-    if (isAdminMode) {
-      // Red theme for admin
-      root.style.setProperty("--primary", "0 84% 60%");
-      root.style.setProperty("--primary-foreground", "210 40% 98%");
-      root.style.setProperty("--ring", "0 84% 60%");
+    // Set mode-specific colors
+    if (defaultMode === "admin") {
+      root.classList.add("admin-mode");
+      root.classList.remove("client-mode");
+
+      // Admin colors (red)
+      root.style.setProperty("--primary", "220 38 38"); // red-600
+      root.style.setProperty("--primary-foreground", "255 255 255");
+      root.style.setProperty("--ring", "220 38 38");
     } else {
-      // Blue theme for client
-      root.style.setProperty("--primary", "221.2 83.2% 53.3%");
-      root.style.setProperty("--primary-foreground", "210 40% 98%");
-      root.style.setProperty("--ring", "221.2 83.2% 53.3%");
+      root.classList.add("client-mode");
+      root.classList.remove("admin-mode");
+
+      // Client colors (blue) - default
+      root.style.setProperty("--primary", "37 99 235"); // blue-600
+      root.style.setProperty("--primary-foreground", "255 255 255");
+      root.style.setProperty("--ring", "37 99 235");
     }
 
-    // Apply accessibility settings
-    if (config.accessibility.reducedMotion) {
-      html.classList.add("reduced-motion");
+    // Core light theme colors
+    root.style.setProperty("--background", "249 250 251"); // gray-50
+    root.style.setProperty("--foreground", "17 24 39"); // gray-900
+    root.style.setProperty("--card", "255 255 255"); // white
+    root.style.setProperty("--card-foreground", "17 24 39"); // gray-900
+    root.style.setProperty("--popover", "255 255 255"); // white
+    root.style.setProperty("--popover-foreground", "17 24 39"); // gray-900
+    root.style.setProperty("--secondary", "243 244 246"); // gray-100
+    root.style.setProperty("--secondary-foreground", "17 24 39"); // gray-900
+    root.style.setProperty("--muted", "249 250 251"); // gray-50
+    root.style.setProperty("--muted-foreground", "107 114 128"); // gray-500
+    root.style.setProperty("--accent", "243 244 246"); // gray-100
+    root.style.setProperty("--accent-foreground", "17 24 39"); // gray-900
+    root.style.setProperty("--destructive", "239 68 68"); // red-500
+    root.style.setProperty("--destructive-foreground", "255 255 255");
+    root.style.setProperty("--border", "229 231 235"); // gray-200
+    root.style.setProperty("--input", "229 231 235"); // gray-200
+    root.style.setProperty("--radius", "0.5rem");
+
+    // Ensure proper font loading
+    document.body.style.fontFamily =
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+
+    // Set proper background
+    document.body.style.backgroundColor = "rgb(249 250 251)";
+    document.body.style.color = "rgb(17 24 39)";
+
+    // Remove any conflicting styles
+    document.body.style.margin = "0";
+    document.body.style.padding = "0";
+    document.body.style.minHeight = "100vh";
+    document.body.style.lineHeight = "1.5";
+
+    // Ensure proper box-sizing
+    document.documentElement.style.boxSizing = "border-box";
+
+    // Optimize rendering
+    document.body.style.webkitFontSmoothing = "antialiased";
+    document.body.style.mozOsxFontSmoothing = "grayscale";
+
+    // Store theme preference
+    localStorage.setItem("lawdesk-theme", "light");
+    localStorage.setItem("lawdesk-mode", defaultMode);
+  }, [defaultMode]);
+
+  // Theme switcher function (for future use)
+  const switchMode = (mode: "client" | "admin") => {
+    const root = document.documentElement;
+
+    if (mode === "admin") {
+      root.classList.add("admin-mode");
+      root.classList.remove("client-mode");
+      root.style.setProperty("--primary", "220 38 38");
+      root.style.setProperty("--ring", "220 38 38");
     } else {
-      html.classList.remove("reduced-motion");
+      root.classList.add("client-mode");
+      root.classList.remove("admin-mode");
+      root.style.setProperty("--primary", "37 99 235");
+      root.style.setProperty("--ring", "37 99 235");
     }
 
-    if (config.accessibility.largeText) {
-      html.classList.add("large-text");
-    } else {
-      html.classList.remove("large-text");
-    }
+    localStorage.setItem("lawdesk-mode", mode);
+  };
 
-    if (config.accessibility.highContrast) {
-      html.classList.add("high-contrast");
-    } else {
-      html.classList.remove("high-contrast");
-    }
-
-    // CRITICAL: Clean up any problematic inline styles
-    const cleanupDarkStyles = () => {
-      // Find elements with dark background styles
-      const allElements = document.querySelectorAll("*[style]");
-
-      allElements.forEach((element) => {
-        if (element instanceof HTMLElement) {
-          const style = element.style;
-
-          // Check for dark backgrounds
-          if (
-            style.backgroundColor?.includes("rgb(2, 8, 23)") ||
-            style.backgroundColor?.includes("rgb(15, 23, 42)") ||
-            style.backgroundColor?.includes("rgb(17, 24, 39)") ||
-            style.backgroundColor?.includes("rgb(31, 41, 55)") ||
-            style.backgroundColor?.includes("#020817") ||
-            style.backgroundColor?.includes("#0f172a") ||
-            style.backgroundColor?.includes("#111827") ||
-            style.backgroundColor?.includes("#1f2937")
-          ) {
-            style.backgroundColor = "#ffffff";
-            style.color = "#0f172a";
-          }
-
-          // Check for light text colors that would be invisible on white
-          if (
-            style.color?.includes("rgb(248, 250, 252)") ||
-            style.color?.includes("rgb(241, 245, 249)") ||
-            style.color?.includes("rgb(226, 232, 240)") ||
-            style.color?.includes("#f8fafc") ||
-            style.color?.includes("#f1f5f9") ||
-            style.color?.includes("#e2e8f0") ||
-            style.color?.includes("white") ||
-            style.color?.includes("#ffffff")
-          ) {
-            style.color = "#0f172a";
-          }
-        }
-      });
+  // Expose theme functions globally for debugging
+  useEffect(() => {
+    // @ts-ignore
+    window.lawdeskTheme = {
+      switchMode,
+      getCurrentMode: () => localStorage.getItem("lawdesk-mode") || "client",
+      getCurrentTheme: () => localStorage.getItem("lawdesk-theme") || "light",
     };
+  }, []);
 
-    // Initial cleanup
-    cleanupDarkStyles();
+  return null; // This component doesn't render anything
+};
 
-    // Set up mutation observer to catch dynamic changes
-    const observer = new MutationObserver((mutations) => {
-      let needsCleanup = false;
-
-      mutations.forEach((mutation) => {
-        if (
-          mutation.type === "attributes" &&
-          (mutation.attributeName === "style" ||
-            mutation.attributeName === "class")
-        ) {
-          needsCleanup = true;
-        }
-
-        if (mutation.type === "childList") {
-          mutation.addedNodes.forEach((node) => {
-            if (node instanceof HTMLElement) {
-              needsCleanup = true;
-            }
-          });
-        }
-      });
-
-      if (needsCleanup) {
-        cleanupDarkStyles();
-
-        // Re-ensure light mode classes
-        if (!html.classList.contains("light")) {
-          html.classList.add("light");
-          html.classList.remove("dark");
-        }
-
-        if (!body.classList.contains("light")) {
-          body.classList.add("light");
-          body.classList.remove("dark");
-        }
-      }
-    });
-
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ["style", "class"],
-      childList: true,
-      subtree: true,
-    });
-
-    // Set meta theme color for mobile browsers
-    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (!metaThemeColor) {
-      metaThemeColor = document.createElement("meta");
-      metaThemeColor.setAttribute("name", "theme-color");
-      document.head.appendChild(metaThemeColor);
-    }
-    metaThemeColor.setAttribute("content", "#ffffff");
-
-    // Set viewport meta for proper mobile rendering
-    let metaViewport = document.querySelector('meta[name="viewport"]');
-    if (!metaViewport) {
-      metaViewport = document.createElement("meta");
-      metaViewport.setAttribute("name", "viewport");
-      document.head.appendChild(metaViewport);
-    }
-    metaViewport.setAttribute(
-      "content",
-      "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no",
-    );
-
-    console.log("🎨 Theme FORCED to light mode:", {
-      mode: "light",
-      adminMode: isAdminMode,
-      primaryColor: isAdminMode ? "red (#DC2626)" : "blue (#3B82F6)",
-      background: "#ffffff",
-      foreground: "#0f172a",
-    });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [config, isAdminMode]);
-
-  // This component doesn't render anything, it just handles theme initialization
-  return null;
-}
+export default ThemeInitializer;
