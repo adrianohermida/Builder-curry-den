@@ -35,6 +35,7 @@ import {
   Shield,
   HelpCircle,
   Plus,
+  HardDrive,
 } from "lucide-react";
 
 // Layout Context
