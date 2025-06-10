@@ -380,23 +380,22 @@ const App: React.FC = () => {
                     <Sonner />
                     <BrowserRouter>
                       <Routes>
-                        <Route
-                          path="/"
-          <Route index element={<Navigate to="/painel" replace />} />
-          <Route
-            path="painel"
-            element={
-              <SafeRoute
-                element={
-                  <PageWrapper>
-                    <PainelControle />
-                  </PageWrapper>
-                }
-              />
-            }
-          />
-          <Route
-            path="dashboard"
+                        <Route path="/" element={<TraditionalLayout />}>
+                          <Route index element={<Navigate to="/painel" replace />} />
+                          <Route
+                            path="painel"
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <PainelControle />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
+                          <Route
+                            path="dashboard"
             element={
               <SafeRoute
                 element={
