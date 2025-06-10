@@ -1,5 +1,5 @@
 /**
- * 🎯 UNIFIED TOPBAR - CABEÇALHO MINIMALISTA
+ * ���� UNIFIED TOPBAR - CABEÇALHO MINIMALISTA
  *
  * Cabeçalho clean e minimalista baseado no design:
  * - Logo Lawdesk com balança branca e texto azul
@@ -68,6 +68,11 @@ const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({ className = "" }) => {
   return (
     <div
       className={`bg-white border-b border-gray-200 sticky top-0 z-50 ${className}`}
+      data-topbar="true"
+      style={{
+        backgroundColor: colors.background,
+        borderBottomColor: colors.border,
+      }}
     >
       <div className="px-4">
         <div className="flex items-center justify-between h-14">
