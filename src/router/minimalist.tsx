@@ -14,8 +14,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-// Minimalist Layout
-import MinimalistSaaSLayout from "@/components/Layout/MinimalistSaaSLayout";
+// Professional Clean Layout
+import ProfessionalCleanLayout from "@/components/Layout/ProfessionalCleanLayout";
 import PublicLayout from "@/components/Layout/PublicLayout";
 
 // Configuration

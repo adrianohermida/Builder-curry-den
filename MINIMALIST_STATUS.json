@@ -1,0 +1,91 @@
+{
+  "version": "CRM-V3-MINIMALIA",
+  "activated": "2025-01-16T12:00:00Z",
+  "layout": "MinimalistSaaSLayout",
+  "router": "minimalist",
+  "status": "active",
+  "updates_applied": {
+    "app_tsx": true,
+    "router_updated": true,
+    "new_features_widget": true,
+    "crm_showcase": true,
+    "sidebar_updated": true,
+    "pages_updated": true
+  },
+  "features": [
+    {
+      "name": "Layout SaaS 2025",
+      "status": "active",
+      "description": "Design minimalista e responsivo"
+    },
+    {
+      "name": "Widgets Colapsáveis",
+      "status": "active",
+      "description": "Seções organizáveis por prioridade"
+    },
+    {
+      "name": "Quick Actions",
+      "status": "active",
+      "description": "Atalhos ⌘C, ⌘P, ⌘T para criação rápida"
+    },
+    {
+      "name": "Busca Global",
+      "status": "active",
+      "description": "Busca instantânea com ⌘K"
+    },
+    {
+      "name": "Menu Contextual",
+      "status": "active",
+      "description": "Ações (⋯) em todos os itens"
+    },
+    {
+      "name": "IA Contextual",
+      "status": "active",
+      "description": "Insights automáticos e sugestões"
+    },
+    {
+      "name": "Filtros Sticky",
+      "status": "active",
+      "description": "Filtros persistentes durante scroll"
+    }
+  ],
+  "pages_updated": [
+    {
+      "path": "/painel",
+      "status": "updated",
+      "changes": ["Widget de novas funcionalidades", "Destaque CRM minimalista"]
+    },
+    {
+      "path": "/crm",
+      "status": "new",
+      "changes": [
+        "Página showcase demonstrativa",
+        "Todas as funcionalidades visíveis"
+      ]
+    },
+    {
+      "path": "/crm/full",
+      "status": "new",
+      "changes": ["Versão completa do CRM minimalista"]
+    }
+  ],
+  "navigation": {
+    "sidebar": "MinimalistSaaSLayout",
+    "breadcrumbs": "auto-generated",
+    "mobile_menu": "collapsible",
+    "quick_access": ["⌘K search", "⌘C client", "⌘P process", "⌘T task"]
+  },
+  "performance": {
+    "lazy_loading": true,
+    "optimized_components": true,
+    "responsive_design": true,
+    "mobile_first": true
+  },
+  "next_steps": [
+    "Acesse /painel para ver widget de novas funcionalidades",
+    "Navegue para /crm para ver showcase interativo",
+    "Teste atalhos: ⌘K (busca), ⌘C (cliente), ⌘P (processo)",
+    "Experimente widgets colapsáveis clicando nos títulos",
+    "Use menu contextual (⋯) em itens da lista"
+  ]
+}
