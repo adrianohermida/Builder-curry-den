@@ -80,7 +80,16 @@ export const SafeDragDropContext: React.FC<SafeDragDropContextProps> = ({
     );
   } catch (error) {
     console.error("Erro final ao carregar DragDropContext:", error);
-    return <DndKitFallback {...props}>{children}</DndKitFallback>;
+    try {
+      return <DndKitFallback {...props}>{children}</DndKitFallback>;
+    } catch (finalError) {
+      console.error(
+        "Todos os fallbacks falharam, usando UI estática:",
+        finalError,
+      );
+      const { DragDropFallback } = require("./DragDropFallback");
+      return <DragDropFallback disabled={true}>{children}</DragDropFallback>;
+    }
   }
 };
 
@@ -131,8 +140,12 @@ const DndKitFallback: React.FC<SafeDragDropContextProps> = ({
       </DndContext>
     );
   } catch (error) {
-    console.error("Fallback @dnd-kit também falhou:", error);
-    return <div>{children}</div>;
+    console.error(
+      "Fallback @dnd-kit também falhou, usando UI estática:",
+      error,
+    );
+    const { DragDropFallback } = require("./DragDropFallback");
+    return <DragDropFallback disabled={true}>{children}</DragDropFallback>;
   }
 };
 
