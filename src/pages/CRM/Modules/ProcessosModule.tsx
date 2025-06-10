@@ -58,10 +58,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-// Hooks
-import { useProcessosUnicorn } from "@/hooks/useProcessosUnicorn";
-import { useAdviseAPI } from "@/hooks/useAdviseAPI";
-import { useAIRecommendations } from "@/hooks/useAIRecommendations";
+// Hooks (using temporary stubs)
+const useProcessosUnicorn = () => ({
+  processos: [],
+  loading: false,
+  createProcess: async () => {},
+  updateProcess: async () => {},
+  deleteProcess: async () => {},
+  syncProcessData: async () => {},
+});
+
+const useAdviseAPI = () => ({
+  getProcessUpdates: async () => {},
+  syncClientProcesses: async () => {},
+  loading: false,
+});
+
+const useAIRecommendations = () => ({
+  processRecommendations: [],
+  deadlineAlerts: [],
+  riskAnalysis: {},
+});
 
 // Tipos
 interface Processo {
