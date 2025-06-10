@@ -23,8 +23,14 @@ function App() {
     <>
       <AppRouter />
 
-      {/* Debug Panel - Development Only */}
-      {IS_DEVELOPMENT && <DebugPanel />}
+      {/* Development Tools - Development Only */}
+      {IS_DEVELOPMENT && (
+        <>
+          <DebugPanel />
+          <LayoutSwitcher />
+          <MigrationStatus />
+        </>
+      )}
     </>
   );
 }
