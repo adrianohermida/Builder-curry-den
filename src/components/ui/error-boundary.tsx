@@ -73,7 +73,7 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      const isDevelopment = process.env.NODE_ENV === "development";
+      const isDevelopment = import.meta.env?.MODE === "development";
 
       return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4">

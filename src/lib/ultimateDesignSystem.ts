@@ -473,7 +473,7 @@ export const colorViolationDetector = {
     const violations = colorViolationDetector.scanForViolations();
 
     // Log violations for debugging in development
-    if (process.env.NODE_ENV === "development" && violations.length > 0) {
+    if (import.meta.env?.MODE === "development" && violations.length > 0) {
       console.warn(
         `🎨 Color violations detected: ${violations.length} elements. Consider using TailwindCSS classes instead.`,
       );
