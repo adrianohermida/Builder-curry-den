@@ -37,6 +37,9 @@ import ThemeDiagnostic from "@/lib/themeDiagnostic";
 // Environment utilities
 import { IS_DEVELOPMENT } from "@/lib/env";
 
+// Sidebar theme CSS
+import "@/styles/sidebar-theme.css";
+
 // ===== TYPES =====
 interface LayoutState {
   sidebarOpen: boolean;
