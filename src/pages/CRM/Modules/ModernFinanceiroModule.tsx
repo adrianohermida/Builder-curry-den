@@ -47,6 +47,19 @@ interface Invoice {
   metodo?: string;
 }
 
+interface DropResult {
+  destination?: {
+    droppableId: string;
+    index: number;
+  } | null;
+  source: {
+    droppableId: string;
+    index: number;
+  };
+  draggableId: string;
+  reason: string;
+}
+
 interface PipelineColumn {
   id: string;
   title: string;
