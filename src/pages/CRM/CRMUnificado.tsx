@@ -220,7 +220,16 @@ const CRMUnificado: React.FC<CRMUnificadoProps> = ({
   // ===== HOOKS =====
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeModule, setActiveModule] = useState<CRMModule>(defaultModule);
+
+  // Initialize activeModule from URL or default
+  const [activeModule, setActiveModule] = useState<CRMModule>(() => {
+    const urlModule = searchParams.get("module") as CRMModule;
+    if (urlModule && MODULE_CONFIG.find((m) => m.id === urlModule)) {
+      return urlModule;
+    }
+    return defaultModule;
+  });
+
   const [viewMode, setViewMode] = useState<ViewMode>("cards");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -248,8 +257,20 @@ const CRMUnificado: React.FC<CRMUnificadoProps> = ({
     const module = searchParams.get("module") as CRMModule;
     const action = searchParams.get("action");
 
+    // Handle the module parameter - ensure it's valid
     if (module && MODULE_CONFIG.find((m) => m.id === module)) {
       setActiveModule(module);
+    } else if (module) {
+      // If module is not found but provided, default to dashboard
+      console.warn(`Unknown module: ${module}, defaulting to dashboard`);
+      setActiveModule("dashboard");
+      setSearchParams((prev) => {
+        prev.set("module", "dashboard");
+        return prev;
+      });
+    } else {
+      // No module specified, default to dashboard
+      setActiveModule("dashboard");
     }
 
     // Handle quick actions from URL
