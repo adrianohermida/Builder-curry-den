@@ -122,6 +122,10 @@ const CRMJuridico = createLazyComponent(
   () => import("./pages/CRM/CRMJuridico"),
   "CRM Jurídico",
 );
+const RouteTest = createLazyComponent(
+  () => import("./components/CRM/RouteTest"),
+  "Route Test",
+);
 const Tarefas = createLazyComponent(() => import("./pages/Tarefas"), "Tarefas");
 const Contratos = createLazyComponent(
   () => import("./pages/Contratos"),
