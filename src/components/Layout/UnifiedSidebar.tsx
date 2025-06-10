@@ -323,6 +323,11 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
           ${isOpen ? "block" : "hidden"}
           ${className}
         `}
+        data-sidebar="true"
+        style={{
+          backgroundColor: colors.background,
+          borderRightColor: colors.border,
+        }}
       >
         {/* Navigation */}
         <ScrollArea className="flex-1 py-4">
