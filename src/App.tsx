@@ -423,7 +423,7 @@ function App() {
               />
 
               {/* Fallback para rotas não encontradas */}
-                </Route>
+                <Route path="*" element={<Navigate to="/painel" replace />} />
               </Route>
 
               {/* SaaS Routes with Enhanced Layout */}
