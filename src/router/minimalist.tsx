@@ -60,6 +60,9 @@ const LoginPage = lazy(() => import("@/pages/Login"));
 const OnboardingLanding = lazy(() => import("@/pages/OnboardingLanding"));
 
 // Dashboard pages
+const CleanProfessionalDashboard = lazy(
+  () => import("@/pages/CleanProfessionalDashboard"),
+);
 const CleanPainelControle = lazy(() => import("@/pages/CleanPainelControle"));
 const ModernDashboard = lazy(() => import("@/pages/ModernDashboard"));
 
