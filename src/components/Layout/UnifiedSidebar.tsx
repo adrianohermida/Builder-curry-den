@@ -809,8 +809,8 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
       );
     };
 
-    // Don't render if not open
-    if (!isOpen) return null;
+    // Don't render if not open (temporariamente sempre renderizar para debug)
+    // if (!isOpen) return null;
 
     return (
       <div
