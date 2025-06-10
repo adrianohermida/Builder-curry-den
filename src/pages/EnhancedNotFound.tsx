@@ -137,7 +137,7 @@ const NotFound = () => {
                   <p className="text-sm text-gray-500 dark:text-gray-500">
                     <strong>Rota tentada:</strong>{" "}
                     <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs">
-                      {location.pathname}
+                      {location?.pathname || "Desconhecida"}
                     </code>
                   </p>
                   <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
