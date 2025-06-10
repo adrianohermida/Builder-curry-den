@@ -9,7 +9,7 @@
  * - CSS issues
  */
 
-interface DiagnosticResult {
+export interface DiagnosticResult {
   issue: string;
   severity: "low" | "medium" | "high" | "critical";
   description: string;
@@ -17,7 +17,7 @@ interface DiagnosticResult {
   fix?: () => void;
 }
 
-interface DiagnosticReport {
+export interface DiagnosticReport {
   timestamp: string;
   totalIssues: number;
   criticalIssues: number;
