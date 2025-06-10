@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
+// Debug Panel (development only)
+import DebugPanel from "@/components/Debug/DebugPanel";
+
 // New Consolidated Layout System
 import MainLayout from "@/components/Layout/MainLayout";
 import LawdeskLayoutSaaS from "@/components/Layout/LawdeskLayoutSaaS";
