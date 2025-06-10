@@ -18,6 +18,9 @@ import {
   ChevronRight,
   ChevronDown,
   LogOut,
+  Rss,
+  MessageCircle,
+  FolderOpen,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
