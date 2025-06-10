@@ -475,6 +475,9 @@ const CleanPainelControle: React.FC = () => {
         ))}
       </div>
 
+      {/* Diagnostic Alert Widget */}
+      <DiagnosticoAlert />
+
       {/* Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quick Actions */}
