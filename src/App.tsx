@@ -113,7 +113,7 @@ const MetricsGerencialPage = createLazyPage(
 );
 
 const CodeOptimizationPage = createLazyPage(
-  () => import("./pages/CodeOptimization"),
+  () => import("./pages/Beta/CodeOptimization"),
   "Code Optimization",
 );
 
@@ -201,21 +201,16 @@ function App() {
                 />
 
                 {/* CRM Jurídico - Sistema Unificado */}
-                <Route path="crm-modern/*">
-                  <Route
-                    index
-                    element={
-                      <PageWrapper title="CRM Jur��dico">
-                        <CRMErrorBoundary>
-                          <CRMUnificado />
-                        </CRMErrorBoundary>
-                      </PageWrapper>
-                    }
-                  />
-                </Route>
-
-                {/* Publicações */}
                 <Route
+                  path="crm-modern/*"
+                  element={
+                    <PageWrapper title="CRM Jurídico">
+                      <CRMErrorBoundary>
+                        <CRMUnificado />
+                      </CRMErrorBoundary>
+                    </PageWrapper>
+                  }
+                />
                   path="publicacoes"
                   element={
                     <PageWrapper title="Publicações">
