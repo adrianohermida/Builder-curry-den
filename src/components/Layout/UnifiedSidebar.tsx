@@ -541,6 +541,32 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Color Picker */}
+            <ColorPicker
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start rounded-xl h-10"
+                  style={{
+                    color: colors.textMuted,
+                    backgroundColor: "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = `${colors.primary}15`;
+                    e.currentTarget.style.color = colors.primary;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = colors.textMuted;
+                  }}
+                >
+                  <Palette size={16} className="mr-2" />
+                  Cores Personalizadas
+                </Button>
+              }
+            />
           </div>
         </div>
       );
