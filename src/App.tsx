@@ -16,6 +16,7 @@ import ThemeInitializer from "@/components/ThemeInitializer";
 
 // Global styles corrigidos
 import "@/styles/globals.css";
+import "@/styles/professional.css";
 
 // Import environment utilities
 import { IS_DEVELOPMENT } from "@/lib/env";
