@@ -4,7 +4,7 @@
  * Analisa todo o sistema para identificar:
  * ✅ Páginas sem rotas ativas
  * ✅ Componentes não utilizados
- * �� Rotas sem menu
+ * ✅ Rotas sem menu
  * ✅ Módulos duplicados
  * ✅ Dependências quebradas
  */
@@ -710,9 +710,15 @@ export const orphanDiagnostic = OrphanDiagnosticService.getInstance();
 
 // Hook para usar o diagnóstico
 export const useOrphanDiagnostic = () => {
-  return {
-    generateReport:
-      orphanDiagnostic.generateDiagnosticReport.bind(orphanDiagnostic),
-    exportReport: orphanDiagnostic.exportReport.bind(orphanDiagnostic),
-  };
+  // Import useMemo and useCallback at the top if not already imported
+  const { useMemo } = require("react");
+
+  return useMemo(
+    () => ({
+      generateReport:
+        orphanDiagnostic.generateDiagnosticReport.bind(orphanDiagnostic),
+      exportReport: orphanDiagnostic.exportReport.bind(orphanDiagnostic),
+    }),
+    [],
+  ); // Empty dependency array since orphanDiagnostic is a singleton
 };
