@@ -237,21 +237,6 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
       [location.pathname, location.search],
     );
 
-    // ===== THEME HANDLERS =====
-    const handleUserModeChange = useCallback(
-      (mode: "client" | "admin") => {
-        setUserMode(mode);
-      },
-      [setUserMode],
-    );
-
-    const handleThemeModeChange = useCallback(
-      (mode: "light" | "dark" | "custom") => {
-        setThemeMode(mode);
-      },
-      [setThemeMode],
-    );
-
     // ===== RENDER HELPERS =====
     const renderBadge = (item: MenuItem) => {
       if (!item.badge) return null;
