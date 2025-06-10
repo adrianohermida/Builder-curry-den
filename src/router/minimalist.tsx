@@ -64,6 +64,7 @@ const CleanPainelControle = lazy(() => import("@/pages/CleanPainelControle"));
 const ModernDashboard = lazy(() => import("@/pages/ModernDashboard"));
 
 // CRM pages - Minimalist versions
+const CRMShowcase = lazy(() => import("@/pages/CRM/CRMShowcase"));
 const CRMMinimalist = lazy(() => import("@/pages/CRM/CRMMinimalist"));
 const CRMClientes = lazy(() => import("@/pages/CRM/Clientes/index"));
 const CRMProcessos = lazy(() => import("@/pages/CRM/Processos/index"));
