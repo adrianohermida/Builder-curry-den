@@ -475,6 +475,9 @@ const CleanPainelControle: React.FC = () => {
         ))}
       </div>
 
+      {/* New Features Alert */}
+      <NewFeaturesAlert />
+
       {/* Diagnostic Alert Widget */}
       <DiagnosticoAlert />
 
