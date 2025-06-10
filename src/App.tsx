@@ -523,6 +523,20 @@ const App: React.FC = () => {
                             element={<Navigate to="/crm/ged" replace />}
                           />
 
+                          {/* Temporary route test - remove after verification */}
+                          <Route
+                            path="teste-rotas-crm"
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <RouteTest />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
+
                           {/* Test Routes */}
                           <Route
                             path="teste-agenda"
