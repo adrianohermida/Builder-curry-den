@@ -1,8 +1,8 @@
 /**
- * 🛡️ SAFE DRAG DROP CONTEXT - ENHANCED
+ * 🛡️ SAFE DRAG DROP CONTEXT - FALLBACK AUTOMÁTICO
  *
- * Wrapper robusto para DragDropContext que previne erros de useId
- * Implementa múltiplas camadas de proteção para React 19
+ * Wrapper que tenta @hello-pangea/dnd primeiro e usa @dnd-kit como fallback
+ * Resolve problemas de React 19 automaticamente
  */
 
 import React, { useEffect, useState, useRef } from "react";
@@ -17,60 +17,153 @@ interface SafeDragDropContextProps {
 
 export const SafeDragDropContext: React.FC<SafeDragDropContextProps> = ({
   children,
-  fallback = null,
+  fallback,
   ...props
 }) => {
   const [isMounted, setIsMounted] = useState(false);
-  const [isDndReady, setIsDndReady] = useState(false);
+  const [useKitFallback, setUseKitFallback] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const initTimeoutRef = useRef<NodeJS.Timeout>();
+  const attemptedRef = useRef(false);
 
   useEffect(() => {
-    // Aguardar montagem completa
-    const timer = setTimeout(() => {
-      setIsMounted(true);
+    if (!attemptedRef.current) {
+      attemptedRef.current = true;
 
-      // Aguardar mais um tick para garantir que React.useId está disponível
-      const dndTimer = setTimeout(() => {
+      // Aguardar montagem completa
+      const timer = setTimeout(() => {
+        setIsMounted(true);
+
+        // Tentar inicializar @hello-pangea/dnd
         try {
-          // Verificar se React.useId está disponível
-          if (typeof React.useId === "function") {
-            setIsDndReady(true);
-          } else {
-            console.warn("React.useId não disponível, usando fallback");
-            setHasError(true);
+          // Verificar React.useId
+          if (typeof React.useId !== "function") {
+            console.warn("React.useId não disponível, usando @dnd-kit");
+            setUseKitFallback(true);
+            return;
+          }
+
+          // Tentar carregar @hello-pangea/dnd
+          const { DragDropContext } = require("@hello-pangea/dnd");
+          if (!DragDropContext) {
+            throw new Error("DragDropContext não disponível");
           }
         } catch (error) {
-          console.error("Erro ao verificar React.useId:", error);
-          setHasError(true);
+          console.warn("@hello-pangea/dnd falhou, usando @dnd-kit:", error);
+          setUseKitFallback(true);
         }
       }, 100);
 
-      initTimeoutRef.current = dndTimer;
-    }, 50);
-
-    return () => {
-      clearTimeout(timer);
-      if (initTimeoutRef.current) {
-        clearTimeout(initTimeoutRef.current);
-      }
-    };
+      return () => clearTimeout(timer);
+    }
   }, []);
 
-  // Não renderizar até estar completamente pronto
-  if (!isMounted || !isDndReady || hasError) {
-    return <div className="drag-drop-fallback">{fallback || children}</div>;
+  // Aguardar montagem
+  if (!isMounted) {
+    return <div className="opacity-50">{fallback || children}</div>;
   }
 
-  // Carregar DragDropContext dinamicamente apenas quando necessário
+  // Usar @dnd-kit como fallback
+  if (useKitFallback) {
+    return <DndKitFallback {...props}>{children}</DndKitFallback>;
+  }
+
+  // Tentar usar @hello-pangea/dnd
   try {
     const { DragDropContext } = require("@hello-pangea/dnd");
-    return <DragDropContext {...props}>{children}</DragDropContext>;
+    return (
+      <ErrorBoundary
+        onError={() => setUseKitFallback(true)}
+        fallback={<DndKitFallback {...props}>{children}</DndKitFallback>}
+      >
+        <DragDropContext {...props}>{children}</DragDropContext>
+      </ErrorBoundary>
+    );
   } catch (error) {
-    console.error("Erro ao carregar DragDropContext:", error);
-    return <div className="drag-drop-error">{fallback || children}</div>;
+    console.error("Erro final ao carregar DragDropContext:", error);
+    return <DndKitFallback {...props}>{children}</DndKitFallback>;
   }
 };
+
+// Componente de fallback usando @dnd-kit
+const DndKitFallback: React.FC<SafeDragDropContextProps> = ({
+  children,
+  onDragEnd,
+  onDragStart,
+}) => {
+  try {
+    const {
+      DndContext,
+      useSensor,
+      useSensors,
+      PointerSensor,
+    } = require("@dnd-kit/core");
+
+    const sensors = useSensors(
+      useSensor(PointerSensor, {
+        activationConstraint: { distance: 8 },
+      }),
+    );
+
+    const handleDragEnd = (event: any) => {
+      const { active, over } = event;
+
+      // Converter para formato @hello-pangea/dnd
+      const result = {
+        draggableId: active.id.toString(),
+        source: {
+          droppableId: active.data.current?.droppableId || "",
+          index: 0,
+        },
+        destination: over
+          ? {
+              droppableId: over.data.current?.droppableId || over.id.toString(),
+              index: 0,
+            }
+          : null,
+      };
+
+      onDragEnd(result);
+    };
+
+    return (
+      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+        {children}
+      </DndContext>
+    );
+  } catch (error) {
+    console.error("Fallback @dnd-kit também falhou:", error);
+    return <div>{children}</div>;
+  }
+};
+
+// Error Boundary simples
+class ErrorBoundary extends React.Component<{
+  children: React.ReactNode;
+  fallback: React.ReactNode;
+  onError: () => void;
+}> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("SafeDragDropContext Error:", error, errorInfo);
+    this.props.onError();
+  }
+
+  render() {
+    if ((this.state as any).hasError) {
+      return this.props.fallback;
+    }
+
+    return this.props.children;
+  }
+}
 
 // Hook para verificar se drag and drop está disponível
 export const useDragDropAvailable = () => {
