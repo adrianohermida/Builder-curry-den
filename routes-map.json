@@ -1,0 +1,875 @@
+{
+  "metadata": {
+    "generatedAt": "${new Date().toISOString()}",
+    "systemVersion": "v2.0.0",
+    "lastUpdate": "${new Date().toLocaleDateString('pt-BR')}",
+    "status": "production",
+    "documentVersion": "1.0"
+  },
+  "layouts": [
+    {
+      "name": "MainLayout",
+      "description": "Layout principal para áreas autenticadas",
+      "path": "/src/components/Layout/MainLayout.tsx",
+      "features": ["sidebar", "topbar", "breadcrumbs", "responsive"]
+    },
+    {
+      "name": "PublicLayout",
+      "description": "Layout para páginas públicas",
+      "path": "/src/components/Layout/PublicLayout.tsx",
+      "features": ["centered", "minimal", "responsive"]
+    },
+    {
+      "name": "CRMJuridicoLayout",
+      "description": "Layout específico do domínio CRM Jurídico",
+      "path": "/src/domains/crm-juridico/components/Layout",
+      "features": ["domain-specific", "kanban-optimized", "crm-focused"]
+    },
+    {
+      "name": "LawdeskLayoutSaaS",
+      "description": "Layout especializado para plano SaaS",
+      "path": "/src/components/Layout/LawdeskLayoutSaaS.tsx",
+      "features": ["saas-metrics", "advanced-analytics", "premium-ui"]
+    }
+  ],
+  "accessTypes": [
+    {
+      "key": "public",
+      "name": "Público",
+      "icon": "🔓",
+      "description": "Acessível sem autenticação"
+    },
+    {
+      "key": "private",
+      "name": "Privado",
+      "icon": "🔒",
+      "description": "Requer autenticação básica"
+    },
+    {
+      "key": "admin",
+      "name": "Admin",
+      "icon": "👑",
+      "description": "Requer permissões administrativas"
+    },
+    {
+      "key": "saas",
+      "name": "SaaS",
+      "icon": "💎",
+      "description": "Funcionalidades específicas do plano SaaS"
+    }
+  ],
+  "routes": {
+    "public": [
+      {
+        "path": "/login",
+        "layout": "PublicLayout",
+        "accessType": "public",
+        "module": "auth",
+        "status": "active",
+        "description": "Página de autenticação",
+        "responsible": "Auth Team",
+        "version": "v2.0",
+        "lastModified": "2024-12-19",
+        "permissions": [],
+        "lazyLoading": false,
+        "preload": false
+      },
+      {
+        "path": "/registro",
+        "layout": "PublicLayout",
+        "accessType": "public",
+        "module": "auth",
+        "status": "active",
+        "description": "Cadastro de novos usuários",
+        "responsible": "Auth Team",
+        "version": "v2.0",
+        "lastModified": "2024-12-19",
+        "permissions": [],
+        "lazyLoading": false,
+        "preload": false
+      },
+      {
+        "path": "/onboarding-start",
+        "layout": "PublicLayout",
+        "accessType": "public",
+        "module": "onboarding",
+        "status": "active",
+        "description": "Início do processo de onboarding",
+        "responsible": "UX Team",
+        "version": "v2.0",
+        "lastModified": "2024-12-19",
+        "permissions": [],
+        "lazyLoading": false,
+        "preload": false
+      }
+    ],
+    "main": [
+      {
+        "path": "/",
+        "layout": "MainLayout",
+        "accessType": "private",
+        "module": "dashboard",
+        "status": "active",
+        "description": "Redirect para dashboard principal",
+        "responsible": "Core Team",
+        "version": "v2.0",
+        "lastModified": "2024-12-19",
+        "permissions": ["user"],
+        "lazyLoading": false,
+        "preload": true
+      },
+      {
+        "path": "/dashboard",
+        "layout": "MainLayout",
+        "accessType": "private",
+        "module": "dashboard",
+        "status": "active",
+        "description": "Dashboard principal do sistema",
+        "responsible": "Core Team",
+        "version": "v2.0",
+        "lastModified": "2024-12-19",
+        "permissions": ["user"],
+        "lazyLoading": true,
+        "preload": true
+      },
+      {
+        "path": "/painel",
+        "layout": "MainLayout",
+        "accessType": "private",
+        "module": "dashboard",
+        "status": "active",
+        "description": "Legacy redirect para dashboard",
+        "responsible": "Core Team",
+        "version": "v2.0",
+        "lastModified": "2024-12-19",
+        "permissions": ["user"],
+        "lazyLoading": false,
+        "preload": false
+      }
+    ],
+    "domains": {
+      "crm-juridico": [
+        {
+          "path": "/crm-juridico",
+          "layout": "CRMJuridicoLayout",
+          "accessType": "private",
+          "module": "crm-juridico",
+          "status": "active",
+          "description": "Dashboard do CRM Jurídico",
+          "responsible": "CRM Team",
+          "version": "v2.0",
+          "lastModified": "2024-12-19",
+          "permissions": ["crm_juridico_read"],
+          "lazyLoading": true,
+          "preload": true
+        },
+        {
+          "path": "/crm-juridico/dashboard",
+          "layout": "CRMJuridicoLayout",
+          "accessType": "private",
+          "module": "crm-juridico",
+          "status": "active",
+          "description": "Visão geral e métricas do CRM",
+          "responsible": "CRM Team",
+          "version": "v2.0",
+          "lastModified": "2024-12-19",
+          "permissions": ["crm_juridico_read"],
+          "lazyLoading": true,
+          "preload": true
+        },
+        {
+          "path": "/crm-juridico/clientes",
+          "layout": "CRMJuridicoLayout",
+          "accessType": "private",
+          "module": "crm-juridico",
+          "status": "active",
+          "description": "Lista de clientes jurídicos",
+          "responsible": "CRM Team",
+          "version": "v2.0",
+          "lastModified": "2024-12-19",
+          "permissions": ["crm_juridico_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/crm-juridico/clientes/:clienteId",
+          "layout": "CRMJuridicoLayout",
+          "accessType": "private",
+          "module": "crm-juridico",
+          "status": "active",
+          "description": "Detalhes do cliente específico",
+          "responsible": "CRM Team",
+          "version": "v2.0",
+          "lastModified": "2024-12-19",
+          "permissions": ["crm_juridico_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/crm-juridico/processos",
+          "layout": "CRMJuridicoLayout",
+          "accessType": "private",
+          "module": "crm-juridico",
+          "status": "active",
+          "description": "Gestão de processos jurídicos",
+          "responsible": "CRM Team",
+          "version": "v2.0",
+          "lastModified": "2024-12-19",
+          "permissions": ["crm_juridico_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/crm-juridico/processos/:processoId",
+          "layout": "CRMJuridicoLayout",
+          "accessType": "private",
+          "module": "crm-juridico",
+          "status": "active",
+          "description": "Detalhes do processo específico",
+          "responsible": "CRM Team",
+          "version": "v2.0",
+          "lastModified": "2024-12-19",
+          "permissions": ["crm_juridico_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/crm-juridico/contratos",
+          "layout": "CRMJuridicoLayout",
+          "accessType": "private",
+          "module": "crm-juridico",
+          "status": "active",
+          "description": "Gestão de contratos jurídicos",
+          "responsible": "CRM Team",
+          "version": "v2.0",
+          "lastModified": "2024-12-19",
+          "permissions": ["crm_juridico_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/crm-juridico/contratos/:contratoId",
+          "layout": "CRMJuridicoLayout",
+          "accessType": "private",
+          "module": "crm-juridico",
+          "status": "active",
+          "description": "Detalhes do contrato específico",
+          "responsible": "CRM Team",
+          "version": "v2.0",
+          "lastModified": "2024-12-19",
+          "permissions": ["crm_juridico_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/crm-juridico/tarefas",
+          "layout": "CRMJuridicoLayout",
+          "accessType": "private",
+          "module": "crm-juridico",
+          "status": "active",
+          "description": "Gestão de tarefas do CRM",
+          "responsible": "CRM Team",
+          "version": "v2.0",
+          "lastModified": "2024-12-19",
+          "permissions": ["crm_juridico_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/crm-juridico/relatorios",
+          "layout": "CRMJuridicoLayout",
+          "accessType": "private",
+          "module": "crm-juridico",
+          "status": "active",
+          "description": "Relatórios e analytics do CRM",
+          "responsible": "CRM Team",
+          "version": "v2.0",
+          "lastModified": "2024-12-19",
+          "permissions": ["crm_juridico_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/crm-juridico/configuracoes",
+          "layout": "CRMJuridicoLayout",
+          "accessType": "private",
+          "module": "crm-juridico",
+          "status": "active",
+          "description": "Configurações específicas do CRM",
+          "responsible": "CRM Team",
+          "version": "v2.0",
+          "lastModified": "2024-12-19",
+          "permissions": ["crm_juridico_read"],
+          "lazyLoading": true,
+          "preload": false
+        }
+      ],
+      "agenda-juridica": [
+        {
+          "path": "/agenda-juridica",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "agenda-juridica",
+          "status": "development",
+          "description": "Dashboard da agenda jurídica",
+          "responsible": "Agenda Team",
+          "version": "v1.0",
+          "lastModified": "2024-12-19",
+          "permissions": ["agenda_juridica_read"],
+          "lazyLoading": true,
+          "preload": true
+        },
+        {
+          "path": "/agenda-juridica/calendario",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "agenda-juridica",
+          "status": "development",
+          "description": "Calendário jurídico com prazos",
+          "responsible": "Agenda Team",
+          "version": "v1.0",
+          "lastModified": "2024-12-19",
+          "permissions": ["agenda_juridica_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/agenda-juridica/prazos",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "agenda-juridica",
+          "status": "development",
+          "description": "Gestão de prazos processuais",
+          "responsible": "Agenda Team",
+          "version": "v1.0",
+          "lastModified": "2024-12-19",
+          "permissions": ["agenda_juridica_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/agenda-juridica/audiencias",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "agenda-juridica",
+          "status": "development",
+          "description": "Agendamento de audiências",
+          "responsible": "Agenda Team",
+          "version": "v1.0",
+          "lastModified": "2024-12-19",
+          "permissions": ["agenda_juridica_read"],
+          "lazyLoading": true,
+          "preload": false
+        }
+      ],
+      "processos-publicacoes": [
+        {
+          "path": "/processos-publicacoes",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "processos-publicacoes",
+          "status": "planned",
+          "description": "Dashboard de processos e publicações",
+          "responsible": "Process Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["processos_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/processos-publicacoes/acompanhamento",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "processos-publicacoes",
+          "status": "planned",
+          "description": "Acompanhamento processual",
+          "responsible": "Process Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["processos_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/processos-publicacoes/publicacoes",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "processos-publicacoes",
+          "status": "planned",
+          "description": "Gestão de publicações oficiais",
+          "responsible": "Process Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["processos_read"],
+          "lazyLoading": true,
+          "preload": false
+        }
+      ],
+      "contratos-financeiro": [
+        {
+          "path": "/contratos-financeiro",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "contratos-financeiro",
+          "status": "planned",
+          "description": "Dashboard financeiro e contratos",
+          "responsible": "Finance Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["financeiro_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/contratos-financeiro/contratos",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "contratos-financeiro",
+          "status": "planned",
+          "description": "Gestão de contratos",
+          "responsible": "Finance Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["financeiro_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/contratos-financeiro/faturamento",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "contratos-financeiro",
+          "status": "planned",
+          "description": "Controle de faturamento",
+          "responsible": "Finance Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["financeiro_read"],
+          "lazyLoading": true,
+          "preload": false
+        }
+      ],
+      "atendimento-comunicacao": [
+        {
+          "path": "/atendimento-comunicacao",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "atendimento-comunicacao",
+          "status": "planned",
+          "description": "Central de atendimento",
+          "responsible": "Support Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["atendimento_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/atendimento-comunicacao/tickets",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "atendimento-comunicacao",
+          "status": "planned",
+          "description": "Gestão de tickets de suporte",
+          "responsible": "Support Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["atendimento_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/atendimento-comunicacao/comunicacao",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "atendimento-comunicacao",
+          "status": "planned",
+          "description": "Central de comunicação com clientes",
+          "responsible": "Support Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["atendimento_read"],
+          "lazyLoading": true,
+          "preload": false
+        }
+      ],
+      "ia-juridica": [
+        {
+          "path": "/ia-juridica",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "ia-juridica",
+          "status": "planned",
+          "description": "Dashboard de IA Jurídica",
+          "responsible": "AI Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["ia_juridica_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/ia-juridica/analises",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "ia-juridica",
+          "status": "planned",
+          "description": "Análises inteligentes de documentos",
+          "responsible": "AI Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["ia_juridica_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/ia-juridica/assistente",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "ia-juridica",
+          "status": "planned",
+          "description": "Assistente jurídico com IA",
+          "responsible": "AI Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["ia_juridica_read"],
+          "lazyLoading": true,
+          "preload": false
+        }
+      ],
+      "ged-documentos": [
+        {
+          "path": "/ged-documentos",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "ged-documentos",
+          "status": "planned",
+          "description": "Dashboard de gestão documental",
+          "responsible": "GED Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["ged_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/ged-documentos/repositorio",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "ged-documentos",
+          "status": "planned",
+          "description": "Repositório de documentos",
+          "responsible": "GED Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["ged_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/ged-documentos/pesquisa",
+          "layout": "MainLayout",
+          "accessType": "private",
+          "module": "ged-documentos",
+          "status": "planned",
+          "description": "Pesquisa avançada de documentos",
+          "responsible": "GED Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["ged_read"],
+          "lazyLoading": true,
+          "preload": false
+        }
+      ],
+      "admin-configuracoes": [
+        {
+          "path": "/admin-configuracoes",
+          "layout": "MainLayout",
+          "accessType": "admin",
+          "module": "admin-configuracoes",
+          "status": "planned",
+          "description": "Dashboard administrativo",
+          "responsible": "Admin Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["admin_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/admin-configuracoes/usuarios",
+          "layout": "MainLayout",
+          "accessType": "admin",
+          "module": "admin-configuracoes",
+          "status": "planned",
+          "description": "Gestão de usuários do sistema",
+          "responsible": "Admin Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["admin_read"],
+          "lazyLoading": true,
+          "preload": false
+        },
+        {
+          "path": "/admin-configuracoes/sistema",
+          "layout": "MainLayout",
+          "accessType": "admin",
+          "module": "admin-configuracoes",
+          "status": "planned",
+          "description": "Configurações globais do sistema",
+          "responsible": "Admin Team",
+          "version": "v1.0",
+          "lastModified": null,
+          "permissions": ["admin_read"],
+          "lazyLoading": true,
+          "preload": false
+        }
+      ]
+    },
+    "legacy": [
+      {
+        "path": "/painel",
+        "redirectTo": "/dashboard",
+        "status": "active",
+        "description": "Legacy redirect para dashboard",
+        "deprecated": false
+      },
+      {
+        "path": "/crm-modern/*",
+        "redirectTo": "/crm-juridico/*",
+        "status": "active",
+        "description": "Migração automática para novo CRM",
+        "deprecated": false
+      },
+      {
+        "path": "/agenda",
+        "redirectTo": "/agenda-juridica",
+        "status": "active",
+        "description": "Redirect para nova agenda",
+        "deprecated": false
+      },
+      {
+        "path": "/publicacoes",
+        "redirectTo": "/processos-publicacoes",
+        "status": "active",
+        "description": "Agrupamento de funcionalidades",
+        "deprecated": false
+      },
+      {
+        "path": "/financeiro",
+        "redirectTo": "/contratos-financeiro",
+        "status": "active",
+        "description": "Consolidação de módulos",
+        "deprecated": false
+      },
+      {
+        "path": "/atendimento",
+        "redirectTo": "/atendimento-comunicacao",
+        "status": "active",
+        "description": "Expansão do escopo",
+        "deprecated": false
+      },
+      {
+        "path": "/ia",
+        "redirectTo": "/ia-juridica",
+        "status": "active",
+        "description": "Especialização jurídica",
+        "deprecated": false
+      },
+      {
+        "path": "/ged",
+        "redirectTo": "/ged-documentos",
+        "status": "active",
+        "description": "Especificação da funcionalidade",
+        "deprecated": false
+      },
+      {
+        "path": "/configuracoes",
+        "redirectTo": "/admin-configuracoes",
+        "status": "active",
+        "description": "Agrupamento administrativo",
+        "deprecated": false
+      }
+    ],
+    "saas": [
+      {
+        "path": "/saas",
+        "layout": "LawdeskLayoutSaaS",
+        "accessType": "saas",
+        "module": "saas-dashboard",
+        "status": "active",
+        "description": "Dashboard principal SaaS",
+        "responsible": "SaaS Team",
+        "version": "v2.0",
+        "lastModified": "2024-12-19",
+        "permissions": ["saas_user", "premium_user", "enterprise_user"],
+        "lazyLoading": true,
+        "preload": false
+      },
+      {
+        "path": "/saas/dashboard",
+        "layout": "LawdeskLayoutSaaS",
+        "accessType": "saas",
+        "module": "saas-dashboard",
+        "status": "active",
+        "description": "Métricas avançadas SaaS",
+        "responsible": "SaaS Team",
+        "version": "v2.0",
+        "lastModified": "2024-12-19",
+        "permissions": ["saas_user", "premium_user", "enterprise_user"],
+        "lazyLoading": true,
+        "preload": false
+      },
+      {
+        "path": "/saas/analytics",
+        "layout": "LawdeskLayoutSaaS",
+        "accessType": "saas",
+        "module": "saas-analytics",
+        "status": "active",
+        "description": "Analytics avançado para SaaS",
+        "responsible": "SaaS Team",
+        "version": "v2.0",
+        "lastModified": "2024-12-19",
+        "permissions": ["saas_user", "premium_user", "enterprise_user"],
+        "lazyLoading": true,
+        "preload": false
+      },
+      {
+        "path": "/saas/billing",
+        "layout": "LawdeskLayoutSaaS",
+        "accessType": "saas",
+        "module": "saas-billing",
+        "status": "active",
+        "description": "Gestão de cobrança e faturas",
+        "responsible": "SaaS Team",
+        "version": "v2.0",
+        "lastModified": "2024-12-19",
+        "permissions": ["saas_user", "premium_user", "enterprise_user"],
+        "lazyLoading": true,
+        "preload": false
+      },
+      {
+        "path": "/saas/integracoes",
+        "layout": "LawdeskLayoutSaaS",
+        "accessType": "saas",
+        "module": "saas-integrations",
+        "status": "active",
+        "description": "Central de integrações SaaS",
+        "responsible": "SaaS Team",
+        "version": "v2.0",
+        "lastModified": "2024-12-19",
+        "permissions": ["saas_user", "premium_user", "enterprise_user"],
+        "lazyLoading": true,
+        "preload": false
+      }
+    ],
+    "error": [
+      {
+        "path": "/404",
+        "layout": "MainLayout",
+        "accessType": "private",
+        "module": "error-handling",
+        "status": "active",
+        "description": "Página não encontrada",
+        "responsible": "Core Team",
+        "version": "v2.0",
+        "lastModified": "2024-12-19",
+        "permissions": [],
+        "lazyLoading": true,
+        "preload": false
+      }
+    ]
+  },
+  "permissions": {
+    "crm_juridico_read": {
+      "description": "Acesso de leitura ao CRM Jurídico",
+      "routes": ["/crm-juridico/*"],
+      "roles": ["lawyer", "manager", "admin", "super_admin"]
+    },
+    "agenda_juridica_read": {
+      "description": "Acesso de leitura à Agenda Jurídica",
+      "routes": ["/agenda-juridica/*"],
+      "roles": ["lawyer", "secretary", "manager", "admin", "super_admin"]
+    },
+    "processos_read": {
+      "description": "Acesso de leitura a Processos e Publicações",
+      "routes": ["/processos-publicacoes/*"],
+      "roles": ["lawyer", "manager", "admin", "super_admin"]
+    },
+    "financeiro_read": {
+      "description": "Acesso de leitura ao módulo Financeiro",
+      "routes": ["/contratos-financeiro/*"],
+      "roles": ["manager", "admin", "super_admin"]
+    },
+    "atendimento_read": {
+      "description": "Acesso de leitura ao Atendimento",
+      "routes": ["/atendimento-comunicacao/*"],
+      "roles": ["secretary", "lawyer", "manager", "admin", "super_admin"]
+    },
+    "ia_juridica_read": {
+      "description": "Acesso de leitura à IA Jurídica",
+      "routes": ["/ia-juridica/*"],
+      "roles": ["lawyer", "manager", "admin", "super_admin"]
+    },
+    "ged_read": {
+      "description": "Acesso de leitura ao GED",
+      "routes": ["/ged-documentos/*"],
+      "roles": ["secretary", "lawyer", "manager", "admin", "super_admin"]
+    },
+    "admin_read": {
+      "description": "Acesso de leitura à Administração",
+      "routes": ["/admin-configuracoes/*"],
+      "roles": ["admin", "super_admin"]
+    },
+    "saas_user": {
+      "description": "Usuário SaaS básico",
+      "routes": ["/saas/*"],
+      "roles": ["premium_user", "enterprise_user"]
+    }
+  },
+  "statistics": {
+    "totalRoutes": 40,
+    "byStatus": {
+      "active": 25,
+      "development": 4,
+      "planned": 11
+    },
+    "byAccessType": {
+      "public": 3,
+      "private": 32,
+      "admin": 3,
+      "saas": 5
+    },
+    "byLayout": {
+      "MainLayout": 28,
+      "PublicLayout": 3,
+      "CRMJuridicoLayout": 11,
+      "LawdeskLayoutSaaS": 5
+    },
+    "lazyLoadingEnabled": 35,
+    "preloadEnabled": 5
+  },
+  "technicalConfiguration": {
+    "preloadedDomains": ["crm-juridico", "agenda-juridica"],
+    "lazyLoadedDomains": [
+      "processos-publicacoes",
+      "contratos-financeiro",
+      "atendimento-comunicacao",
+      "ia-juridica",
+      "ged-documentos",
+      "admin-configuracoes"
+    ],
+    "codeSplitting": {
+      "enabled": true,
+      "strategy": "domain-based",
+      "chunkSizeTarget": "500KB"
+    },
+    "performance": {
+      "targetLCP": "2.0s",
+      "targetFCP": "1.5s",
+      "targetTTI": "2.5s",
+      "lighthouseScore": "≥90"
+    }
+  }
+}
