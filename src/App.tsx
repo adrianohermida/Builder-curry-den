@@ -130,6 +130,10 @@ const AIEnhanced = createLazyComponent(
   () => import("./pages/AIEnhanced"),
   "IA Jurídico",
 );
+const AIEnhancedTest = createLazyComponent(
+  () => import("./pages/AIEnhancedTest"),
+  "IA Jurídico Test",
+);
 const Tarefas = createLazyComponent(() => import("./pages/Tarefas"), "Tarefas");
 const Contratos = createLazyComponent(
   () => import("./pages/Contratos"),
@@ -533,6 +537,20 @@ const App: React.FC = () => {
                                 element={
                                   <PageWrapper>
                                     <AIEnhanced />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
+
+                          {/* AI Enhanced Test Route */}
+                          <Route
+                            path="ai-enhanced-test"
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <AIEnhancedTest />
                                   </PageWrapper>
                                 }
                               />
