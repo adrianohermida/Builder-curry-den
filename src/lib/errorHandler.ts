@@ -4,6 +4,7 @@
  */
 
 import { toast } from "sonner";
+import { IS_DEVELOPMENT, IS_PRODUCTION } from "./env";
 
 // Error types for categorization
 export type ErrorCategory =
@@ -61,7 +62,7 @@ class ErrorHandler {
     this.addReport(report);
 
     // Log to console (development)
-    if (process.env.NODE_ENV === "development") {
+    if (IS_DEVELOPMENT) {
       console.group(`🚨 Error [${severity}] - ${category}`);
       console.error("Message:", report.message);
       console.error("Details:", report.details);
@@ -73,7 +74,7 @@ class ErrorHandler {
     this.showUserNotification(report);
 
     // Send to monitoring service (production)
-    if (process.env.NODE_ENV === "production") {
+    if (IS_PRODUCTION) {
       this.sendToMonitoring(report);
     }
 
