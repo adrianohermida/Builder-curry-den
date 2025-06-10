@@ -80,7 +80,7 @@ const ConfiguracoesPage = createLazyPage(
   "Configurações",
 );
 
-// P��ginas Gerenciais
+// Páginas Gerenciais
 const TarefasGerencialPage = createLazyPage(
   () => import("./pages/TarefasGerencial"),
   "Tarefas Gerenciais",
@@ -291,6 +291,34 @@ function App() {
                   element={
                     <PageWrapper title="Configurações">
                       <ConfiguracoesPage />
+                    </PageWrapper>
+                  }
+                />
+
+                {/* Páginas Gerenciais */}
+                <Route
+                  path="tarefas-gerencial"
+                  element={
+                    <PageWrapper title="Tarefas Gerenciais">
+                      <TarefasGerencialPage />
+                    </PageWrapper>
+                  }
+                />
+
+                <Route
+                  path="ged-organizacional"
+                  element={
+                    <PageWrapper title="GED Organizacional">
+                      <GEDOrganizacionalPage />
+                    </PageWrapper>
+                  }
+                />
+
+                <Route
+                  path="financeiro-gerencial"
+                  element={
+                    <PageWrapper title="Financeiro Gerencial">
+                      <FinanceiroGerencialPage />
                     </PageWrapper>
                   }
                 />
