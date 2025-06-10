@@ -325,6 +325,15 @@ const CleanPainelControle: React.FC = () => {
         url: "/ai",
         color: "bg-indigo-500",
       },
+      {
+        id: "diagnostico-conclusao",
+        title: "Diagnóstico de Conclusão",
+        description: "Análise completa do sistema",
+        icon: Activity,
+        url: "/diagnostico-conclusao",
+        color: "bg-emerald-500",
+        badge: "Novo",
+      },
     ],
     [],
   );
