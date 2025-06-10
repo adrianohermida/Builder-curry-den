@@ -1,17 +1,23 @@
 /**
- * 🎯 TOPBAR MAIN - HEADER PRINCIPAL RESPONSIVO
+ * 🎯 TOPBAR MAIN - HEADER PRINCIPAL RESTAURADO
  *
- * Header moderno e responsivo com:
- * - Variantes: standard, compact, minimal
- * - Dark/Light mode toggle
- * - Breadcrumbs dinâmicos
+ * Header completamente refeito com:
+ * - Design responsivo mobile-first
+ * - Sistema de tema integrado
+ * - Busca global funcional
  * - Notificações em tempo real
- * - Busca global
- * - Profile dropdown
- * - Responsividade total
+ * - Profile dropdown completo
+ * - Breadcrumbs dinâmicos
+ * - Performance otimizada
  */
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+  useEffect,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
@@ -26,20 +32,51 @@ import {
   LogOut,
   Shield,
   HelpCircle,
-  Plus,
   Command,
+  Palette,
+  Accessibility,
+  Home,
+  X,
+  Maximize,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 
 // Layout Context
 import { useLayout } from "./MainLayout";
 
-// Design System
-import { ultimateDesignSystem } from "@/lib/ultimateDesignSystem";
-import { performanceUtils } from "@/lib/performanceUtils";
-
 // UI Components
-import Button from "@/components/ui/OptimizedButton";
-import Input from "@/components/ui/OptimizedInput";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 
 // ===== TYPES =====
 interface TopbarMainProps {
@@ -56,15 +93,7 @@ interface UserMenuAction {
   icon: React.ComponentType<{ size?: number }>;
   action: () => void;
   variant?: "default" | "danger";
-}
-
-interface NotificationItem {
-  id: string;
-  type: "info" | "warning" | "error" | "success";
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
+  shortcut?: string;
 }
 
 // ===== TOPBAR MAIN COMPONENT =====
@@ -80,16 +109,22 @@ const TopbarMain: React.FC<TopbarMainProps> = ({
     breadcrumbs,
     notifications,
     themeConfig,
+    updateThemeConfig,
     userRole,
     isMobile,
     isTablet,
+    layoutConfig,
   } = useLayout();
 
   // ===== STATE =====
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+
+  // ===== REFS =====
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // ===== COMPUTED VALUES =====
   const unreadNotifications = useMemo(
@@ -97,357 +132,488 @@ const TopbarMain: React.FC<TopbarMainProps> = ({
     [notifications],
   );
 
-  const themeIcon = useMemo(() => {
-    switch (themeConfig.mode) {
-      case "light":
-        return Sun;
-      case "dark":
-        return Moon;
-      default:
-        return Monitor;
+  const isCompact = variant === "compact" || isMobile;
+  const isMinimal = variant === "minimal";
+
+  // ===== SEARCH FUNCTIONALITY =====
+  const handleSearchToggle = useCallback(() => {
+    setShowSearch(!showSearch);
+    if (!showSearch) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
     }
-  }, [themeConfig.mode]);
+  }, [showSearch]);
+
+  const handleSearchSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      if (searchQuery.trim()) {
+        // Navigate to search results or perform global search
+        navigate(`/busca?q=${encodeURIComponent(searchQuery.trim())}`);
+        setShowSearch(false);
+        setSearchQuery("");
+      }
+    },
+    [searchQuery, navigate],
+  );
+
+  // ===== THEME CONTROLS =====
+  const handleThemeChange = useCallback(
+    (mode: "light" | "dark" | "system") => {
+      updateThemeConfig({ mode });
+    },
+    [updateThemeConfig],
+  );
+
+  const toggleHighContrast = useCallback(() => {
+    updateThemeConfig({ highContrast: !themeConfig.highContrast });
+  }, [themeConfig.highContrast, updateThemeConfig]);
+
+  const toggleReducedMotion = useCallback(() => {
+    updateThemeConfig({ reducedMotion: !themeConfig.reducedMotion });
+  }, [themeConfig.reducedMotion, updateThemeConfig]);
+
+  // ===== FULLSCREEN TOGGLE =====
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  }, []);
 
   // ===== USER MENU ACTIONS =====
   const userMenuActions: UserMenuAction[] = useMemo(
     () => [
       {
         id: "profile",
-        label: "Perfil",
+        label: "Meu Perfil",
         icon: User,
         action: () => navigate("/perfil"),
+        shortcut: "⌘P",
       },
       {
         id: "settings",
         label: "Configurações",
         icon: Settings,
         action: () => navigate("/configuracoes"),
+        shortcut: "⌘,",
       },
-      ...(userRole === "admin"
-        ? [
-            {
-              id: "admin",
-              label: "Administração",
-              icon: Shield,
-              action: () => navigate("/admin"),
-            },
-          ]
-        : []),
       {
         id: "help",
-        label: "Ajuda",
+        label: "Central de Ajuda",
         icon: HelpCircle,
         action: () => navigate("/ajuda"),
+        shortcut: "F1",
       },
       {
         id: "logout",
         label: "Sair",
         icon: LogOut,
         action: () => {
-          // Implement logout logic
-          console.log("Logout action");
+          // Handle logout
+          console.log("Logout");
         },
-        variant: "danger" as const,
+        variant: "danger",
+        shortcut: "⌘Q",
       },
     ],
-    [navigate, userRole],
-  );
-
-  // ===== HANDLERS =====
-  const handleSearch = useCallback(
-    (query: string) => {
-      if (query.trim()) {
-        navigate(`/busca?q=${encodeURIComponent(query)}`);
-        setShowSearch(false);
-        setSearchQuery("");
-      }
-    },
     [navigate],
   );
 
-  const handleKeyPress = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") {
-        handleSearch(searchQuery);
-      } else if (e.key === "Escape") {
+  // ===== KEYBOARD SHORTCUTS =====
+  useEffect(() => {
+    const handleKeydown = (e: KeyboardEvent) => {
+      // Global search shortcut
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        handleSearchToggle();
+      }
+
+      // Theme toggle shortcut
+      if ((e.metaKey || e.ctrlKey) && e.key === "d") {
+        e.preventDefault();
+        onToggleTheme?.();
+      }
+
+      // Sidebar toggle shortcut
+      if ((e.metaKey || e.ctrlKey) && e.key === "b") {
+        e.preventDefault();
+        onToggleSidebar?.();
+      }
+
+      // Escape to close search
+      if (e.key === "Escape" && showSearch) {
         setShowSearch(false);
         setSearchQuery("");
       }
-    },
-    [searchQuery, handleSearch],
+    };
+
+    document.addEventListener("keydown", handleKeydown);
+    return () => document.removeEventListener("keydown", handleKeydown);
+  }, [handleSearchToggle, onToggleTheme, onToggleSidebar, showSearch]);
+
+  // ===== FULLSCREEN LISTENER =====
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  // ===== RENDER BREADCRUMBS =====
+  const renderBreadcrumbs = () => {
+    if (isMinimal || isCompact) return null;
+
+    return (
+      <Breadcrumb>
+        <BreadcrumbList>
+          {breadcrumbs.map((crumb, index) => (
+            <React.Fragment key={crumb.path || index}>
+              <BreadcrumbItem>
+                {index === breadcrumbs.length - 1 ? (
+                  <BreadcrumbPage className="font-medium">
+                    {crumb.label}
+                  </BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink
+                    href={crumb.path}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {crumb.label}
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+              {index < breadcrumbs.length - 1 && (
+                <BreadcrumbSeparator>
+                  <ChevronRight size={14} />
+                </BreadcrumbSeparator>
+              )}
+            </React.Fragment>
+          ))}
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  };
+
+  // ===== RENDER NOTIFICATIONS =====
+  const renderNotifications = () => (
+    <Popover open={showNotifications} onOpenChange={setShowNotifications}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="relative h-9 w-9 p-0"
+          aria-label="Notificações"
+        >
+          <Bell size={18} />
+          {unreadNotifications > 0 && (
+            <Badge
+              variant="destructive"
+              className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs"
+            >
+              {unreadNotifications > 9 ? "9+" : unreadNotifications}
+            </Badge>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-80 p-0">
+        <div className="p-4 border-b">
+          <h3 className="font-semibold">Notificações</h3>
+          <p className="text-sm text-muted-foreground">
+            {unreadNotifications} nova(s) notificação(ões)
+          </p>
+        </div>
+        <ScrollArea className="h-64">
+          {notifications.length > 0 ? (
+            <div className="p-2">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`p-3 rounded-lg mb-2 border ${
+                    !notification.read ? "bg-accent/50" : ""
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        {notification.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {notification.message}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {new Date(notification.timestamp).toLocaleTimeString(
+                          "pt-BR",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
+                      </p>
+                    </div>
+                    {!notification.read && (
+                      <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1" />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center text-muted-foreground">
+              <Bell size={32} className="mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Nenhuma notificação</p>
+            </div>
+          )}
+        </ScrollArea>
+        {notifications.length > 0 && (
+          <div className="p-2 border-t">
+            <Button variant="ghost" size="sm" className="w-full">
+              Ver todas as notificações
+            </Button>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
   );
 
-  const toggleSearch = useCallback(() => {
-    setShowSearch((prev) => !prev);
-    if (!showSearch) {
-      // Focus search input after it's shown
-      setTimeout(() => {
-        const searchInput = document.getElementById("global-search");
-        searchInput?.focus();
-      }, 100);
-    }
-  }, [showSearch]);
+  // ===== RENDER USER MENU =====
+  const renderUserMenu = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="h-9 w-9 rounded-full p-0"
+          aria-label="Menu do usuário"
+        >
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+              UA
+            </AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel>
+          <div>
+            <p className="font-medium">Usuário Admin</p>
+            <p className="text-xs text-muted-foreground">
+              admin@lawdesk.com.br
+            </p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
 
-  // ===== RENDER FUNCTIONS =====
-  const renderBreadcrumbs = () => {
-    if (variant === "minimal" || isMobile) return null;
-
-    return (
-      <nav className="flex items-center space-x-1 text-sm">
-        {breadcrumbs.map((item, index) => (
-          <React.Fragment key={item.label}>
-            {index > 0 && <ChevronRight size={14} className="text-gray-400" />}
-            {item.path ? (
-              <button
-                onClick={() => navigate(item.path!)}
-                className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
-              >
-                {item.label}
-              </button>
-            ) : (
-              <span className="text-gray-900 dark:text-gray-100 font-medium">
-                {item.label}
+        {userMenuActions.map((action) => (
+          <DropdownMenuItem
+            key={action.id}
+            onClick={action.action}
+            className={
+              action.variant === "danger"
+                ? "text-destructive focus:text-destructive"
+                : ""
+            }
+          >
+            <action.icon size={16} className="mr-2" />
+            <span className="flex-1">{action.label}</span>
+            {action.shortcut && (
+              <span className="text-xs text-muted-foreground">
+                {action.shortcut}
               </span>
             )}
-          </React.Fragment>
+          </DropdownMenuItem>
         ))}
-      </nav>
-    );
-  };
 
-  const renderSearchBar = () => {
-    if (variant === "minimal") return null;
+        <DropdownMenuSeparator />
 
-    if (isMobile) {
-      return (
-        <>
-          <Button
-            variant="ghost"
-            size="sm"
-            icon={Search}
-            onClick={toggleSearch}
-            className="p-2"
-          />
-          {showSearch && (
-            <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border-t p-4 shadow-lg">
-              <Input
-                id="global-search"
-                placeholder="Buscar em todo o sistema..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={handleKeyPress}
-                icon={Search}
-                className="w-full"
-              />
-            </div>
-          )}
-        </>
-      );
-    }
-
-    return (
-      <div className="relative flex-1 max-w-md">
-        <Input
-          placeholder="Buscar... (⌘K)"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyPress={handleKeyPress}
-          icon={Search}
-          className="pl-10 pr-4"
-        />
-        <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hidden sm:inline-flex items-center gap-1">
-          <Command size={12} />K
-        </kbd>
-      </div>
-    );
-  };
-
-  const renderNotifications = () => {
-    return (
-      <div className="relative">
-        <Button
-          variant="ghost"
-          size="sm"
-          icon={Bell}
-          onClick={() => setShowNotifications(!showNotifications)}
-          className="relative p-2"
-        >
-          {unreadNotifications > 0 && (
-            <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
-              {unreadNotifications > 9 ? "9+" : unreadNotifications}
-            </span>
-          )}
-        </Button>
-
-        {showNotifications && (
-          <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
-            <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                Notificações
-              </h3>
-            </div>
-            <div className="max-h-64 overflow-y-auto">
-              {notifications.length === 0 ? (
-                <div className="px-4 py-6 text-center text-gray-500">
-                  Nenhuma notificação
-                </div>
-              ) : (
-                notifications.slice(0, 5).map((notification) => (
-                  <div
-                    key={notification.id}
-                    className={`
-                      px-4 py-3 border-b border-gray-100 dark:border-gray-700 last:border-b-0
-                      ${!notification.read ? "bg-blue-50 dark:bg-blue-900/20" : ""}
-                      hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer
-                    `}
-                  >
-                    <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {notification.title}
-                    </h4>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                      {notification.message}
-                    </p>
-                    <span className="text-xs text-gray-400 mt-1 block">
-                      {notification.timestamp.toLocaleTimeString()}
-                    </span>
-                  </div>
-                ))
+        {/* Theme Submenu */}
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Palette size={16} className="mr-2" />
+            <span>Tema</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuItem onClick={() => handleThemeChange("light")}>
+              <Sun size={16} className="mr-2" />
+              <span>Claro</span>
+              {themeConfig.mode === "light" && (
+                <span className="ml-auto">✓</span>
               )}
-            </div>
-            {notifications.length > 5 && (
-              <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={() => navigate("/notificacoes")}
-                  className="text-sm text-primary-600 hover:text-primary-700"
-                >
-                  Ver todas as notificações
-                </button>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleThemeChange("dark")}>
+              <Moon size={16} className="mr-2" />
+              <span>Escuro</span>
+              {themeConfig.mode === "dark" && (
+                <span className="ml-auto">✓</span>
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleThemeChange("system")}>
+              <Monitor size={16} className="mr-2" />
+              <span>Sistema</span>
+              {themeConfig.mode === "system" && (
+                <span className="ml-auto">✓</span>
+              )}
+            </DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+
+        {/* Accessibility Submenu */}
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Accessibility size={16} className="mr-2" />
+            <span>Acessibilidade</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuItem onClick={toggleHighContrast}>
+              <div className="flex items-center justify-between w-full">
+                <span>Alto Contraste</span>
+                <Switch
+                  checked={themeConfig.highContrast}
+                  onCheckedChange={toggleHighContrast}
+                  size="sm"
+                />
               </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={toggleReducedMotion}>
+              <div className="flex items-center justify-between w-full">
+                <span>Reduzir Animações</span>
+                <Switch
+                  checked={themeConfig.reducedMotion}
+                  onCheckedChange={toggleReducedMotion}
+                  size="sm"
+                />
+              </div>
+            </DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
-  const renderUserMenu = () => {
-    return (
-      <div className="relative">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowUserMenu(!showUserMenu)}
-          className="p-1 rounded-full"
-        >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-sm font-medium">
-            U
-          </div>
-        </Button>
-
-        {showUserMenu && (
-          <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-            <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                Usuário Atual
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                usuario@email.com
-              </p>
-            </div>
-            {userMenuActions.map((action) => (
-              <button
-                key={action.id}
-                onClick={() => {
-                  action.action();
-                  setShowUserMenu(false);
-                }}
-                className={`
-                  w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors text-left
-                  ${
-                    action.variant === "danger"
-                      ? "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-                  }
-                `}
-              >
-                <action.icon size={16} />
-                {action.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // ===== MAIN RENDER =====
   return (
-    <header
+    <div
       className={`
-        flex items-center justify-between px-4 py-3 relative
-        border-b border-gray-200 dark:border-gray-700
-        bg-white/80 dark:bg-gray-900/80 backdrop-blur-md
+        topbar-container h-16 flex items-center justify-between px-4
+        border-b border-topbar-border bg-topbar-background/95 backdrop-blur-sm
+        ${layoutConfig.sidebarVariant === "expanded" && !isMobile ? "left-64" : layoutConfig.sidebarVariant === "collapsed" ? "left-16" : "left-0"}
+        transition-all duration-300 ease-in-out
         ${className}
       `}
     >
       {/* Left Section */}
-      <div className="flex items-center gap-4 flex-1">
-        {/* Mobile Menu Toggle */}
+      <div className="flex items-center space-x-4">
+        {/* Sidebar Toggle */}
         {showSidebarToggle && (
           <Button
             variant="ghost"
             size="sm"
-            icon={Menu}
             onClick={onToggleSidebar}
-            className="p-2 lg:hidden"
-          />
-        )}
-
-        {/* Logo & Brand (minimal only) */}
-        {variant === "minimal" && (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">L</span>
-            </div>
-            <span className="font-bold text-gray-900 dark:text-gray-100 hidden sm:block">
-              Lawdesk
-            </span>
-          </div>
+            className="h-9 w-9 p-0"
+            aria-label="Toggle sidebar"
+          >
+            <Menu size={18} />
+          </Button>
         )}
 
         {/* Breadcrumbs */}
-        {renderBreadcrumbs()}
+        <div className="hidden md:block">{renderBreadcrumbs()}</div>
+
+        {/* Mobile Title */}
+        {isMobile && (
+          <div>
+            <h1 className="font-semibold text-lg">
+              {breadcrumbs[breadcrumbs.length - 1]?.label || "Lawdesk CRM"}
+            </h1>
+          </div>
+        )}
       </div>
 
       {/* Center Section - Search */}
-      {variant === "standard" && !isMobile && (
-        <div className="flex-1 max-w-md mx-4">{renderSearchBar()}</div>
-      )}
+      <div className="flex-1 max-w-md mx-4">
+        {showSearch ? (
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <Input
+              ref={searchInputRef}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar em todo o sistema..."
+              className="pr-20"
+              autoFocus
+            />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center space-x-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSearch(false)}
+                className="h-6 w-6 p-0"
+              >
+                <X size={14} />
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <Button
+            variant="outline"
+            onClick={handleSearchToggle}
+            className="w-full justify-start text-muted-foreground hover:text-foreground"
+          >
+            <Search size={16} className="mr-2" />
+            <span>Buscar...</span>
+            <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </Button>
+        )}
+      </div>
 
       {/* Right Section */}
-      <div className="flex items-center gap-2">
-        {/* Mobile Search Toggle */}
-        {isMobile && renderSearchBar()}
+      <div className="flex items-center space-x-2">
+        {/* Quick Actions */}
+        {!isMobile && (
+          <>
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleTheme}
+              className="h-9 w-9 p-0"
+              aria-label="Toggle theme"
+            >
+              {themeConfig.mode === "dark" ? (
+                <Sun size={18} />
+              ) : (
+                <Moon size={18} />
+              )}
+            </Button>
 
-        {/* Quick Add Button */}
-        {variant === "standard" && !isMobile && (
-          <Button
-            variant="ghost"
-            size="sm"
-            icon={Plus}
-            onClick={() => navigate("/novo")}
-            className="p-2"
-          />
+            {/* Sound Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className="h-9 w-9 p-0"
+              aria-label="Toggle sound"
+            >
+              {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            </Button>
+
+            {/* Fullscreen Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleFullscreen}
+              className="h-9 w-9 p-0"
+              aria-label="Toggle fullscreen"
+            >
+              <Maximize size={18} />
+            </Button>
+          </>
         )}
-
-        {/* Theme Toggle */}
-        <Button
-          variant="ghost"
-          size="sm"
-          icon={themeIcon}
-          onClick={onToggleTheme}
-          className="p-2"
-        />
 
         {/* Notifications */}
         {renderNotifications()}
@@ -455,16 +621,8 @@ const TopbarMain: React.FC<TopbarMainProps> = ({
         {/* User Menu */}
         {renderUserMenu()}
       </div>
-
-      {/* Mobile Search Overlay */}
-      {isMobile && showSearch && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40"
-          onClick={() => setShowSearch(false)}
-        />
-      )}
-    </header>
+    </div>
   );
 };
 
-export default React.memo(TopbarMain);
+export default TopbarMain;

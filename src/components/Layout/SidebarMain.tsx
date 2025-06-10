@@ -1,13 +1,13 @@
 /**
- * 🎯 SIDEBAR MAIN - SIDEBAR PRINCIPAL RESPONSIVO
+ * 🎯 SIDEBAR MAIN - SIDEBAR PRINCIPAL RESTAURADA
  *
- * Sidebar moderno e adaptável com:
- * - Variantes: expanded, collapsed, hidden
- * - Navegação hierárquica
- * - Badges e notificações
- * - Responsividade total
- * - Animações suaves
+ * Sidebar completamente refeita com:
+ * - Design responsivo mobile-first
+ * - Animações suaves e performáticas
+ * - Navegação hierárquica clara
+ * - Estados visuais consistentes
  * - Acessibilidade completa
+ * - Sistema de tema integrado
  */
 
 import React, { useState, useMemo, useCallback } from "react";
@@ -25,28 +25,34 @@ import {
   MessageSquare,
   Settings,
   Bell,
-  Search,
   ChevronDown,
   ChevronRight,
-  ExternalLink,
-  Star,
-  Archive,
   BarChart3,
   Shield,
   HelpCircle,
-  Plus,
   HardDrive,
+  LogOut,
+  User,
+  Search,
+  X,
+  Menu,
 } from "lucide-react";
 
 // Layout Context
 import { useLayout } from "./MainLayout";
 
-// Design System
-import { ultimateDesignSystem } from "@/lib/ultimateDesignSystem";
-import { performanceUtils } from "@/lib/performanceUtils";
-
 // UI Components
-import Button from "@/components/ui/OptimizedButton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // ===== TYPES =====
 interface SidebarMainProps {
@@ -211,11 +217,11 @@ const NAVIGATION_SECTIONS: NavigationSection[] = [
         description: "Configuração de provedores de armazenamento",
       },
       {
-        id: "relatorios",
-        label: "Relatórios",
-        icon: FileSignature,
-        path: "/relatorios",
-        description: "Relatórios customizados",
+        id: "system-settings",
+        label: "Sistema",
+        icon: Settings,
+        path: "/configuracoes",
+        description: "Configurações do sistema",
       },
     ],
   },
@@ -223,13 +229,6 @@ const NAVIGATION_SECTIONS: NavigationSection[] = [
     id: "system",
     label: "Sistema",
     items: [
-      {
-        id: "configuracoes",
-        label: "Configurações",
-        icon: Settings,
-        path: "/configuracoes",
-        description: "Configurações do sistema",
-      },
       {
         id: "admin",
         label: "Administração",
@@ -257,18 +256,22 @@ const SidebarMain: React.FC<SidebarMainProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { userRole, permissions, isMobile } = useLayout();
+  const { userRole, permissions, isMobile, themeConfig } = useLayout();
 
   // ===== STATE =====
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(["main", "workflow"]),
   );
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
 
   // ===== COMPUTED VALUES =====
   const isCollapsed = variant === "collapsed";
   const isHidden = variant === "hidden";
+  const isExpanded = variant === "expanded";
 
+  // Filter sections based on roles and search
   const filteredSections = useMemo(() => {
     return NAVIGATION_SECTIONS.map((section) => ({
       ...section,
@@ -277,11 +280,22 @@ const SidebarMain: React.FC<SidebarMainProps> = ({
         if (item.roles && !item.roles.includes(userRole)) {
           return false;
         }
-        // Filter by permissions (if needed)
+
+        // Filter by search query
+        if (searchQuery) {
+          const searchLower = searchQuery.toLowerCase();
+          if (
+            !item.label.toLowerCase().includes(searchLower) &&
+            !item.description?.toLowerCase().includes(searchLower)
+          ) {
+            return false;
+          }
+        }
+
         return true;
       }),
     })).filter((section) => section.items.length > 0);
-  }, [userRole, permissions]);
+  }, [userRole, searchQuery]);
 
   // ===== HANDLERS =====
   const toggleSection = useCallback(
@@ -323,7 +337,7 @@ const SidebarMain: React.FC<SidebarMainProps> = ({
       if (item.disabled) return;
 
       if (item.external) {
-        window.open(item.path, "_blank");
+        window.open(item.path, "_blank", "noopener,noreferrer");
       } else {
         navigate(item.path);
       }
@@ -348,246 +362,266 @@ const SidebarMain: React.FC<SidebarMainProps> = ({
           "module",
         );
         return (
-          location.pathname === "/crm-modern" && currentModule === itemModule
+          location.pathname.startsWith("/crm-modern") &&
+          currentModule === itemModule
         );
       }
 
-      return false;
+      // Check if current path starts with item path
+      return location.pathname.startsWith(item.path) && item.path !== "/";
     },
     [location.pathname, location.search],
   );
 
-  // ===== RENDER FUNCTIONS =====
-  const renderBadge = (badge: string | number, variant: string = "default") => {
+  // ===== RENDER BADGE =====
+  const renderBadge = (item: NavigationItem) => {
+    if (!item.badge) return null;
+
     const variants = {
-      default: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
-      success:
-        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-      warning:
-        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-      error: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+      default: "bg-primary text-primary-foreground",
+      success: "bg-success text-success-foreground",
+      warning: "bg-warning text-warning-foreground",
+      error: "bg-destructive text-destructive-foreground",
     };
 
     return (
-      <span
-        className={`
-          inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full
-          ${variants[variant as keyof typeof variants] || variants.default}
-        `}
+      <Badge
+        variant="secondary"
+        className={`ml-auto text-xs ${variants[item.badgeVariant || "default"]}`}
       >
-        {badge}
-      </span>
+        {item.badge}
+      </Badge>
     );
   };
 
-  const renderNavigationItem = (item: NavigationItem, level: number = 0) => {
+  // ===== RENDER NAVIGATION ITEM =====
+  const renderNavigationItem = (item: NavigationItem, depth = 0) => {
+    const Icon = item.icon;
     const isActive = isActiveItem(item);
     const hasChildren = item.children && item.children.length > 0;
-    const isExpanded = expandedItems.has(item.id);
+    const isItemExpanded = expandedItems.has(item.id);
+
+    const itemClasses = `
+      group flex items-center w-full px-3 py-2 text-sm font-medium rounded-lg
+      transition-all duration-200 ease-in-out
+      ${
+        isActive
+          ? "bg-primary text-primary-foreground shadow-sm"
+          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+      }
+      ${item.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+      ${depth > 0 ? "ml-6" : ""}
+    `;
+
+    const itemContent = (
+      <>
+        <Icon size={20} className="flex-shrink-0" />
+        {isExpanded && (
+          <>
+            <span className="ml-3 flex-1 truncate">{item.label}</span>
+            {renderBadge(item)}
+            {hasChildren && (
+              <ChevronRight
+                size={16}
+                className={`ml-1 flex-shrink-0 transition-transform ${
+                  isItemExpanded ? "rotate-90" : ""
+                }`}
+              />
+            )}
+          </>
+        )}
+      </>
+    );
+
+    const handleClick = () => {
+      if (hasChildren) {
+        toggleItem(item.id);
+      } else {
+        handleNavigation(item);
+      }
+    };
 
     return (
-      <div key={item.id} className="relative">
-        <button
-          onClick={() => {
-            if (hasChildren) {
-              toggleItem(item.id);
-            } else {
-              handleNavigation(item);
-            }
-          }}
-          disabled={item.disabled}
-          className={`
-            w-full flex items-center gap-3 px-3 py-2 text-left transition-all duration-200 rounded-lg
-            ${level > 0 ? "ml-6 text-sm" : ""}
-            ${
-              isActive
-                ? "bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
-                : item.disabled
-                  ? "text-gray-400 cursor-not-allowed"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-            }
-            ${isCollapsed ? "justify-center px-2" : ""}
-          `}
-          title={isCollapsed ? item.label : item.description}
-        >
-          {/* Icon */}
-          <item.icon
-            size={18}
-            className={`flex-shrink-0 ${isActive ? "text-primary-600" : ""}`}
-          />
-
-          {/* Label and Badge */}
-          {!isCollapsed && (
-            <>
-              <span className="flex-1 truncate">{item.label}</span>
-
-              {/* Badge */}
-              {item.badge && renderBadge(item.badge, item.badgeVariant)}
-
-              {/* External Link Icon */}
-              {item.external && (
-                <ExternalLink size={14} className="opacity-50" />
-              )}
-
-              {/* Expand/Collapse Icon */}
-              {hasChildren && (
-                <div className="flex-shrink-0">
-                  {isExpanded ? (
-                    <ChevronDown size={16} className="text-gray-400" />
-                  ) : (
-                    <ChevronRight size={16} className="text-gray-400" />
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </button>
-
-        {/* Children */}
-        {hasChildren && !isCollapsed && isExpanded && (
-          <div className="mt-1 space-y-1">
-            {item.children?.map((child) =>
-              renderNavigationItem(child, level + 1),
-            )}
-          </div>
+      <div key={item.id}>
+        {isCollapsed ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button className={itemClasses} onClick={handleClick}>
+                  {itemContent}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="ml-2">
+                <p className="font-medium">{item.label}</p>
+                {item.description && (
+                  <p className="text-xs text-muted-foreground">
+                    {item.description}
+                  </p>
+                )}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <button className={itemClasses} onClick={handleClick}>
+            {itemContent}
+          </button>
         )}
 
-        {/* Collapsed tooltip */}
-        {isCollapsed && hasChildren && (
-          <div className="absolute left-full top-0 ml-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50 hidden group-hover:block">
-            <div className="px-3 py-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-              {item.label}
-            </div>
-            {item.children?.map((child) => (
-              <button
-                key={child.id}
-                onClick={() => handleNavigation(child)}
-                className="w-full flex items-center gap-2 px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              >
-                <child.icon size={14} />
-                {child.label}
-                {child.badge && renderBadge(child.badge, child.badgeVariant)}
-              </button>
-            ))}
+        {/* Render children if expanded */}
+        {hasChildren && isItemExpanded && isExpanded && (
+          <div className="mt-1 space-y-1">
+            {item.children!.map((child) =>
+              renderNavigationItem(child, depth + 1),
+            )}
           </div>
         )}
       </div>
     );
   };
 
+  // ===== RENDER SECTION =====
   const renderSection = (section: NavigationSection) => {
-    const isExpanded = expandedSections.has(section.id);
+    const isSectionExpanded = expandedSections.has(section.id);
 
     return (
-      <div key={section.id} className="mb-6">
-        {/* Section Header */}
-        {!isCollapsed && (
+      <div key={section.id} className="space-y-2">
+        {isExpanded && (
           <button
             onClick={() => toggleSection(section.id)}
-            className="w-full flex items-center justify-between px-3 py-1 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            className="flex items-center w-full px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors"
           >
-            <span>{section.label}</span>
-            {isExpanded ? (
-              <ChevronDown size={14} />
-            ) : (
-              <ChevronRight size={14} />
-            )}
+            <span className="flex-1 text-left">{section.label}</span>
+            <ChevronDown
+              size={14}
+              className={`transition-transform ${
+                isSectionExpanded ? "" : "-rotate-90"
+              }`}
+            />
           </button>
         )}
 
-        {/* Section Items */}
-        {(isCollapsed || isExpanded) && (
+        {(isSectionExpanded || isCollapsed) && (
           <div className="space-y-1">
             {section.items.map((item) => renderNavigationItem(item))}
           </div>
         )}
+
+        {isExpanded && <Separator className="my-4" />}
       </div>
     );
   };
 
-  // ===== MAIN RENDER =====
+  // Don't render if hidden
   if (isHidden) return null;
 
   return (
-    <aside
+    <div
       className={`
+        sidebar-container h-full flex flex-col
         ${isCollapsed ? "w-16" : "w-64"}
-        h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700
-        flex flex-col transition-all duration-300 ease-in-out
+        ${isMobile ? "fixed" : "relative"}
+        transition-all duration-300 ease-in-out
+        border-r border-sidebar-border bg-sidebar-background
         ${className}
       `}
     >
       {/* Header */}
-      <div
-        className={`
-          flex items-center gap-3 px-4 py-4 border-b border-gray-200 dark:border-gray-700
-          ${isCollapsed ? "justify-center px-2" : ""}
-        `}
-      >
-        {/* Logo */}
-        <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center flex-shrink-0">
-          <span className="text-white font-bold text-sm">L</span>
-        </div>
-
-        {/* Brand Name */}
-        {!isCollapsed && (
-          <div className="flex-1">
-            <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-              Lawdesk
-            </h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              CRM Jurídico
-            </p>
-          </div>
-        )}
-
-        {/* Collapse Toggle (Desktop) */}
-        {!isMobile && onToggle && (
-          <Button variant="ghost" size="sm" onClick={onToggle} className="p-1">
-            {isCollapsed ? (
-              <ChevronRight size={16} />
-            ) : (
-              <ChevronDown size={16} />
+      <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
+        {isExpanded ? (
+          <>
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Scale size={18} className="text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold">Lawdesk</h1>
+                <p className="text-xs text-muted-foreground">CRM Jurídico</p>
+              </div>
+            </div>
+            {isMobile && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggle}
+                className="p-1 h-auto"
+              >
+                <X size={18} />
+              </Button>
             )}
-          </Button>
+          </>
+        ) : (
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mx-auto">
+            <Scale size={18} className="text-primary-foreground" />
+          </div>
         )}
       </div>
 
-      {/* Quick Actions */}
-      {!isCollapsed && (
-        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <Button
-            variant="primary"
-            size="sm"
-            icon={Plus}
-            onClick={() => navigate("/novo")}
-            className="w-full justify-center"
-          >
-            Novo
-          </Button>
+      {/* Search */}
+      {isExpanded && (
+        <div className="p-4 border-b border-sidebar-border">
+          <div className="relative">
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              placeholder="Buscar..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-9 bg-sidebar-accent/50 border-sidebar-border"
+            />
+          </div>
         </div>
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
-        {filteredSections.map(renderSection)}
-      </nav>
+      <ScrollArea className="flex-1 p-4">
+        <nav className="space-y-2">
+          {filteredSections.map((section) => renderSection(section))}
+        </nav>
+      </ScrollArea>
 
-      {/* Footer */}
-      <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-        {!isCollapsed ? (
-          <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-            <p>Lawdesk CRM v2.0</p>
-            <p>© 2024 Todos os direitos reservados</p>
+      {/* User Profile / Footer */}
+      <div className="p-4 border-t border-sidebar-border">
+        {isExpanded ? (
+          <div className="space-y-2">
+            <div className="flex items-center space-x-3 p-2 rounded-lg bg-sidebar-accent/50">
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <User size={16} className="text-primary-foreground" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">Usuário Admin</p>
+                <p className="text-xs text-muted-foreground">
+                  {userRole === "admin" ? "Administrador" : "Usuário"}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-muted-foreground hover:text-foreground"
+            >
+              <LogOut size={16} className="mr-2" />
+              Sair
+            </Button>
           </div>
         ) : (
-          <div className="flex justify-center">
-            <div className="w-6 h-6 rounded bg-gray-200 dark:bg-gray-700"></div>
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" className="w-full p-2 h-auto">
+                  <User size={20} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Perfil do usuário</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
-    </aside>
+    </div>
   );
 };
 
-export default React.memo(SidebarMain);
+export default SidebarMain;
