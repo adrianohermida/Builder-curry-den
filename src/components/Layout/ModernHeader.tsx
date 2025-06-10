@@ -41,6 +41,9 @@ import {
   type PrimaryColor,
 } from "@/utils/themeUtils";
 
+// Hook para localStorage
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+
 // UI Components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -146,20 +149,18 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
 }) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [themeConfig, setThemeConfig] = useState<ThemeConfig>(() =>
+  const [themeConfig, setThemeConfig] = useLocalStorage<ThemeConfig>(
+    "lawdesk-theme-config",
     loadThemeConfig(),
   );
   const [notifications, setNotifications] = useState(NOTIFICATIONS);
 
   // Theme Management
-  const updateThemeConfig = useCallback(
-    (updates: Partial<ThemeConfig>) => {
-      const newConfig = { ...themeConfig, ...updates };
-      setThemeConfig(newConfig);
-      applyThemeConfig(newConfig);
-      saveThemeConfig(newConfig);
-    },
-    [themeConfig],
+  const updateThemeConfig = useCallback((updates: Partial<ThemeConfig>) => {
+    const newConfig = { ...themeConfig, ...updates };
+    setThemeConfig(newConfig);
+    applyThemeConfig(newConfig);
+  }, [themeConfig, setThemeConfig]);
   );
 
   const applyTheme = useCallback(
