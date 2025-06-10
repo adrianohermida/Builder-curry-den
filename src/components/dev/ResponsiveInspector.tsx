@@ -1,517 +1,470 @@
+/**
+ * 🔍 RESPONSIVE INSPECTOR - INSPETOR DE RESPONSIVIDADE
+ *
+ * Componente para testar e visualizar breakpoints em tempo real
+ * Apenas disponível em modo desenvolvimento
+ */
+
 import React, { useState, useEffect } from "react";
 import {
+  Monitor,
   Smartphone,
   Tablet,
-  Monitor,
-  RotateCcw,
-  Maximize2,
-  Minimize2,
-  Ruler,
+  Maximize,
+  Minimize,
   Eye,
   EyeOff,
   Settings,
+  Ruler,
+  Grid,
+  Palette,
 } from "lucide-react";
+
+// UI Components
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 
-interface Breakpoint {
+interface ResponsiveInspectorProps {
+  enabled?: boolean;
+}
+
+interface ViewportSize {
   name: string;
   width: number;
   height: number;
-  icon: React.ComponentType<any>;
-  description: string;
+  device: string;
+  icon: React.ComponentType<{ size?: number }>;
 }
 
-const breakpoints: Breakpoint[] = [
+const VIEWPORT_SIZES: ViewportSize[] = [
   {
-    name: "Mobile Portrait",
+    name: "iPhone 13 Mini",
+    width: 375,
+    height: 667,
+    device: "Mobile",
+    icon: Smartphone,
+  },
+  {
+    name: "iPhone 13",
+    width: 390,
+    height: 844,
+    device: "Mobile",
+    icon: Smartphone,
+  },
+  {
+    name: "iPhone 13 Pro Max",
+    width: 428,
+    height: 926,
+    device: "Mobile",
+    icon: Smartphone,
+  },
+  {
+    name: "Galaxy S21",
     width: 360,
-    height: 640,
+    height: 800,
+    device: "Mobile",
     icon: Smartphone,
-    description: "Galaxy S, iPhone 13 Mini",
   },
   {
-    name: "Mobile Landscape",
-    width: 640,
-    height: 360,
-    icon: Smartphone,
-    description: "Mobile rotated",
-  },
-  {
-    name: "Tablet Portrait",
+    name: "iPad Mini",
     width: 768,
     height: 1024,
+    device: "Tablet",
     icon: Tablet,
-    description: "iPad, Galaxy Tab",
   },
   {
-    name: "Tablet Landscape",
+    name: "iPad Air",
+    width: 820,
+    height: 1180,
+    device: "Tablet",
+    icon: Tablet,
+  },
+  {
+    name: "iPad Pro 11",
+    width: 834,
+    height: 1194,
+    device: "Tablet",
+    icon: Tablet,
+  },
+  {
+    name: "iPad Pro 12.9",
     width: 1024,
-    height: 768,
+    height: 1366,
+    device: "Tablet",
     icon: Tablet,
-    description: "Tablet rotated",
   },
   {
-    name: "Desktop",
+    name: "MacBook Air",
     width: 1280,
-    height: 720,
+    height: 800,
+    device: "Desktop",
     icon: Monitor,
-    description: "Standard desktop",
   },
   {
-    name: "Large Desktop",
+    name: "MacBook Pro 14",
+    width: 1512,
+    height: 982,
+    device: "Desktop",
+    icon: Monitor,
+  },
+  {
+    name: "MacBook Pro 16",
+    width: 1728,
+    height: 1117,
+    device: "Desktop",
+    icon: Monitor,
+  },
+  {
+    name: "Desktop 1080p",
     width: 1920,
     height: 1080,
+    device: "Desktop",
     icon: Monitor,
-    description: "Full HD display",
   },
   {
-    name: "Ultrawide",
+    name: "Desktop 1440p",
     width: 2560,
     height: 1440,
+    device: "Desktop",
     icon: Monitor,
-    description: "Ultrawide monitor",
+  },
+  {
+    name: "Desktop 4K",
+    width: 3840,
+    height: 2160,
+    device: "Desktop",
+    icon: Monitor,
   },
 ];
 
-interface ResponsiveInspectorProps {
-  className?: string;
-}
+const TAILWIND_BREAKPOINTS = {
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+  "2xl": 1536,
+};
 
-export function ResponsiveInspector({ className }: ResponsiveInspectorProps) {
-  const [isActive, setIsActive] = useState(false);
-  const [currentBreakpoint, setCurrentBreakpoint] = useState<Breakpoint>(
-    breakpoints[4],
+export const ResponsiveInspector: React.FC<ResponsiveInspectorProps> = ({
+  enabled = process.env.NODE_ENV === "development",
+}) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [currentViewport, setCurrentViewport] = useState<ViewportSize | null>(
+    null,
   );
-  const [customWidth, setCustomWidth] = useState(1280);
-  const [customHeight, setCustomHeight] = useState(720);
   const [showRuler, setShowRuler] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
-  const [opacity, setOpacity] = useState(1);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showBreakpoints, setShowBreakpoints] = useState(true);
+  const [realTime, setRealTime] = useState(true);
 
-  // Get current viewport dimensions
-  const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+  const [windowSize, setWindowSize] = useState({
+    width: typeof window !== "undefined" ? window.innerWidth : 1200,
+    height: typeof window !== "undefined" ? window.innerHeight : 800,
+  });
 
+  // Real-time window size tracking
   useEffect(() => {
+    if (!realTime) return;
+
     const handleResize = () => {
-      setViewportWidth(window.innerWidth);
-      setViewportHeight(window.innerHeight);
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
     };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [realTime]);
 
-  // Apply responsive mode
-  useEffect(() => {
-    const body = document.body;
-    const html = document.documentElement;
+  // Get current breakpoint
+  const getCurrentBreakpoint = () => {
+    const width = currentViewport?.width || windowSize.width;
 
-    if (isActive) {
-      // Store original styles
-      const originalBodyStyle = {
-        width: body.style.width,
-        height: body.style.height,
-        margin: body.style.margin,
-        border: body.style.border,
-        boxShadow: body.style.boxShadow,
-        overflow: body.style.overflow,
-      };
-
-      const originalHtmlStyle = {
-        overflow: html.style.overflow,
-      };
-
-      // Apply responsive styles
-      body.style.width = `${currentBreakpoint.width}px`;
-      body.style.height = `${currentBreakpoint.height}px`;
-      body.style.margin = "20px auto";
-      body.style.border = "2px solid hsl(var(--border))";
-      body.style.boxShadow =
-        "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)";
-      body.style.overflow = "auto";
-      body.style.opacity = opacity.toString();
-
-      html.style.overflow = "auto";
-
-      // Add grid overlay if enabled
-      if (showGrid) {
-        body.style.backgroundImage = `
-          linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
-        `;
-        body.style.backgroundSize = "20px 20px";
-      } else {
-        body.style.backgroundImage = "";
-        body.style.backgroundSize = "";
-      }
-
-      // Cleanup function
-      return () => {
-        Object.assign(body.style, originalBodyStyle);
-        Object.assign(html.style, originalHtmlStyle);
-        body.style.backgroundImage = "";
-        body.style.backgroundSize = "";
-        body.style.opacity = "";
-      };
-    }
-  }, [isActive, currentBreakpoint, opacity, showGrid]);
-
-  const toggleResponsiveMode = () => {
-    setIsActive(!isActive);
+    if (width >= TAILWIND_BREAKPOINTS["2xl"]) return "2xl";
+    if (width >= TAILWIND_BREAKPOINTS.xl) return "xl";
+    if (width >= TAILWIND_BREAKPOINTS.lg) return "lg";
+    if (width >= TAILWIND_BREAKPOINTS.md) return "md";
+    if (width >= TAILWIND_BREAKPOINTS.sm) return "sm";
+    return "xs";
   };
 
-  const selectBreakpoint = (breakpoint: Breakpoint) => {
-    setCurrentBreakpoint(breakpoint);
-    setCustomWidth(breakpoint.width);
-    setCustomHeight(breakpoint.height);
+  const getDeviceType = () => {
+    const width = currentViewport?.width || windowSize.width;
+
+    if (width < 768) return "Mobile";
+    if (width < 1024) return "Tablet";
+    return "Desktop";
   };
 
-  const applyCustomDimensions = () => {
-    setCurrentBreakpoint({
-      name: "Custom",
-      width: customWidth,
-      height: customHeight,
-      icon: Monitor,
-      description: `${customWidth}x${customHeight}`,
+  const applyViewport = (viewport: ViewportSize) => {
+    setCurrentViewport(viewport);
+    // Simulate viewport change (in a real implementation, this would resize the viewport)
+    setWindowSize({ width: viewport.width, height: viewport.height });
+  };
+
+  const resetViewport = () => {
+    setCurrentViewport(null);
+    setWindowSize({
+      width: window.innerWidth,
+      height: window.innerHeight,
     });
   };
 
-  const resetToViewport = () => {
-    setIsActive(false);
-    setCurrentBreakpoint(breakpoints[4]);
-    setCustomWidth(1280);
-    setCustomHeight(720);
-    setOpacity(1);
-    setShowGrid(false);
-    setShowRuler(false);
-  };
-
-  // Only show in development mode
-  if (process.env.NODE_ENV === "production") {
-    return null;
-  }
+  // Don't render if not enabled or in production
+  if (!enabled) return null;
 
   return (
     <>
-      {/* Floating Button */}
-      <div className={cn("fixed bottom-4 right-4 z-50", className)}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant={isActive ? "default" : "outline"}
-              size="sm"
-              className="shadow-lg"
-            >
-              <Ruler className="h-4 w-4 mr-2" />
-              {isActive ? currentBreakpoint.name : "Responsivo"}
-              {isActive && (
-                <Badge variant="secondary" className="ml-2">
-                  {currentBreakpoint.width}x{currentBreakpoint.height}
-                </Badge>
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64">
-            <DropdownMenuLabel className="flex items-center gap-2">
-              <Ruler className="h-4 w-4" />
-              Inspetor Responsivo
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
+      {/* Toggle Button */}
+      <Button
+        onClick={() => setIsVisible(!isVisible)}
+        className="fixed bottom-20 right-4 z-50 rounded-full h-12 w-12 p-0 shadow-lg"
+        variant="secondary"
+        title="🔍 Inspetor de Responsividade"
+      >
+        <Ruler size={20} />
+      </Button>
 
-            <DropdownMenuItem onClick={toggleResponsiveMode}>
-              {isActive ? (
-                <>
-                  <EyeOff className="mr-2 h-4 w-4" />
-                  Desativar Modo Responsivo
-                </>
-              ) : (
-                <>
-                  <Eye className="mr-2 h-4 w-4" />
-                  Ativar Modo Responsivo
-                </>
-              )}
-            </DropdownMenuItem>
-
-            {isActive && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel>Breakpoints Predefinidos</DropdownMenuLabel>
-                {breakpoints.map((breakpoint) => {
-                  const Icon = breakpoint.icon;
-                  const isSelected =
-                    currentBreakpoint.width === breakpoint.width &&
-                    currentBreakpoint.height === breakpoint.height;
-
-                  return (
-                    <DropdownMenuItem
-                      key={breakpoint.name}
-                      onClick={() => selectBreakpoint(breakpoint)}
-                      className={cn("flex items-center gap-2", {
-                        "bg-accent": isSelected,
-                      })}
-                    >
-                      <Icon className="h-4 w-4" />
-                      <div className="flex-1">
-                        <div className="font-medium">{breakpoint.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {breakpoint.width}x{breakpoint.height} •{" "}
-                          {breakpoint.description}
-                        </div>
-                      </div>
-                    </DropdownMenuItem>
-                  );
-                })}
-
-                <DropdownMenuSeparator />
-                <DialogTrigger asChild>
-                  <DropdownMenuItem onClick={() => setIsDialogOpen(true)}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Configurações Avançadas
-                  </DropdownMenuItem>
-                </DialogTrigger>
-              </>
-            )}
-
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={resetToViewport}>
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Resetar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* Viewport Info Display */}
-      {isActive && (
-        <div className="fixed top-4 right-4 z-50">
-          <Card className="shadow-lg">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2 text-sm">
-                <currentBreakpoint.icon className="h-4 w-4" />
-                <span className="font-medium">{currentBreakpoint.name}</span>
-                <Badge variant="outline">
-                  {currentBreakpoint.width}x{currentBreakpoint.height}
-                </Badge>
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                Viewport atual: {viewportWidth}x{viewportHeight}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Grid Overlay Toggle */}
-      {isActive && showGrid && (
-        <div className="fixed top-20 right-4 z-50">
-          <Badge variant="secondary" className="shadow-lg">
-            Grade ativa (20px)
-          </Badge>
-        </div>
-      )}
-
-      {/* Advanced Settings Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Configurações do Inspetor
-            </DialogTitle>
-            <DialogDescription>
-              Ajuste as configurações do modo responsivo para teste detalhado.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            {/* Custom Dimensions */}
-            <div className="space-y-3">
-              <Label>Dimensões Personalizadas</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label
-                    htmlFor="custom-width"
-                    className="text-xs text-muted-foreground"
-                  >
-                    Largura (px)
-                  </Label>
-                  <input
-                    id="custom-width"
-                    type="number"
-                    value={customWidth}
-                    onChange={(e) => setCustomWidth(Number(e.target.value))}
-                    className="w-full px-2 py-1 text-sm border rounded"
-                    min={200}
-                    max={4000}
-                  />
-                </div>
-                <div>
-                  <Label
-                    htmlFor="custom-height"
-                    className="text-xs text-muted-foreground"
-                  >
-                    Altura (px)
-                  </Label>
-                  <input
-                    id="custom-height"
-                    type="number"
-                    value={customHeight}
-                    onChange={(e) => setCustomHeight(Number(e.target.value))}
-                    className="w-full px-2 py-1 text-sm border rounded"
-                    min={200}
-                    max={3000}
-                  />
-                </div>
+      {/* Inspector Panel */}
+      {isVisible && (
+        <Card className="fixed bottom-4 right-4 z-50 w-80 shadow-2xl border-2">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg flex items-center">
+                  <Ruler size={18} className="mr-2" />
+                  Responsividade
+                </CardTitle>
+                <CardDescription>
+                  Teste de breakpoints e dispositivos
+                </CardDescription>
               </div>
               <Button
-                onClick={applyCustomDimensions}
+                variant="ghost"
                 size="sm"
-                className="w-full"
+                onClick={() => setIsVisible(false)}
+                className="h-8 w-8 p-0"
               >
-                Aplicar Dimensões
+                <EyeOff size={16} />
+              </Button>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {/* Current Status */}
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <Label className="text-xs text-muted-foreground">
+                  Resolução
+                </Label>
+                <p className="font-mono">
+                  {currentViewport?.width || windowSize.width} ×{" "}
+                  {currentViewport?.height || windowSize.height}
+                </p>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">
+                  Breakpoint
+                </Label>
+                <Badge variant="outline" className="font-mono">
+                  {getCurrentBreakpoint()}
+                </Badge>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">
+                  Dispositivo
+                </Label>
+                <p>{getDeviceType()}</p>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Status</Label>
+                <Badge
+                  variant={currentViewport ? "default" : "secondary"}
+                  className="text-xs"
+                >
+                  {currentViewport ? "Simulando" : "Real"}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Viewport Selector */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Dispositivo de Teste
+              </Label>
+              <Select
+                value={currentViewport?.name || ""}
+                onValueChange={(value) => {
+                  const viewport = VIEWPORT_SIZES.find((v) => v.name === value);
+                  if (viewport) {
+                    applyViewport(viewport);
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um dispositivo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {VIEWPORT_SIZES.map((viewport) => {
+                    const Icon = viewport.icon;
+                    return (
+                      <SelectItem key={viewport.name} value={viewport.name}>
+                        <div className="flex items-center">
+                          <Icon size={14} className="mr-2" />
+                          <span>{viewport.name}</span>
+                          <span className="ml-auto text-xs text-muted-foreground">
+                            {viewport.width}×{viewport.height}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={resetViewport}
+                disabled={!currentViewport}
+                className="flex-1"
+              >
+                <Maximize size={14} className="mr-1" />
+                Reset
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setRealTime(!realTime)}
+                className="flex-1"
+              >
+                {realTime ? (
+                  <Eye size={14} className="mr-1" />
+                ) : (
+                  <EyeOff size={14} className="mr-1" />
+                )}
+                {realTime ? "Pausar" : "Ativar"}
               </Button>
             </div>
 
-            {/* Opacity Control */}
-            <div className="space-y-3">
-              <Label>Opacidade: {Math.round(opacity * 100)}%</Label>
-              <Slider
-                value={[opacity]}
-                onValueChange={(value) => setOpacity(value[0])}
-                max={1}
-                min={0.1}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
-
             {/* Visual Aids */}
-            <div className="space-y-4">
-              <Label>Auxiliares Visuais</Label>
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Auxiliares Visuais</Label>
 
               <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-sm">Grade de Layout</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Mostra uma grade de 20px para alinhamento
-                  </p>
-                </div>
-                <Switch checked={showGrid} onCheckedChange={setShowGrid} />
+                <Label htmlFor="ruler" className="text-sm">
+                  Régua
+                </Label>
+                <Switch
+                  id="ruler"
+                  checked={showRuler}
+                  onCheckedChange={setShowRuler}
+                />
               </div>
 
               <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-sm">Régua de Medidas</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Exibe réguas nas bordas da viewport
-                  </p>
-                </div>
-                <Switch checked={showRuler} onCheckedChange={setShowRuler} />
+                <Label htmlFor="grid" className="text-sm">
+                  Grade
+                </Label>
+                <Switch
+                  id="grid"
+                  checked={showGrid}
+                  onCheckedChange={setShowGrid}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label htmlFor="breakpoints" className="text-sm">
+                  Breakpoints
+                </Label>
+                <Switch
+                  id="breakpoints"
+                  checked={showBreakpoints}
+                  onCheckedChange={setShowBreakpoints}
+                />
               </div>
             </div>
 
-            {/* Current Viewport Info */}
-            <div className="space-y-2 p-3 bg-muted rounded-lg">
-              <Label className="text-sm">Informações da Viewport</Label>
-              <div className="text-xs space-y-1">
-                <div>
-                  Atual: {viewportWidth}x{viewportHeight}px
-                </div>
-                <div>
-                  Simulando: {currentBreakpoint.width}x
-                  {currentBreakpoint.height}px
-                </div>
-                <div>
-                  Breakpoint:{" "}
-                  {viewportWidth < 640
-                    ? "sm"
-                    : viewportWidth < 768
-                      ? "md"
-                      : viewportWidth < 1024
-                        ? "lg"
-                        : viewportWidth < 1280
-                          ? "xl"
-                          : "2xl"}{" "}
-                  (Tailwind CSS)
+            {/* Breakpoint Reference */}
+            {showBreakpoints && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  Referência Tailwind
+                </Label>
+                <div className="text-xs space-y-1 font-mono">
+                  {Object.entries(TAILWIND_BREAKPOINTS).map(([name, size]) => (
+                    <div
+                      key={name}
+                      className={`flex justify-between ${
+                        getCurrentBreakpoint() === name
+                          ? "text-primary font-bold"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      <span>{name}:</span>
+                      <span>{size}px+</span>
+                    </div>
+                  ))}
                 </div>
               </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Visual Overlays */}
+      {showRuler && (
+        <div className="fixed inset-0 pointer-events-none z-40">
+          {/* Horizontal Ruler */}
+          <div className="absolute top-0 left-0 w-full h-6 bg-black/80 text-white text-xs font-mono flex items-center px-2">
+            Largura: {currentViewport?.width || windowSize.width}px
+          </div>
+          {/* Vertical Ruler */}
+          <div className="absolute top-0 left-0 w-6 h-full bg-black/80 text-white text-xs font-mono flex items-start justify-center pt-8">
+            <div
+              className="transform -rotate-90 origin-center"
+              style={{ writingMode: "vertical-lr" }}
+            >
+              Altura: {currentViewport?.height || windowSize.height}px
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
+
+      {showGrid && (
+        <div
+          className="fixed inset-0 pointer-events-none z-40 opacity-20"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(59, 130, 246, 0.5) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(59, 130, 246, 0.5) 1px, transparent 1px)
+            `,
+            backgroundSize: "20px 20px",
+          }}
+        />
+      )}
     </>
   );
-}
+};
 
-// Hook to use responsive inspector programmatically
-export function useResponsiveInspector() {
-  const [isActive, setIsActive] = useState(false);
-  const [currentBreakpoint, setCurrentBreakpoint] = useState<string>("desktop");
-
-  const activate = (breakpoint?: string) => {
-    setIsActive(true);
-    if (breakpoint) {
-      setCurrentBreakpoint(breakpoint);
-    }
-  };
-
-  const deactivate = () => {
-    setIsActive(false);
-  };
-
-  const getCurrentBreakpoint = () => {
-    const width = window.innerWidth;
-    if (width < 640) return "sm";
-    if (width < 768) return "md";
-    if (width < 1024) return "lg";
-    if (width < 1280) return "xl";
-    return "2xl";
-  };
-
-  return {
-    isActive,
-    currentBreakpoint,
-    activate,
-    deactivate,
-    getCurrentBreakpoint,
-  };
-}
-
-// Utility function to detect mobile devices
-export function isMobile() {
-  return window.innerWidth < 768;
-}
-
-// Utility function to detect tablet devices
-export function isTablet() {
-  return window.innerWidth >= 768 && window.innerWidth < 1024;
-}
-
-// Utility function to detect desktop devices
-export function isDesktop() {
-  return window.innerWidth >= 1024;
-}
+export default ResponsiveInspector;

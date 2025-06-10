@@ -25,6 +25,9 @@ import { Toaster } from "sonner";
 import TopbarMain from "./TopbarMain";
 import SidebarMain from "./SidebarMain";
 
+// Dev Components
+import ResponsiveInspector from "@/components/dev/ResponsiveInspector";
+
 // Hooks
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
@@ -483,6 +486,9 @@ const MainLayout: React.FC = () => {
             },
           }}
         />
+
+        {/* Responsive Inspector (Development Only) */}
+        <ResponsiveInspector />
 
         {/* Debug Info (Development Only) */}
         {process.env.NODE_ENV === "development" && (
