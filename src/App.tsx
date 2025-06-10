@@ -27,7 +27,7 @@ import DebugPanel from "@/components/Debug/DebugPanel";
 function App() {
   return (
     <ThemeInitializer>
-      <MinimalistRouter />
+      <RobustRouter />
 
       {/* Development Tools - Development Only */}
       {IS_DEVELOPMENT && <DebugPanel />}
