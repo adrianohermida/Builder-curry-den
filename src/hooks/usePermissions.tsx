@@ -1,359 +1,449 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
+/**
+ * 🔐 SISTEMA DE PERMISSÕES GRANULARES
+ *
+ * Sistema completo de controle de acesso com:
+ * ✅ Permissões por módulo e ação
+ * ✅ Perfis hierárquicos
+ * ✅ Verificação em tempo real
+ * ✅ HOCs para proteção de componentes
+ * ✅ Logs de auditoria automáticos
+ * ✅ Integração com GOV.BR (futuro)
+ */
 
-export type UserRole =
-  | "admin"
-  | "advogado"
-  | "estagiario"
-  | "cliente"
-  | "secretaria";
+import React, { useMemo } from "react";
+import { useGlobalStore } from "@/stores/useGlobalStore";
 
-export interface Permission {
-  module: string;
-  action: "read" | "write" | "delete" | "manage";
-  resource?: string;
-}
+// Tipos de permissões
+export type Permission =
+  // Módulo CRM
+  | "crm.clientes.visualizar"
+  | "crm.clientes.criar"
+  | "crm.clientes.editar"
+  | "crm.clientes.excluir"
+  | "crm.clientes.exportar"
+  | "crm.processos.visualizar"
+  | "crm.processos.criar"
+  | "crm.processos.editar"
+  | "crm.processos.excluir"
+  | "crm.processos.compartilhar"
+  | "crm.contratos.visualizar"
+  | "crm.contratos.criar"
+  | "crm.contratos.editar"
+  | "crm.contratos.assinar"
+  | "crm.contratos.excluir"
+  | "crm.tarefas.visualizar"
+  | "crm.tarefas.criar"
+  | "crm.tarefas.editar"
+  | "crm.tarefas.atribuir"
+  | "crm.tarefas.excluir"
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  avatar?: string;
-  permissions: Permission[];
-  customPermissions?: Permission[];
-  areas?: string[]; // Areas de atuação específicas
-  clients?: string[]; // Clientes específicos (para limitação de acesso)
-  active: boolean;
-  lastLogin?: string;
-}
+  // Módulo Financeiro
+  | "financeiro.visualizar"
+  | "financeiro.criar"
+  | "financeiro.editar"
+  | "financeiro.aprovar"
+  | "financeiro.excluir"
+  | "financeiro.relatorios"
 
-interface PermissionContext {
-  user: User | null;
-  hasPermission: (module: string, action: string, resource?: string) => boolean;
-  hasAnyPermission: (permissions: Omit<Permission, "resource">[]) => boolean;
-  canAccessClient: (clientId: string) => boolean;
-  canAccessArea: (area: string) => boolean;
-  isAdmin: () => boolean;
-  isLawyer: () => boolean;
-  login: (user: User) => void;
-  logout: () => void;
-  updatePermissions: (permissions: Permission[]) => void;
-}
+  // Módulo Documentos
+  | "documentos.visualizar"
+  | "documentos.upload"
+  | "documentos.download"
+  | "documentos.editar"
+  | "documentos.excluir"
+  | "documentos.compartilhar"
+  | "documentos.historico"
 
-const PermissionContext = createContext<PermissionContext | null>(null);
+  // Módulo Publicações
+  | "publicacoes.visualizar"
+  | "publicacoes.analisar"
+  | "publicacoes.responder"
+  | "publicacoes.arquivar"
+  | "publicacoes.ia"
 
-// Role-based default permissions
-const defaultPermissions: Record<UserRole, Permission[]> = {
-  admin: [
-    { module: "*", action: "manage" }, // Admin tem acesso total
-    { module: "executive", action: "read" },
-    { module: "executive", action: "manage" },
-    { module: "finance", action: "read" },
-    { module: "analytics", action: "read" },
-    { module: "clients", action: "read" },
-    { module: "satisfaction", action: "read" },
-    { module: "system", action: "read" },
-    { module: "marketing", action: "read" },
-    { module: "support", action: "read" },
-    { module: "contracts", action: "read" },
-    { module: "admin", action: "manage" },
+  // Módulo Agenda
+  | "agenda.visualizar"
+  | "agenda.criar"
+  | "agenda.editar"
+  | "agenda.excluir"
+  | "agenda.compartilhar"
+
+  // Módulo Atendimento
+  | "atendimento.visualizar"
+  | "atendimento.responder"
+  | "atendimento.transferir"
+  | "atendimento.fechar"
+  | "atendimento.historico"
+
+  // Módulo IA
+  | "ia.usar"
+  | "ia.configurar"
+  | "ia.historico"
+  | "ia.creditos"
+
+  // Administração
+  | "admin.usuarios.visualizar"
+  | "admin.usuarios.criar"
+  | "admin.usuarios.editar"
+  | "admin.usuarios.excluir"
+  | "admin.configuracoes"
+  | "admin.auditoria"
+  | "admin.sistema"
+  | "admin.integracao"
+
+  // Sistema
+  | "sistema.backup"
+  | "sistema.restaurar"
+  | "sistema.logs"
+  | "sistema.monitoramento";
+
+// Perfis de usuário com permissões
+export const PERFIS_PERMISSOES: Record<string, Permission[]> = {
+  administrador: [
+    // Todas as permissões
+    "crm.clientes.visualizar",
+    "crm.clientes.criar",
+    "crm.clientes.editar",
+    "crm.clientes.excluir",
+    "crm.clientes.exportar",
+    "crm.processos.visualizar",
+    "crm.processos.criar",
+    "crm.processos.editar",
+    "crm.processos.excluir",
+    "crm.processos.compartilhar",
+    "crm.contratos.visualizar",
+    "crm.contratos.criar",
+    "crm.contratos.editar",
+    "crm.contratos.assinar",
+    "crm.contratos.excluir",
+    "crm.tarefas.visualizar",
+    "crm.tarefas.criar",
+    "crm.tarefas.editar",
+    "crm.tarefas.atribuir",
+    "crm.tarefas.excluir",
+    "financeiro.visualizar",
+    "financeiro.criar",
+    "financeiro.editar",
+    "financeiro.aprovar",
+    "financeiro.excluir",
+    "financeiro.relatorios",
+    "documentos.visualizar",
+    "documentos.upload",
+    "documentos.download",
+    "documentos.editar",
+    "documentos.excluir",
+    "documentos.compartilhar",
+    "documentos.historico",
+    "publicacoes.visualizar",
+    "publicacoes.analisar",
+    "publicacoes.responder",
+    "publicacoes.arquivar",
+    "publicacoes.ia",
+    "agenda.visualizar",
+    "agenda.criar",
+    "agenda.editar",
+    "agenda.excluir",
+    "agenda.compartilhar",
+    "atendimento.visualizar",
+    "atendimento.responder",
+    "atendimento.transferir",
+    "atendimento.fechar",
+    "atendimento.historico",
+    "ia.usar",
+    "ia.configurar",
+    "ia.historico",
+    "ia.creditos",
+    "admin.usuarios.visualizar",
+    "admin.usuarios.criar",
+    "admin.usuarios.editar",
+    "admin.usuarios.excluir",
+    "admin.configuracoes",
+    "admin.auditoria",
+    "admin.sistema",
+    "admin.integracao",
+    "sistema.backup",
+    "sistema.restaurar",
+    "sistema.logs",
+    "sistema.monitoramento",
   ],
+
   advogado: [
-    { module: "dashboard", action: "read" },
-    { module: "crm", action: "manage" },
-    { module: "ged", action: "manage" },
-    { module: "tarefas", action: "manage" },
-    { module: "publicacoes", action: "manage" },
-    { module: "contratos", action: "manage" },
-    { module: "financeiro", action: "read" },
-    { module: "financeiro", action: "write" },
-    { module: "ai", action: "manage" },
-    { module: "agenda", action: "manage" },
-    { module: "atendimento", action: "manage" },
-    { module: "configuracoes", action: "read" },
+    // Permissões completas para trabalho jurídico
+    "crm.clientes.visualizar",
+    "crm.clientes.criar",
+    "crm.clientes.editar",
+    "crm.clientes.exportar",
+    "crm.processos.visualizar",
+    "crm.processos.criar",
+    "crm.processos.editar",
+    "crm.processos.compartilhar",
+    "crm.contratos.visualizar",
+    "crm.contratos.criar",
+    "crm.contratos.editar",
+    "crm.contratos.assinar",
+    "crm.tarefas.visualizar",
+    "crm.tarefas.criar",
+    "crm.tarefas.editar",
+    "crm.tarefas.atribuir",
+    "financeiro.visualizar",
+    "financeiro.criar",
+    "financeiro.editar",
+    "financeiro.relatorios",
+    "documentos.visualizar",
+    "documentos.upload",
+    "documentos.download",
+    "documentos.editar",
+    "documentos.compartilhar",
+    "documentos.historico",
+    "publicacoes.visualizar",
+    "publicacoes.analisar",
+    "publicacoes.responder",
+    "publicacoes.arquivar",
+    "publicacoes.ia",
+    "agenda.visualizar",
+    "agenda.criar",
+    "agenda.editar",
+    "agenda.excluir",
+    "agenda.compartilhar",
+    "atendimento.visualizar",
+    "atendimento.responder",
+    "atendimento.transferir",
+    "atendimento.fechar",
+    "atendimento.historico",
+    "ia.usar",
+    "ia.historico",
   ],
+
   estagiario: [
-    { module: "dashboard", action: "read" },
-    { module: "crm", action: "read" },
-    { module: "crm", action: "write" },
-    { module: "ged", action: "read" },
-    { module: "ged", action: "write" },
-    { module: "tarefas", action: "read" },
-    { module: "tarefas", action: "write" },
-    { module: "publicacoes", action: "read" },
-    { module: "ai", action: "read" },
-    { module: "agenda", action: "read" },
-    { module: "atendimento", action: "read" },
-    { module: "atendimento", action: "write" },
+    // Permissões limitadas para estagiários
+    "crm.clientes.visualizar",
+    "crm.processos.visualizar",
+    "crm.contratos.visualizar",
+    "crm.tarefas.visualizar",
+    "crm.tarefas.criar",
+    "crm.tarefas.editar",
+    "financeiro.visualizar",
+    "documentos.visualizar",
+    "documentos.upload",
+    "documentos.download",
+    "publicacoes.visualizar",
+    "publicacoes.analisar",
+    "agenda.visualizar",
+    "agenda.criar",
+    "agenda.editar",
+    "atendimento.visualizar",
+    "atendimento.responder",
+    "ia.usar",
   ],
-  secretaria: [
-    { module: "dashboard", action: "read" },
-    { module: "crm", action: "read" },
-    { module: "crm", action: "write" },
-    { module: "ged", action: "read" },
-    { module: "ged", action: "write" },
-    { module: "tarefas", action: "read" },
-    { module: "tarefas", action: "write" },
-    { module: "agenda", action: "manage" },
-    { module: "atendimento", action: "manage" },
-    { module: "publicacoes", action: "read" },
-    { module: "configuracoes", action: "read" },
-  ],
+
   cliente: [
-    { module: "dashboard", action: "read" },
-    { module: "crm", action: "read", resource: "own" },
-    { module: "ged", action: "read", resource: "own" },
-    { module: "agenda", action: "read", resource: "own" },
-    { module: "atendimento", action: "read" },
-    { module: "publicacoes", action: "read", resource: "own" },
-    { module: "contratos", action: "read", resource: "own" },
-    { module: "financeiro", action: "read", resource: "own" },
+    // Permissões básicas para portal do cliente
+    "crm.processos.visualizar",
+    "crm.contratos.visualizar",
+    "documentos.visualizar",
+    "documentos.download",
+    "agenda.visualizar",
+    "atendimento.visualizar",
+    "atendimento.responder",
   ],
 };
 
-// Mock user for development/fallback
-const mockUser: User = {
-  id: "user-mock",
-  name: "Usuário Teste",
-  email: "usuario@lawdesk.com",
-  role: "advogado",
-  permissions: defaultPermissions.advogado,
-  active: true,
-  lastLogin: new Date().toISOString(),
+// Hook principal de permissões
+export const usePermissions = () => {
+  const user = useGlobalStore((state) => state.user);
+  const addAuditLog = useGlobalStore((state) => state.addAuditLog);
+
+  // Calcular permissões do usuário atual
+  const userPermissions = useMemo(() => {
+    if (!user) return [];
+
+    const perfilPermissions = PERFIS_PERMISSOES[user.perfil] || [];
+    const customPermissions = user.permissoes || [];
+
+    return [...perfilPermissions, ...customPermissions];
+  }, [user]);
+
+  // Verificar se tem permissão
+  const hasPermission = (permission: Permission): boolean => {
+    if (!user) return false;
+
+    // Administrador sempre tem todas as permissões
+    if (user.perfil === "administrador") return true;
+
+    return userPermissions.includes(permission);
+  };
+
+  // Verificar múltiplas permissões (AND)
+  const hasAllPermissions = (permissions: Permission[]): boolean => {
+    return permissions.every((permission) => hasPermission(permission));
+  };
+
+  // Verificar se tem pelo menos uma permissão (OR)
+  const hasAnyPermission = (permissions: Permission[]): boolean => {
+    return permissions.some((permission) => hasPermission(permission));
+  };
+
+  // Verificar permissão com log de auditoria
+  const checkPermission = (
+    permission: Permission,
+    action?: string,
+  ): boolean => {
+    const hasAccess = hasPermission(permission);
+
+    // Log de auditoria para tentativas de acesso negado
+    if (!hasAccess && user) {
+      addAuditLog({
+        usuario: user.email,
+        acao: "acesso_negado",
+        modulo: "permissoes",
+        detalhes: `Tentativa de acesso negado para: ${permission}${action ? ` - ${action}` : ""}`,
+      });
+    }
+
+    return hasAccess;
+  };
+
+  // Obter permissões por módulo
+  const getModulePermissions = (module: string) => {
+    return userPermissions.filter((permission) =>
+      permission.startsWith(`${module}.`),
+    );
+  };
+
+  // Verificar se pode acessar módulo
+  const canAccessModule = (module: string): boolean => {
+    const modulePermissions = getModulePermissions(module);
+    return modulePermissions.length > 0;
+  };
+
+  // Obter nível de acesso (read, write, admin)
+  const getAccessLevel = (
+    module: string,
+  ): "none" | "read" | "write" | "admin" => {
+    const permissions = getModulePermissions(module);
+
+    if (permissions.length === 0) return "none";
+
+    const hasWrite = permissions.some(
+      (p) =>
+        p.includes(".criar") || p.includes(".editar") || p.includes(".excluir"),
+    );
+
+    const hasAdmin = permissions.some(
+      (p) =>
+        p.includes(".aprovar") ||
+        p.includes(".configurar") ||
+        p.includes(".administrar"),
+    );
+
+    if (hasAdmin) return "admin";
+    if (hasWrite) return "write";
+    return "read";
+  };
+
+  return {
+    user,
+    permissions: userPermissions,
+    hasPermission,
+    hasAllPermissions,
+    hasAnyPermission,
+    checkPermission,
+    getModulePermissions,
+    canAccessModule,
+    getAccessLevel,
+  };
 };
 
-export function PermissionProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+// HOC para proteger componentes
+export const withPermission = <P extends object>(
+  Component: React.ComponentType<P>,
+  requiredPermission: Permission | Permission[],
+  fallback?: React.ComponentType | null,
+) => {
+  return (props: P) => {
+    const { hasPermission, hasAllPermissions } = usePermissions();
 
-  useEffect(() => {
-    // Load user from localStorage on mount
-    const savedUser = localStorage.getItem("lawdesk-user");
-    if (savedUser) {
-      try {
-        const parsedUser = JSON.parse(savedUser);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error("Error parsing saved user:", error);
-        localStorage.removeItem("lawdesk-user");
-        // Set mock user as fallback
-        setUser(mockUser);
-        localStorage.setItem("lawdesk-user", JSON.stringify(mockUser));
+    const hasAccess = Array.isArray(requiredPermission)
+      ? hasAllPermissions(requiredPermission)
+      : hasPermission(requiredPermission);
+
+    if (!hasAccess) {
+      if (fallback) {
+        const FallbackComponent = fallback;
+        return React.createElement(FallbackComponent);
       }
-    } else {
-      // Set mock user if no saved user
-      setUser(mockUser);
-      localStorage.setItem("lawdesk-user", JSON.stringify(mockUser));
-    }
-  }, []);
-
-  const hasPermission = (
-    module: string,
-    action: string,
-    resource?: string,
-  ): boolean => {
-    if (!user) return false;
-
-    // Admin has access to everything
-    if (user.role === "admin") return true;
-
-    // Get all permissions (default + custom)
-    const allPermissions = [
-      ...(user.permissions || []),
-      ...(user.customPermissions || []),
-    ];
-
-    // Check for wildcard permission
-    const hasWildcard = allPermissions.some(
-      (p) => p.module === "*" && (p.action === "manage" || p.action === action),
-    );
-    if (hasWildcard) return true;
-
-    // Check for specific permission
-    const hasSpecific = allPermissions.some((p) => {
-      const moduleMatch = p.module === module;
-      const actionMatch = p.action === action || p.action === "manage";
-      const resourceMatch = !resource || !p.resource || p.resource === resource;
-
-      return moduleMatch && actionMatch && resourceMatch;
-    });
-
-    return hasSpecific;
-  };
-
-  const hasAnyPermission = (
-    permissions: Omit<Permission, "resource">[],
-  ): boolean => {
-    return permissions.some((p) => hasPermission(p.module, p.action));
-  };
-
-  const canAccessClient = (clientId: string): boolean => {
-    if (!user) return false;
-
-    // Admin can access all clients
-    if (user.role === "admin") return true;
-
-    // Check if user has specific client access
-    if (user.clients) {
-      return user.clients.includes(clientId);
+      return (
+        <div className="flex items-center justify-center h-32 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+          <div className="text-center">
+            <div className="w-12 h-12 mx-auto mb-4 text-gray-400">🔒</div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Acesso Restrito
+            </h3>
+            <p className="text-gray-600">
+              Você não tem permissão para acessar este recurso.
+            </p>
+          </div>
+        </div>
+      );
     }
 
-    // For clients, they can only access their own data
-    if (user.role === "cliente") {
-      return user.id === clientId;
-    }
-
-    return true; // Default to true for lawyers/staff
+    return React.createElement(Component, props);
   };
+};
 
-  const canAccessArea = (area: string): boolean => {
-    if (!user) return false;
+// Hook para verificar permissões específicas de módulos
+export const useModulePermissions = (module: string) => {
+  const { getModulePermissions, getAccessLevel, canAccessModule } =
+    usePermissions();
 
-    // Admin can access all areas
-    if (user.role === "admin") return true;
-
-    // Check if user has specific area access
-    if (user.areas) {
-      return user.areas.includes(area);
-    }
-
-    return true; // Default to true if no area restrictions
+  return {
+    permissions: getModulePermissions(module),
+    accessLevel: getAccessLevel(module),
+    canAccess: canAccessModule(module),
   };
+};
 
-  const isAdmin = (): boolean => user?.role === "admin";
-  const isLawyer = (): boolean =>
-    user?.role === "advogado" || user?.role === "admin";
+// Componente de proteção inline
+export const PermissionGuard: React.FC<{
+  permission: Permission | Permission[];
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}> = ({ permission, children, fallback }) => {
+  const { hasPermission, hasAllPermissions } = usePermissions();
 
-  const login = (userData: User) => {
-    try {
-      // Merge with default permissions for the role
-      const userWithDefaults = {
-        ...userData,
-        permissions:
-          userData.permissions || defaultPermissions[userData.role] || [],
-      };
+  const hasAccess = Array.isArray(permission)
+    ? hasAllPermissions(permission)
+    : hasPermission(permission);
 
-      setUser(userWithDefaults);
-      localStorage.setItem("lawdesk-user", JSON.stringify(userWithDefaults));
-    } catch (error) {
-      console.error("Error during login:", error);
-    }
-  };
-
-  const logout = () => {
-    try {
-      setUser(null);
-      localStorage.removeItem("lawdesk-user");
-      // Optionally redirect to login page
-    } catch (error) {
-      console.error("Error during logout:", error);
-    }
-  };
-
-  const updatePermissions = (permissions: Permission[]) => {
-    if (user) {
-      try {
-        const updatedUser = { ...user, customPermissions: permissions };
-        setUser(updatedUser);
-        localStorage.setItem("lawdesk-user", JSON.stringify(updatedUser));
-      } catch (error) {
-        console.error("Error updating permissions:", error);
-      }
-    }
-  };
-
-  // Provide safe defaults for all functions
-  const contextValue: PermissionContext = {
-    user,
-    hasPermission,
-    hasAnyPermission,
-    canAccessClient,
-    canAccessArea,
-    isAdmin,
-    isLawyer,
-    login,
-    logout,
-    updatePermissions,
-  };
-
-  return (
-    <PermissionContext.Provider value={contextValue}>
-      {children}
-    </PermissionContext.Provider>
-  );
-}
-
-export function usePermissions() {
-  const context = useContext(PermissionContext);
-  if (!context) {
-    // Return safe defaults instead of throwing error
-    console.warn(
-      "usePermissions called outside of PermissionProvider, using defaults",
-    );
-    return {
-      user: mockUser,
-      hasPermission: () => true,
-      hasAnyPermission: () => true,
-      canAccessClient: () => true,
-      canAccessArea: () => true,
-      isAdmin: () => mockUser.role === "admin",
-      isLawyer: () => ["advogado", "admin"].includes(mockUser.role),
-      login: () => {},
-      logout: () => {},
-      updatePermissions: () => {},
-    };
-  }
-  return context;
-}
-
-// Component for conditional rendering based on permissions
-interface PermissionGuardProps {
-  module: string;
-  action: string;
-  resource?: string;
-  fallback?: ReactNode;
-  children: ReactNode;
-}
-
-export function PermissionGuard({
-  module,
-  action,
-  resource,
-  fallback = null,
-  children,
-}: PermissionGuardProps) {
-  const { hasPermission } = usePermissions();
-
-  if (!hasPermission(module, action, resource)) {
-    return <>{fallback}</>;
+  if (!hasAccess) {
+    return <>{fallback || null}</>;
   }
 
   return <>{children}</>;
-}
+};
 
-// HOC for protecting routes
-export function withPermission<P extends object>(
-  WrappedComponent: React.ComponentType<P>,
-  requiredModule: string,
-  requiredAction: string,
-  fallbackComponent?: React.ComponentType,
-) {
-  return function PermissionWrappedComponent(props: P) {
-    const { hasPermission } = usePermissions();
+// Hook para verificar permissões de escrita
+export const useWritePermissions = (module: string) => {
+  const { hasPermission } = usePermissions();
 
-    if (!hasPermission(requiredModule, requiredAction)) {
-      if (fallbackComponent) {
-        const FallbackComponent = fallbackComponent;
-        return <FallbackComponent />;
-      }
-      return <div>Acesso negado</div>;
-    }
-
-    return <WrappedComponent {...props} />;
+  return {
+    canCreate: hasPermission(`${module}.criar` as Permission),
+    canEdit: hasPermission(`${module}.editar` as Permission),
+    canDelete: hasPermission(`${module}.excluir` as Permission),
   };
-}
+};
+
+// Hook para verificar permissões específicas do cliente
+export const useClientPermissions = () => {
+  const { user, hasPermission } = usePermissions();
+
+  const isClient = user?.perfil === "cliente";
+
+  return {
+    isClient,
+    canViewOwnProcesses: isClient && hasPermission("crm.processos.visualizar"),
+    canViewOwnContracts: isClient && hasPermission("crm.contratos.visualizar"),
+    canDownloadDocuments: isClient && hasPermission("documentos.download"),
+    canCreateTickets: isClient && hasPermission("atendimento.responder"),
+  };
+};
