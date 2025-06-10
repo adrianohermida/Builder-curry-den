@@ -23,8 +23,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Context
-import { useUnifiedLayout } from "./UnifiedLayout";
+// Global state for sidebar toggle (temporary solution)
+import { useState } from "react";
 
 // Theme system
 import { useTheme } from "@/lib/themeSystem";
