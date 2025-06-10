@@ -110,9 +110,12 @@ const createLazyComponent = (
 
 // Lazy load only existing pages
 const Dashboard = createLazyComponent(
-  () =>
-    import("./pages/Dashboard").catch(() => import("./pages/TestDashboard")),
+  () => import("./pages/Dashboard"),
   "Dashboard",
+);
+const PainelControle = createLazyComponent(
+  () => import("./pages/PainelControle"),
+  "Painel de Controle",
 );
 const Login = createLazyComponent(() => import("./pages/Login"), "Login");
 const Painel = createLazyComponent(() => import("./pages/Painel"), "Painel");
@@ -379,16 +382,31 @@ const App: React.FC = () => {
                       <Routes>
                         <Route
                           path="/"
-                          element={<Navigate to="/crm-modern" replace />}
-                        />
-
-                        {/* Authentication Route */}
-                        <Route
-                          path="/login"
-                          element={
-                            <SafeRoute
-                              element={
-                                <PageWrapper>
+          <Route index element={<Navigate to="/painel" replace />} />
+          <Route
+            path="painel"
+            element={
+              <SafeRoute
+                element={
+                  <PageWrapper>
+                    <PainelControle />
+                  </PageWrapper>
+                }
+              />
+            }
+          />
+          <Route
+            path="dashboard"
+            element={
+              <SafeRoute
+                element={
+                  <PageWrapper>
+                    <Dashboard />
+                  </PageWrapper>
+                }
+              />
+            }
+          />
                                   <Login />
                                 </PageWrapper>
                               }
