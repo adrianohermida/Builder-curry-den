@@ -75,7 +75,7 @@ export default function BetaDashboard() {
     };
 
     loadReport();
-  }, [generateReport]);
+  }, []); // Remove generateReport dependency to prevent infinite loop
 
   // Filtrar itens baseado nos filtros
   const filteredPages = report?.orphanedPages.filter((page) => {
