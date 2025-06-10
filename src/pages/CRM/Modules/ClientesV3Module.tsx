@@ -11,7 +11,6 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { DropResult } from "@hello-pangea/dnd";
 import {
   Users,
   Star,
