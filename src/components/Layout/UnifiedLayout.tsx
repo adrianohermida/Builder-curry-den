@@ -123,6 +123,7 @@ const generateBreadcrumbs = (pathname: string): BreadcrumbItem[] => {
 // ===== UNIFIED LAYOUT COMPONENT =====
 const UnifiedLayout: React.FC = () => {
   const location = useLocation();
+  const { config: themeConfig, colors, getModeClass } = useTheme();
 
   // ===== PERSISTENT STATE =====
   const [persistedState, setPersistedState] = useLocalStorage<
