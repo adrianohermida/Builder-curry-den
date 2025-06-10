@@ -42,6 +42,9 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
+// Diagnostic Widget
+import DiagnosticoAlert from "@/components/ActionPlan/DiagnosticoAlert";
+
 // Types
 interface MetricCard {
   id: string;
