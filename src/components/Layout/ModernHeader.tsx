@@ -31,6 +31,16 @@ import {
   ChevronDown,
 } from "lucide-react";
 
+// Theme utilities
+import {
+  loadThemeConfig,
+  saveThemeConfig,
+  applyThemeConfig,
+  type ThemeConfig,
+  type ThemeMode,
+  type PrimaryColor,
+} from "@/utils/themeUtils";
+
 // UI Components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,12 +81,7 @@ interface NotificationItem {
   read: boolean;
 }
 
-interface ThemeColors {
-  name: string;
-  value: string;
-  primary: string;
-  accent: string;
-}
+// Remove interface ThemeColors as it's no longer needed
 
 // Mock Data
 const NOTIFICATIONS: NotificationItem[] = [
@@ -106,30 +111,30 @@ const NOTIFICATIONS: NotificationItem[] = [
   },
 ];
 
-const THEME_COLORS: ThemeColors[] = [
+const THEME_COLORS: Array<{
+  name: string;
+  value: PrimaryColor;
+  color: string;
+}> = [
   {
     name: "Azul",
     value: "blue",
-    primary: "hsl(217, 91%, 60%)",
-    accent: "hsl(217, 91%, 95%)",
+    color: "#3b82f6",
   },
   {
     name: "Verde",
     value: "green",
-    primary: "hsl(142, 76%, 36%)",
-    accent: "hsl(142, 76%, 95%)",
+    color: "#10b981",
   },
   {
     name: "Roxo",
     value: "purple",
-    primary: "hsl(263, 70%, 50%)",
-    accent: "hsl(263, 70%, 95%)",
+    color: "#8b5cf6",
   },
   {
     name: "Laranja",
     value: "orange",
-    primary: "hsl(24, 95%, 53%)",
-    accent: "hsl(24, 95%, 95%)",
+    color: "#f59e0b",
   },
 ];
 
@@ -141,40 +146,35 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
 }) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
-  const [primaryColor, setPrimaryColor] = useState("blue");
+  const [themeConfig, setThemeConfig] = useState<ThemeConfig>(() =>
+    loadThemeConfig(),
+  );
   const [notifications, setNotifications] = useState(NOTIFICATIONS);
 
   // Theme Management
-  const applyTheme = useCallback((newTheme: "light" | "dark" | "system") => {
-    setTheme(newTheme);
-    const root = document.documentElement;
+  const updateThemeConfig = useCallback(
+    (updates: Partial<ThemeConfig>) => {
+      const newConfig = { ...themeConfig, ...updates };
+      setThemeConfig(newConfig);
+      applyThemeConfig(newConfig);
+      saveThemeConfig(newConfig);
+    },
+    [themeConfig],
+  );
 
-    if (newTheme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
-      root.classList.toggle("dark", systemTheme === "dark");
-    } else {
-      root.classList.toggle("dark", newTheme === "dark");
-    }
+  const applyTheme = useCallback(
+    (newTheme: ThemeMode) => {
+      updateThemeConfig({ mode: newTheme });
+    },
+    [updateThemeConfig],
+  );
 
-    localStorage.setItem("theme", newTheme);
-  }, []);
-
-  const applyPrimaryColor = useCallback((color: string) => {
-    setPrimaryColor(color);
-    const root = document.documentElement;
-    const themeColor = THEME_COLORS.find((c) => c.value === color);
-
-    if (themeColor) {
-      root.style.setProperty("--primary", themeColor.primary);
-      root.style.setProperty("--primary-foreground", "hsl(0, 0%, 98%)");
-    }
-
-    localStorage.setItem("primaryColor", color);
-  }, []);
+  const applyPrimaryColor = useCallback(
+    (color: PrimaryColor) => {
+      updateThemeConfig({ primaryColor: color });
+    },
+    [updateThemeConfig],
+  );
 
   // Notification Management
   const markNotificationAsRead = useCallback((id: string) => {
@@ -387,9 +387,12 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
                     >
                       <div
                         className="w-4 h-4 rounded-full mr-2 border"
-                        style={{ backgroundColor: color.primary }}
+                        style={{ backgroundColor: color.color }}
                       />
                       {color.name}
+                      {themeConfig.primaryColor === color.value && (
+                        <span className="ml-auto text-xs">✓</span>
+                      )}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuSubContent>
