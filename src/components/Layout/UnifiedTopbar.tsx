@@ -32,6 +32,7 @@ import { useTheme } from "@/lib/themeSystem";
 // ===== TYPES =====
 interface UnifiedTopbarProps {
   className?: string;
+  onToggleSidebar?: () => void;
 }
 
 // ===== PAGE TITLES =====
