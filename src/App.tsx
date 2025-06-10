@@ -148,7 +148,7 @@ function App() {
           <Suspense fallback={<GlobalLoadingFallback />}>
             <Routes>
               {/* Layout principal com todas as rotas aninhadas */}
-              <Route path="/" element={<UltimateModernLayout />}>
+              <Route path="/" element={<LawdeskBrandedLayout />}>
                 {/* Home redirect */}
                 <Route index element={<Navigate to="/painel" replace />} />
 
