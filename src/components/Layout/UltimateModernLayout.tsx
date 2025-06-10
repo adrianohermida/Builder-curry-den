@@ -54,6 +54,11 @@ export const UltimateModernLayout: React.FC<UltimateModernLayoutProps> = ({
   useEffect(() => {
     // Smooth transition between routes
     window.scrollTo({ top: 0, behavior: "smooth" });
+
+    // Apply page animations
+    setTimeout(() => {
+      applyPageAnimation();
+    }, 50);
   }, [location.pathname]);
 
   if (isLoading) {
