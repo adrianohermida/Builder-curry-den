@@ -10,8 +10,11 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { SafeDragDropContext } from "../../../components/Common/SafeDragDropContext";
+import {
+  SafeDragDropContext,
+  SafeDroppable as Droppable,
+  SafeDraggable as Draggable,
+} from "../../../components/Common/SafeDragDropContext";
 import {
   DollarSign,
   TrendingUp,
