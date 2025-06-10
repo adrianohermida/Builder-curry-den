@@ -57,6 +57,11 @@ export const RouteTest: React.FC = () => {
       description: "Gestão financeira completa",
     },
     {
+      path: "/financeiro-test",
+      label: "Financeiro (Teste)",
+      description: "Versão simplificada para teste",
+    },
+    {
       path: "/ged-juridico",
       label: "GED (Redirect)",
       description: "Deve redirecionar para /crm/ged",
