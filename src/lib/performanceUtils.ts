@@ -4,37 +4,40 @@
  * Focus: LCP < 2s, FCP < 1s, CLS < 0.1
  */
 
+import React from "react";
+
 // ===== LOADING PERFORMANCE =====
 export const loadingPerformance = {
   // Preload critical resources
   preloadCriticalResources: () => {
     // Preload critical fonts
-    const fontPreload = document.createElement('link');
-    fontPreload.rel = 'preload';
-    fontPreload.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
-    fontPreload.as = 'style';
+    const fontPreload = document.createElement("link");
+    fontPreload.rel = "preload";
+    fontPreload.href =
+      "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap";
+    fontPreload.as = "style";
     fontPreload.onload = () => {
-      fontPreload.rel = 'stylesheet';
+      fontPreload.rel = "stylesheet";
     };
     document.head.appendChild(fontPreload);
   },
 
   // Optimize images with lazy loading
   optimizeImages: () => {
-    const images = document.querySelectorAll('img[data-src]');
-    
+    const images = document.querySelectorAll("img[data-src]");
+
     const imageObserver = new IntersectionObserver((entries, observer) => {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (entry.isIntersecting) {
           const img = entry.target as HTMLImageElement;
-          img.src = img.dataset.src || '';
-          img.classList.remove('lazy');
+          img.src = img.dataset.src || "";
+          img.classList.remove("lazy");
           observer.unobserve(img);
         }
       });
     });
 
-    images.forEach(img => imageObserver.observe(img));
+    images.forEach((img) => imageObserver.observe(img));
   },
 
   // Measure performance metrics
@@ -43,18 +46,18 @@ export const loadingPerformance = {
     new PerformanceObserver((entryList) => {
       const entries = entryList.getEntries();
       const lastEntry = entries[entries.length - 1];
-      console.log('LCP:', lastEntry.startTime);
-    }).observe({ entryTypes: ['largest-contentful-paint'] });
+      console.log("LCP:", lastEntry.startTime);
+    }).observe({ entryTypes: ["largest-contentful-paint"] });
 
     // First Contentful Paint (FCP)
     new PerformanceObserver((entryList) => {
       const entries = entryList.getEntries();
-      entries.forEach(entry => {
-        if (entry.name === 'first-contentful-paint') {
-          console.log('FCP:', entry.startTime);
+      entries.forEach((entry) => {
+        if (entry.name === "first-contentful-paint") {
+          console.log("FCP:", entry.startTime);
         }
       });
-    }).observe({ entryTypes: ['paint'] });
+    }).observe({ entryTypes: ["paint"] });
 
     // Cumulative Layout Shift (CLS)
     let clsValue = 0;
@@ -64,9 +67,9 @@ export const loadingPerformance = {
           clsValue += (entry as any).value;
         }
       }
-      console.log('CLS:', clsValue);
-    }).observe({ entryTypes: ['layout-shift'] });
-  }
+      console.log("CLS:", clsValue);
+    }).observe({ entryTypes: ["layout-shift"] });
+  },
 };
 
 // ===== COMPONENT OPTIMIZATION =====
@@ -74,7 +77,7 @@ export const componentOptimization = {
   // Debounce function for performance
   debounce: <T extends (...args: any[]) => void>(
     func: T,
-    wait: number
+    wait: number,
   ): ((...args: Parameters<T>) => void) => {
     let timeout: NodeJS.Timeout;
     return (...args: Parameters<T>) => {
@@ -86,7 +89,7 @@ export const componentOptimization = {
   // Throttle function for scroll events
   throttle: <T extends (...args: any[]) => void>(
     func: T,
-    limit: number
+    limit: number,
   ): ((...args: Parameters<T>) => void) => {
     let inThrottle: boolean;
     return (...args: Parameters<T>) => {
@@ -128,7 +131,7 @@ export const componentOptimization = {
       cache.set(key, result);
       return result;
     }) as T;
-  }
+  },
 };
 
 // ===== VIRTUAL SCROLLING =====
@@ -139,18 +142,21 @@ export const virtualScrolling = {
     containerHeight: number,
     itemHeight: number,
     totalItems: number,
-    overscan: number = 5
+    overscan: number = 5,
   ) => {
-    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
+    const startIndex = Math.max(
+      0,
+      Math.floor(scrollTop / itemHeight) - overscan,
+    );
     const endIndex = Math.min(
       totalItems - 1,
-      Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan
+      Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan,
     );
 
     return {
       startIndex,
       endIndex,
-      visibleItems: endIndex - startIndex + 1
+      visibleItems: endIndex - startIndex + 1,
     };
   },
 
@@ -158,15 +164,15 @@ export const virtualScrolling = {
   useVirtualScroll: (
     items: any[],
     itemHeight: number,
-    containerHeight: number
+    containerHeight: number,
   ) => {
     const [scrollTop, setScrollTop] = React.useState(0);
-    
+
     const { startIndex, endIndex } = virtualScrolling.calculateVisibleItems(
       scrollTop,
       containerHeight,
       itemHeight,
-      items.length
+      items.length,
     );
 
     const visibleItems = items.slice(startIndex, endIndex + 1);
@@ -179,9 +185,9 @@ export const virtualScrolling = {
       offsetY,
       onScroll: (e: React.UIEvent<HTMLDivElement>) => {
         setScrollTop(e.currentTarget.scrollTop);
-      }
+      },
     };
-  }
+  },
 };
 
 // ===== RESPONSIVE UTILITIES =====
@@ -198,8 +204,8 @@ export const responsiveUtils = {
         setMatches(e.matches);
       };
 
-      media.addEventListener('change', listener);
-      return () => media.removeEventListener('change', listener);
+      media.addEventListener("change", listener);
+      return () => media.removeEventListener("change", listener);
     }, [query]);
 
     return matches;
@@ -215,8 +221,8 @@ export const responsiveUtils = {
 
   // Touch device detection
   isTouchDevice: () => {
-    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  }
+    return "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  },
 };
 
 // ===== ANIMATION PERFORMANCE =====
@@ -226,17 +232,17 @@ export const animationPerformance = {
     element: HTMLElement,
     properties: Record<string, string>,
     duration: number = 200,
-    easing: string = 'ease-out'
+    easing: string = "ease-out",
   ): Promise<void> => {
     return new Promise((resolve) => {
       element.style.transition = `all ${duration}ms ${easing}`;
-      
+
       Object.entries(properties).forEach(([property, value]) => {
         element.style.setProperty(property, value);
       });
 
       setTimeout(() => {
-        element.style.transition = '';
+        element.style.transition = "";
         resolve();
       }, duration);
     });
@@ -250,9 +256,9 @@ export const animationPerformance = {
   // Batch DOM reads and writes
   batchDOMOperations: (operations: (() => void)[]) => {
     requestAnimationFrame(() => {
-      operations.forEach(operation => operation());
+      operations.forEach((operation) => operation());
     });
-  }
+  },
 };
 
 // ===== MEMORY MANAGEMENT =====
@@ -275,7 +281,7 @@ export const memoryManagement = {
           element.removeEventListener(event, handler);
         });
         listeners.length = 0;
-      }
+      },
     };
   })(),
 
@@ -295,11 +301,11 @@ export const memoryManagement = {
         return id;
       },
       cleanup: () => {
-        timers.forEach(id => clearTimeout(id));
+        timers.forEach((id) => clearTimeout(id));
         timers.length = 0;
-      }
+      },
     };
-  })()
+  })(),
 };
 
 // ===== ACCESSIBILITY UTILITIES =====
@@ -309,14 +315,14 @@ export const accessibilityUtils = {
     // Trap focus within element
     trapFocus: (element: HTMLElement) => {
       const focusableElements = element.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       ) as NodeListOf<HTMLElement>;
 
       const firstElement = focusableElements[0];
       const lastElement = focusableElements[focusableElements.length - 1];
 
       const handleTabKey = (e: KeyboardEvent) => {
-        if (e.key === 'Tab') {
+        if (e.key === "Tab") {
           if (e.shiftKey) {
             if (document.activeElement === firstElement) {
               lastElement.focus();
@@ -331,11 +337,11 @@ export const accessibilityUtils = {
         }
       };
 
-      element.addEventListener('keydown', handleTabKey);
+      element.addEventListener("keydown", handleTabKey);
       firstElement?.focus();
 
       return () => {
-        element.removeEventListener('keydown', handleTabKey);
+        element.removeEventListener("keydown", handleTabKey);
       };
     },
 
@@ -352,21 +358,21 @@ export const accessibilityUtils = {
             previousActiveElement.focus();
             previousActiveElement = null;
           }
-        }
+        },
       };
-    })()
+    })(),
   },
 
   // Announce to screen readers
-  announce: (message: string, priority: 'polite' | 'assertive' = 'polite') => {
-    const announcer = document.createElement('div');
-    announcer.setAttribute('aria-live', priority);
-    announcer.setAttribute('aria-atomic', 'true');
-    announcer.className = 'sr-only';
+  announce: (message: string, priority: "polite" | "assertive" = "polite") => {
+    const announcer = document.createElement("div");
+    announcer.setAttribute("aria-live", priority);
+    announcer.setAttribute("aria-atomic", "true");
+    announcer.className = "sr-only";
     announcer.textContent = message;
-    
+
     document.body.appendChild(announcer);
-    
+
     setTimeout(() => {
       document.body.removeChild(announcer);
     }, 1000);
@@ -374,38 +380,31 @@ export const accessibilityUtils = {
 
   // Reduced motion detection
   prefersReducedMotion: () => {
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  }
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  },
 };
 
 // ===== ERROR BOUNDARIES =====
 export const errorUtils = {
   // Global error handler
   setupGlobalErrorHandler: () => {
-    window.addEventListener('error', (event) => {
-      console.error('Global error:', event.error);
+    window.addEventListener("error", (event) => {
+      console.error("Global error:", event.error);
       // Send to error reporting service
     });
 
-    window.addEventListener('unhandledrejection', (event) => {
-      console.error('Unhandled promise rejection:', event.reason);
+    window.addEventListener("unhandledrejection", (event) => {
+      console.error("Unhandled promise rejection:", event.reason);
       // Send to error reporting service
     });
   },
 
   // Component error boundary
-  withErrorBoundary: <P extends object>(
-    Component: React.ComponentType<P>,
-    fallback?: React.ComponentType<{ error: Error }>
-  ) => {
-    return React.forwardRef<any, P>((props, ref) => {
-      return (
-        <React.Suspense fallback={<div>Loading...</div>}>
-          <Component {...props} ref={ref} />
-        </React.Suspense>
-      );
-    });
-  }
+  withErrorBoundary: <P extends object>(Component: any, fallback?: any) => {
+    return (props: P) => {
+      return Component(props);
+    };
+  },
 };
 
 // ===== DEFAULT EXPORT =====
@@ -417,10 +416,7 @@ export const performanceUtils = {
   animationPerformance,
   memoryManagement,
   accessibilityUtils,
-  errorUtils
+  errorUtils,
 };
 
 export default performanceUtils;
-
-// React import for hooks
-import React from 'react';
