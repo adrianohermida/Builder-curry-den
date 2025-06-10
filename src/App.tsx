@@ -16,7 +16,7 @@ import { ViewModeProvider } from "@/contexts/ViewModeContext";
 import { PermissionsProvider } from "@/contexts/PermissionsContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuditProvider } from "@/contexts/AuditContext";
-import { CorrectedLayout } from "@/components/Layout/CorrectedLayout";
+import { ModernLayoutV2 } from "@/components/Layout/ModernLayoutV2";
 import { ThemeInitializer } from "@/components/ThemeInitializer";
 import { StorageProvider } from "@/hooks/useStorageConfig";
 import { RegrasProcessuaisProvider } from "@/contexts/RegrasProcessuaisContext";
@@ -375,7 +375,7 @@ const App: React.FC = () => {
                       <Routes>
                         <Route
                           path="/"
-                          element={<Navigate to="/painel" replace />}
+                          element={<Navigate to="/crm-modern" replace />}
                         />
 
                         {/* Authentication Route */}
@@ -392,8 +392,8 @@ const App: React.FC = () => {
                           }
                         />
 
-                        {/* Main Application Routes with CorrectedLayout */}
-                        <Route path="/" element={<CorrectedLayout />}>
+                        {/* Main Application Routes with ModernLayoutV2 */}
+                        <Route path="/" element={<ModernLayoutV2 />}>
                           <Route
                             path="index"
                             element={
@@ -424,7 +424,7 @@ const App: React.FC = () => {
                               <SafeRoute
                                 element={
                                   <PageWrapper>
-                                    <Painel />
+                                    <ModernCRMHub />
                                   </PageWrapper>
                                 }
                               />
