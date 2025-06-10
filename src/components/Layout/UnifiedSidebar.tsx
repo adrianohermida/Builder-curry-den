@@ -519,7 +519,14 @@ const getBadgeStyles = (type: string = "info") => {
 
 // ===== UNIFIED SIDEBAR COMPONENT =====
 const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
-  ({ isOpen, isCollapsed, onToggle, onClose, className = "" }) => {
+  ({
+    isOpen,
+    isCollapsed,
+    onToggle,
+    onClose,
+    isMobile = false,
+    className = "",
+  }) => {
     const location = useLocation();
     const navigate = useNavigate();
 
