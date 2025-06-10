@@ -112,13 +112,7 @@ const clientMenuItems = [
     permission: { module: "agenda", action: "read" },
     description: "Compromissos",
   },
-  {
-    title: "GED",
-    href: "/ged-juridico",
-    icon: FolderOpen,
-    description: "Documentos",
-    permission: { module: "ged", action: "read" },
-  },
+
   {
     title: "IA Jurídica",
     href: "/ai-enhanced",
