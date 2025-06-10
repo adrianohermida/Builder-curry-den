@@ -24,7 +24,7 @@ html {
 /* CRITICAL: Force light mode globally */
 html,
 body {
-  background-color: #ffffff !important;
+  background-color: #f9fafb !important;
   color: #0f172a !important;
 }
 
@@ -47,24 +47,24 @@ body {
 /* ===== LIGHT MODE CSS CUSTOM PROPERTIES (FORCED) ===== */
 :root {
   /* CRITICAL: Always light mode */
-  --background: 0 0% 100%; /* Pure white */
+  --background: 0 0% 98%; /* Light gray background */
   --foreground: 222.2 84% 4.9%; /* Dark text */
   --card: 0 0% 100%; /* White cards */
   --card-foreground: 222.2 84% 4.9%; /* Dark text on cards */
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
 
-  /* CLIENT MODE COLORS (Default Blue) */
+  /* CLIENT MODE COLORS (Blue Theme) */
   --primary: 221.2 83.2% 53.3%; /* Professional blue */
   --primary-foreground: 210 40% 98%; /* Light text on blue */
 
   --secondary: 210 40% 96%; /* Light gray */
   --secondary-foreground: 222.2 84% 4.9%; /* Dark text */
 
-  --muted: 210 40% 98%; /* Very light gray backgrounds */
+  --muted: 210 40% 96%; /* Light gray backgrounds */
   --muted-foreground: 215.4 16.3% 46.9%; /* Medium gray text */
 
-  --accent: 210 40% 98%; /* Light accent */
+  --accent: 210 40% 96%; /* Light accent */
   --accent-foreground: 222.2 84% 4.9%; /* Dark text on accent */
 
   --destructive: 0 84.2% 60.2%; /* Red for errors */
@@ -117,7 +117,7 @@ body {
   --radius-lg: 0.75rem; /* 12px */
   --radius-xl: 1rem; /* 16px */
 
-  /* Light mode shadows */
+  /* Light mode shadows - NO GRADIENTS */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -155,7 +155,7 @@ html.admin-mode {
   --ring: 0 84% 60% !important;
 
   /* Keep light background in admin mode */
-  --background: 0 0% 100% !important;
+  --background: 0 0% 98% !important;
   --foreground: 222.2 84% 4.9% !important;
   --card: 0 0% 100% !important;
   --card-foreground: 222.2 84% 4.9% !important;
@@ -172,7 +172,7 @@ html.client-mode {
   --ring: 221.2 83.2% 53.3% !important;
 
   /* Keep light background in client mode */
-  --background: 0 0% 100% !important;
+  --background: 0 0% 98% !important;
   --foreground: 222.2 84% 4.9% !important;
   --card: 0 0% 100% !important;
   --card-foreground: 222.2 84% 4.9% !important;
@@ -183,7 +183,7 @@ html.client-mode {
 html.dark,
 body.dark {
   /* Force light mode even if dark class is present */
-  --background: 0 0% 100% !important;
+  --background: 0 0% 98% !important;
   --foreground: 222.2 84% 4.9% !important;
   --card: 0 0% 100% !important;
   --card-foreground: 222.2 84% 4.9% !important;
@@ -191,14 +191,14 @@ body.dark {
   --popover-foreground: 222.2 84% 4.9% !important;
   --secondary: 210 40% 96% !important;
   --secondary-foreground: 222.2 84% 4.9% !important;
-  --muted: 210 40% 98% !important;
+  --muted: 210 40% 96% !important;
   --muted-foreground: 215.4 16.3% 46.9% !important;
-  --accent: 210 40% 98% !important;
+  --accent: 210 40% 96% !important;
   --accent-foreground: 222.2 84% 4.9% !important;
   --border: 214.3 31.8% 91.4% !important;
   --input: 214.3 31.8% 91.4% !important;
 
-  background-color: #ffffff !important;
+  background-color: #f9fafb !important;
   color: #0f172a !important;
 }
 
@@ -344,7 +344,7 @@ body.dark {
   overscroll-behavior: contain;
 }
 
-/* ===== MODERN COMPONENT STYLES ===== */
+/* ===== MODERN COMPONENT STYLES - NO GRADIENTS ===== */
 
 /* Modern Card Component */
 .modern-card {
@@ -360,7 +360,7 @@ body.dark {
   transform: translateY(-1px);
 }
 
-/* Modern Button Component */
+/* Modern Button Component - SOLID COLORS ONLY */
 .modern-button {
   border-radius: var(--radius);
   font-weight: 500;
@@ -372,11 +372,14 @@ body.dark {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  background: hsl(var(--primary)); /* SOLID BACKGROUND */
+  color: hsl(var(--primary-foreground));
 }
 
 .modern-button:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: var(--shadow-lg);
+  background: hsl(var(--primary) / 0.9); /* SLIGHT OPACITY CHANGE */
 }
 
 .modern-button:active:not(:disabled) {
@@ -391,7 +394,7 @@ body.dark {
   box-shadow: none;
 }
 
-/* Button variants */
+/* Button variants - ALL SOLID COLORS */
 .btn-primary {
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
@@ -459,7 +462,7 @@ body.dark {
 }
 
 .modern-modal-backdrop {
-  background: rgb(255 255 255 / 0.8) !important; /* Light backdrop */
+  background: rgb(249 250 251 / 0.8) !important; /* Light backdrop */
   backdrop-filter: blur(4px);
   z-index: var(--z-modal-backdrop);
 }
@@ -606,7 +609,7 @@ body.dark {
   text-wrap: pretty;
 }
 
-/* Visual utilities - no gradients */
+/* Visual utilities - NO GRADIENTS */
 .glass-effect {
   background: hsl(var(--background) / 0.8);
   backdrop-filter: blur(20px);
@@ -619,7 +622,7 @@ body.dark {
   border-radius: var(--radius);
 }
 
-/* Status indicators - solid colors */
+/* Status indicators - SOLID COLORS ONLY */
 .status-online {
   background: hsl(142.1 76.2% 36.3%);
   color: white;
@@ -897,7 +900,7 @@ body.dark {
 
 /* Fix for dialog/modal backdrops */
 [data-radix-portal] .fixed.inset-0 {
-  background: rgb(255 255 255 / 0.8) !important;
+  background: rgb(249 250 251 / 0.8) !important;
   backdrop-filter: blur(8px);
 }
 
@@ -943,18 +946,32 @@ body.dark {
   border-color: rgb(214 211 209) !important;
 }
 
-/* ===== CRM UNICORN SPECIFIC STYLES ===== */
-.crm-unicorn-container {
+/* ===== CRM JURÍDICO SPECIFIC STYLES ===== */
+.crm-juridico-container {
   --primary: 221.2 83.2% 53.3%;
   --primary-foreground: 210 40% 98%;
 }
 
-.crm-unicorn-container .client-mode {
+.crm-juridico-container .client-mode {
   --primary: 221.2 83.2% 53.3%;
 }
 
 @media (max-width: 768px) {
-  .crm-unicorn-container {
+  .crm-juridico-container {
     padding: 0;
   }
+}
+
+/* CRM specific card hover effects - solid only */
+.crm-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  transition: all 0.2s ease;
+}
+
+.crm-card:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  transform: translateY(-1px);
 }
