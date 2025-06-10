@@ -213,10 +213,10 @@ const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({ className = "" }) => {
 
   return (
     <div
-      className={`bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 ${className}`}
+      className={`bg-white border-b border-gray-200 sticky top-0 z-50 ${className}`}
     >
-      <div className="px-4 lg:px-6">
-        <div className="flex items-center justify-between h-16">
+      <div className="px-4">
+        <div className="flex items-center justify-between h-14">
           {/* Left Section */}
           <div className="flex items-center space-x-4">
             {/* Sidebar Toggle */}
