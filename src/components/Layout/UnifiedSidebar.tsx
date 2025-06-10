@@ -270,7 +270,7 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
       return (
         <Badge
           variant="secondary"
-          className="ml-auto text-xs px-1.5 py-0.5 rounded-full font-medium"
+          className={`badge ml-auto text-xs px-1.5 py-0.5 rounded-full font-medium ${item.badgeType || "info"}`}
           style={badgeStyles}
         >
           {item.badge}
