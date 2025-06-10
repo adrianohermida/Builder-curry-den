@@ -72,7 +72,7 @@ export function ViewModeProvider({ children }: ViewModeProviderProps) {
       const hasAdminAccess = isAdmin() || hasPermission("admin", "read");
 
       // Environment check (in development, be more permissive)
-      const isDevEnvironment = process.env.NODE_ENV === "development";
+      const isDevEnvironment = import.meta.env?.MODE === "development";
       const isAdminDomain =
         window.location.hostname.includes("admin") ||
         window.location.hostname.includes("dev") ||

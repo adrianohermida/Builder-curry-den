@@ -338,7 +338,7 @@ Como posso ajudá-lo?`,
       });
 
       // Log apenas em desenvolvimento
-      if (process.env.NODE_ENV === "development") {
+      if (import.meta.env?.MODE === "development") {
         console.log(`Sincronização completa para ${entityType}:${entityId}`);
       }
     } catch (error) {
