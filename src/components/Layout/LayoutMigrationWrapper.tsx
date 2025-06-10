@@ -134,9 +134,9 @@ const LayoutMigrationWrapper: React.FC<LayoutMigrationWrapperProps> = ({
 
   // Renderizar layout apropriado
   if (useUnified) {
-    return <UnifiedLayout>{children}</UnifiedLayout>;
+    return <UnifiedLayout />;
   } else {
-    return <MainLayout>{children}</MainLayout>;
+    return <MainLayout />;
   }
 };
 
