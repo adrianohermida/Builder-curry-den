@@ -14,6 +14,7 @@
  * - Validações inconsistentes
  */
 
+import React, { useCallback } from "react";
 import { toast } from "sonner";
 
 // ===== UNIFIED INTERFACES =====
@@ -587,7 +588,6 @@ export class ProcessoApiService {
 export const processoApiService = ProcessoApiService.getInstance();
 
 // ===== REACT HOOK =====
-import { useCallback } from "react";
 
 export const useProcessoApi = () => {
   const service = ProcessoApiService.getInstance();
