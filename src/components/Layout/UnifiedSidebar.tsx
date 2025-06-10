@@ -38,6 +38,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+// Theme system
+import { useTheme } from "@/lib/themeSystem";
+
 // ===== TYPES =====
 interface MenuItem {
   id: string;
