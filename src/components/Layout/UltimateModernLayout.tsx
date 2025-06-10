@@ -163,8 +163,8 @@ export const UltimateModernLayout: React.FC<UltimateModernLayoutProps> = ({
            ================================= */
 
         /* Background Colors */
-        .bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, 
-        .bg-yellow-400, .bg-yellow-500, .bg-yellow-600, .bg-yellow-700, 
+        .bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300,
+        .bg-yellow-400, .bg-yellow-500, .bg-yellow-600, .bg-yellow-700,
         .bg-yellow-800, .bg-yellow-900, .bg-yellow-950,
         [style*="background-color: rgb(255, 255, 0)"],
         [style*="background-color: #FFFF00"],
@@ -231,24 +231,24 @@ export const UltimateModernLayout: React.FC<UltimateModernLayoutProps> = ({
         }
 
         @keyframes slideInRight {
-          from { 
-            opacity: 0; 
-            transform: translateX(100px); 
+          from {
+            opacity: 0;
+            transform: translateX(100px);
           }
-          to { 
-            opacity: 1; 
-            transform: translateX(0); 
+          to {
+            opacity: 1;
+            transform: translateX(0);
           }
         }
 
         @keyframes scaleIn {
-          from { 
-            opacity: 0; 
-            transform: scale(0.95); 
+          from {
+            opacity: 0;
+            transform: scale(0.95);
           }
-          to { 
-            opacity: 1; 
-            transform: scale(1); 
+          to {
+            opacity: 1;
+            transform: scale(1);
           }
         }
 
@@ -288,7 +288,7 @@ export const UltimateModernLayout: React.FC<UltimateModernLayoutProps> = ({
         /* =================================
            RUNTIME YELLOW DETECTION & REPLACEMENT
            ================================= */
-        
+
         /* This will catch any remaining yellow in computed styles */
         * {
           --yellow-replacement: rgb(249 115 22);
