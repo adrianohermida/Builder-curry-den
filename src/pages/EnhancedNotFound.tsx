@@ -156,14 +156,16 @@ const NotFound = () => {
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
                       <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                        {user.name.charAt(0)}
+                        {user?.name?.charAt(0) || "U"}
                       </span>
                     </div>
                     <div>
                       <div className="font-medium text-gray-900 dark:text-gray-100">
-                        {user.name}
+                        {user?.name || "Usuário"}
                       </div>
-                      <div className="text-sm text-gray-500">{user.email}</div>
+                      <div className="text-sm text-gray-500">
+                        {user?.email || ""}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
