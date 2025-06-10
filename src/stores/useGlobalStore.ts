@@ -10,7 +10,7 @@
  * ✅ Cache inteligente
  */
 
-import { create } from "zustand/react";
+import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 // Tipos de dados globais
