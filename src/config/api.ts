@@ -7,10 +7,11 @@
 
 // API Base URLs
 export const API_BASE_URLS = {
-  MAIN: process.env.VITE_API_BASE_URL || "https://api.lawdesk.com",
-  AUTH: process.env.VITE_AUTH_API_URL || "https://auth.lawdesk.com",
-  STORAGE: process.env.VITE_STORAGE_API_URL || "https://storage.lawdesk.com",
-  AI: process.env.VITE_AI_API_URL || "https://ai.lawdesk.com",
+  MAIN: import.meta.env.VITE_API_BASE_URL || "https://api.lawdesk.com",
+  AUTH: import.meta.env.VITE_AUTH_API_URL || "https://auth.lawdesk.com",
+  STORAGE:
+    import.meta.env.VITE_STORAGE_API_URL || "https://storage.lawdesk.com",
+  AI: import.meta.env.VITE_AI_API_URL || "https://ai.lawdesk.com",
 } as const;
 
 // API Endpoints
