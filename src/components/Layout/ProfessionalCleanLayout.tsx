@@ -116,28 +116,13 @@ const ProfessionalCleanLayout: React.FC = () => {
   }, [layoutState.sidebarCollapsed, updateLayoutState]);
 
   // ===== COMPUTED CLASSES =====
-  const mainClasses = React.useMemo(() => {
-    const classes = ["min-h-screen", "pt-14"];
-
-    // Margin para sidebar
-    if (layoutState.sidebarOpen && !layoutState.isMobile) {
-      if (layoutState.sidebarCollapsed) {
-        classes.push("lg:ml-16");
-      } else {
-        classes.push("lg:ml-64");
-      }
-    }
-
-    return classes.join(" ");
-  }, [layoutState]);
-
   const contentClasses = React.useMemo(() => {
     return [
-      "flex-1",
       "p-4",
       "lg:p-6",
       "transition-colors",
       "duration-150",
+      "min-h-screen", // Garante altura mínima para scroll
     ].join(" ");
   }, []);
 
