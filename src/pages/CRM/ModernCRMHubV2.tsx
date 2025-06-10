@@ -227,18 +227,6 @@ const ModernCRMHubV2: React.FC<ModernCRMHubV2Props> = ({
                   Gestão inteligente e colaborativa
                 </p>
               </div>
-
-              {/* Search */}
-              <div className="relative w-96">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Buscar clientes, processos, contratos..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-9 bg-gray-50 border-gray-200 focus:bg-white"
-                />
-              </div>
             </div>
 
             <div className="flex items-center gap-2">
