@@ -1,38 +1,20 @@
 /**
  * CRM Jurídico - Domínio Funcional
  *
- * Módulo independente para gestão de relacionamento com clientes jurídicos,
- * incluindo clientes, processos, contatos, tarefas e contratos.
+ * Módulo independente para gestão de relacionamento com clientes jurídicos
  */
 
-// Interfaces públicas do domínio
-export * from "./interfaces";
-
-// Componentes principais
-export * from "./components";
-
-// Hooks do domínio
-export * from "./hooks";
-
-// Serviços
-export * from "./services";
-
-// Configurações
-export * from "./config";
-
-// Utilitários
-export * from "./utils";
+// Rotas principais do domínio
+export { default as CRMJuridicoRoutes } from "./routes";
 
 // Provider do domínio
-export { CRMJuridicoProvider, useCRMJuridico } from "./provider";
+export { CRMJuridicoProvider } from "./provider";
 
-// Rotas do domínio
-export { crmJuridicoRoutes } from "./routes";
+// Store do domínio
+export { useCRMJuridicoStore } from "./store";
 
-// Exportações para integração com outros domínios
-export type {
-  CRMJuridicoContextValue,
-  ClienteJuridico,
-  ProcessoJuridico,
-  ContratoJuridico,
-} from "./types";
+// Tipos principais
+export type * from "./types";
+
+// Componentes principais
+export { default as KanbanBoard } from "./components/KanbanBoard";
