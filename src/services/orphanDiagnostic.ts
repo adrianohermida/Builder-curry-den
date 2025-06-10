@@ -9,6 +9,8 @@
  * ✅ Dependências quebradas
  */
 
+import { useMemo } from "react";
+
 // Tipos para o diagnóstico
 export interface OrphanedPage {
   id: string;
