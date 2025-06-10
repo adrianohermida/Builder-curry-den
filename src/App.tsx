@@ -91,6 +91,9 @@ const OnboardingLandingPage = createLazyPage(
   "Bem-vindo ao Lawdesk",
 );
 
+// CRM Error Boundary
+import CRMErrorBoundary from "./components/CRM/CRMErrorBoundary";
+
 // Páginas Gerenciais
 const TarefasGerencialPage = createLazyPage(
   () => import("./pages/TarefasGerencial"),
@@ -179,7 +182,9 @@ function App() {
                     index
                     element={
                       <PageWrapper title="CRM Jurídico">
-                        <CRMUnificado />
+                        <CRMErrorBoundary>
+                          <CRMUnificado />
+                        </CRMErrorBoundary>
                       </PageWrapper>
                     }
                   />
@@ -187,7 +192,9 @@ function App() {
                     path="clientes"
                     element={
                       <PageWrapper title="Clientes">
-                        <CRMUnificado defaultModule="clientes" />
+                        <CRMErrorBoundary>
+                          <CRMUnificado defaultModule="clientes" />
+                        </CRMErrorBoundary>
                       </PageWrapper>
                     }
                   />
@@ -195,7 +202,9 @@ function App() {
                     path="processos"
                     element={
                       <PageWrapper title="Processos">
-                        <CRMUnificado defaultModule="processos" />
+                        <CRMErrorBoundary>
+                          <CRMUnificado defaultModule="processos" />
+                        </CRMErrorBoundary>
                       </PageWrapper>
                     }
                   />
@@ -203,7 +212,9 @@ function App() {
                     path="tarefas"
                     element={
                       <PageWrapper title="Tarefas">
-                        <CRMUnificado defaultModule="tarefas" />
+                        <CRMErrorBoundary>
+                          <CRMUnificado defaultModule="tarefas" />
+                        </CRMErrorBoundary>
                       </PageWrapper>
                     }
                   />
@@ -211,7 +222,9 @@ function App() {
                     path="contratos"
                     element={
                       <PageWrapper title="Contratos">
-                        <CRMUnificado defaultModule="contratos" />
+                        <CRMErrorBoundary>
+                          <CRMUnificado defaultModule="contratos" />
+                        </CRMErrorBoundary>
                       </PageWrapper>
                     }
                   />
@@ -219,7 +232,9 @@ function App() {
                     path="financeiro"
                     element={
                       <PageWrapper title="Financeiro">
-                        <CRMUnificado defaultModule="financeiro" />
+                        <CRMErrorBoundary>
+                          <CRMUnificado defaultModule="financeiro" />
+                        </CRMErrorBoundary>
                       </PageWrapper>
                     }
                   />
@@ -227,7 +242,9 @@ function App() {
                     path="documentos"
                     element={
                       <PageWrapper title="Documentos">
-                        <CRMUnificado defaultModule="documentos" />
+                        <CRMErrorBoundary>
+                          <CRMUnificado defaultModule="documentos" />
+                        </CRMErrorBoundary>
                       </PageWrapper>
                     }
                   />
@@ -235,7 +252,9 @@ function App() {
                     path="publicacoes"
                     element={
                       <PageWrapper title="Publicações">
-                        <CRMUnificado defaultModule="publicacoes" />
+                        <CRMErrorBoundary>
+                          <CRMUnificado defaultModule="publicacoes" />
+                        </CRMErrorBoundary>
                       </PageWrapper>
                     }
                   />
