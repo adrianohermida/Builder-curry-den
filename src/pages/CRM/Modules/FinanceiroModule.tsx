@@ -37,26 +37,64 @@ import {
   Target,
 } from "lucide-react";
 
+// Using existing UI components from the project
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// Simplified components for now
+const Progress = ({ value, className }: any) => (
+  <div className={`w-full bg-gray-200 rounded-full h-2 ${className}`}>
+    <div
+      className="bg-blue-600 h-2 rounded-full"
+      style={{ width: `${value}%` }}
+    ></div>
+  </div>
+);
+
+const Avatar = ({ children, className }: any) => (
+  <div className={`rounded-full ${className}`}>{children}</div>
+);
+const AvatarFallback = ({ children, className }: any) => (
+  <div className={`flex items-center justify-center ${className}`}>
+    {children}
+  </div>
+);
+
+const Select = ({ children, value, onValueChange }: any) => (
+  <select
+    value={value}
+    onChange={(e) => onValueChange?.(e.target.value)}
+    className="border rounded px-3 py-2"
+  >
+    {children}
+  </select>
+);
+const SelectTrigger = ({ children }: any) => <>{children}</>;
+const SelectValue = ({ placeholder }: any) => (
+  <option value="">{placeholder}</option>
+);
+const SelectContent = ({ children }: any) => <>{children}</>;
+const SelectItem = ({ value, children }: any) => (
+  <option value={value}>{children}</option>
+);
+
+const DropdownMenu = ({ children }: any) => (
+  <div className="relative">{children}</div>
+);
+const DropdownMenuTrigger = ({ children, asChild }: any) => <>{children}</>;
+const DropdownMenuContent = ({ children }: any) => (
+  <div className="absolute right-0 mt-2 bg-white border rounded shadow-lg">
+    {children}
+  </div>
+);
+const DropdownMenuItem = ({ children, onClick }: any) => (
+  <div onClick={onClick} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+    {children}
+  </div>
+);
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
