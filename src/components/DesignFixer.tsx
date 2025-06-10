@@ -27,23 +27,9 @@ import {
   runDesignDiagnostic,
   fixDesignIssues,
   DesignDiagnostic,
+  DiagnosticResult,
+  DiagnosticReport,
 } from "@/utils/designDiagnostic";
-
-// Types
-interface DiagnosticResult {
-  issue: string;
-  severity: "low" | "medium" | "high" | "critical";
-  description: string;
-  solution: string;
-}
-
-interface DiagnosticReport {
-  timestamp: string;
-  totalIssues: number;
-  criticalIssues: number;
-  issues: DiagnosticResult[];
-  fixesApplied: number;
-}
 
 const DesignFixer: React.FC = () => {
   const [report, setReport] = useState<DiagnosticReport | null>(null);
