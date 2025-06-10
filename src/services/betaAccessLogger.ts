@@ -413,7 +413,8 @@ export const useBetaPageTracking = (
 ) => {
   const { logAccess, logAction, logExit } = useBetaAccessLogger();
 
-  React.useEffect(() => {
+  // Note: Este hook requer React import no componente que usar
+  // React.useEffect(() => {
     const accessId = logAccess(pageName, pageUrl, category);
 
     // Log da entrada
