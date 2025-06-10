@@ -169,7 +169,7 @@ const NotFound = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline">{user.role}</Badge>
+                    <Badge variant="outline">{user?.role || "Usuário"}</Badge>
                     <Badge
                       variant={isAdminMode ? "destructive" : "default"}
                       className="text-xs"
