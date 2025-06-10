@@ -26,6 +26,7 @@ import "@/utils/layoutInspector";
 
 // Development tools
 import DebugPanel from "@/components/Debug/DebugPanel";
+import SidebarDebug from "@/components/Debug/SidebarDebug";
 import DesignFixer from "@/components/DesignFixer";
 
 function App() {
@@ -35,6 +36,9 @@ function App() {
 
       {/* Development Tools - Development Only */}
       {IS_DEVELOPMENT && <DebugPanel />}
+
+      {/* Sidebar Debug - Temporary */}
+      <SidebarDebug />
 
       {/* Design Fixer - Always Available */}
       <DesignFixer />
