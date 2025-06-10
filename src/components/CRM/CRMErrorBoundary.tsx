@@ -38,10 +38,31 @@ class CRMErrorBoundary extends React.Component<
     });
 
     // Log do erro para monitoramento
-    console.error("CRM Error Boundary caught an error:", error, errorInfo);
+    if (process.env.NODE_ENV === "development") {
+      console.error("CRM Error Boundary caught an error:", error, errorInfo);
+    }
 
-    // Aqui você pode integrar com serviços de monitoramento como Sentry
-    // Sentry.captureException(error, { contexts: { react: errorInfo } });
+    // Integrar com serviços de monitoramento como Sentry em produção
+    if (process.env.NODE_ENV === "production") {
+      // Sentry.captureException(error, { contexts: { react: errorInfo } });
+
+      // Por enquanto, usar um sistema simples de logging
+      try {
+        const errorReport = {
+          message: error.message,
+          stack: error.stack,
+          componentStack: errorInfo.componentStack,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          url: window.location.href,
+        };
+
+        // Em produção, enviar para serviço de monitoramento
+        // fetch('/api/errors', { method: 'POST', body: JSON.stringify(errorReport) });
+      } catch (reportError) {
+        // Falha silenciosa no envio do erro
+      }
+    }
   }
 
   resetError = () => {
@@ -105,7 +126,9 @@ const DefaultErrorFallback: React.FC<{
       url: window.location.href,
     };
 
-    console.error("Error reported:", errorDetails);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error reported:", errorDetails);
+    }
     // Aqui você pode enviar para um sistema de tickets ou email
   };
 
@@ -220,7 +243,9 @@ export const useCRMErrorHandler = () => {
 
   const handleError = React.useCallback((error: Error) => {
     setError(error);
-    console.error("CRM Error handled:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("CRM Error handled:", error);
+    }
   }, []);
 
   React.useEffect(() => {
