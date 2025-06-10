@@ -353,7 +353,7 @@ const UnifiedLayout: React.FC = () => {
         {/* Mobile Sidebar Overlay */}
         {layoutState.isMobile && layoutState.sidebarOpen && (
           <div
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 top-16 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
             onClick={closeSidebar}
             aria-hidden="true"
           />
