@@ -224,13 +224,10 @@ const ProfessionalCleanLayout: React.FC<{ children: React.ReactNode }> = ({
 
           {/* Right section - MINIMALISTA */}
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 text-gray-600 hover:text-gray-900"
-            >
-              <Bell className="w-5 h-5" />
-            </Button>
+            <GlobalNotificationsWidget
+              variant="header"
+              className="text-gray-600 hover:text-gray-900"
+            />
 
             <Button
               variant="ghost"
