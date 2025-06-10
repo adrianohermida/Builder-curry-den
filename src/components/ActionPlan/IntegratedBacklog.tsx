@@ -613,7 +613,7 @@ function IntegratedBacklog({
       </Card>
 
       {/* Kanban Board */}
-      <DragDropContext onDragEnd={handleDragEnd}>
+      <SafeDragDropContext onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 overflow-x-auto">
           {state.colunas.map((column) => (
             <Droppable key={column.id} droppableId={column.id}>
@@ -922,7 +922,7 @@ function IntegratedBacklog({
             </Droppable>
           ))}
         </div>
-      </DragDropContext>
+      </SafeDragDropContext>
 
       {/* Create/Edit Item Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>

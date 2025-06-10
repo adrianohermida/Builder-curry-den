@@ -525,7 +525,7 @@ function BacklogKanban({
       </div>
 
       {/* Kanban Board */}
-      <DragDropContext onDragEnd={handleDragEnd}>
+      <SafeDragDropContext onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 overflow-x-auto">
           {state.colunas.map((column) => (
             <Droppable key={column.id} droppableId={column.id}>
@@ -796,7 +796,7 @@ function BacklogKanban({
             </Droppable>
           ))}
         </div>
-      </DragDropContext>
+      </SafeDragDropContext>
 
       {/* Create/Edit Item Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -874,7 +874,7 @@ function BacklogKanban({
               </div>
 
               <div>
-                <Label htmlFor="modulo">M��dulo Impactado</Label>
+                <Label htmlFor="modulo">Módulo Impactado</Label>
                 <Select
                   value={itemForm.modulo_impactado}
                   onValueChange={(value) =>
