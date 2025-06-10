@@ -4,7 +4,7 @@
  * Focus: Performance, Accessibility, Consistency
  */
 
-import React, { forwardRef, useMemo } from "react";
+import React, { forwardRef, useMemo, useCallback } from "react";
 import { performanceUtils } from "@/lib/performanceUtils";
 
 // ===== TYPES =====
