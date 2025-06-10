@@ -42,23 +42,164 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
+// Types
 interface MetricCard {
   id: string;
   title: string;
   value: string | number;
   subtitle?: string;
-  icon: React.ReactNode;
+  icon: React.ComponentType<{ className?: string }>;
   trend?: {
     value: number;
     direction: "up" | "down";
     period: string;
   };
   status: "success" | "warning" | "error" | "info";
+  actionUrl: string;
 }
 
+interface QuickAction {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  url: string;
+  color: string;
+  badge?: string;
+}
+
+// Memoized Metric Card Component
+const MetricCardComponent = memo(({ metric }: { metric: MetricCard }) => {
+  const navigate = useNavigate();
+  const Icon = metric.icon;
+
+  const handleClick = useCallback(() => {
+    navigate(metric.actionUrl);
+  }, [navigate, metric.actionUrl]);
+
+  const getStatusColors = (status: string) => {
+    switch (status) {
+      case "success":
+        return {
+          iconBg: "bg-green-50 dark:bg-green-950",
+          iconColor: "text-green-600",
+          trendColor: "text-green-600",
+        };
+      case "warning":
+        return {
+          iconBg: "bg-amber-50 dark:bg-amber-950",
+          iconColor: "text-amber-600",
+          trendColor: "text-amber-600",
+        };
+      case "error":
+        return {
+          iconBg: "bg-red-50 dark:bg-red-950",
+          iconColor: "text-red-600",
+          trendColor: "text-red-600",
+        };
+      default:
+        return {
+          iconBg: "bg-blue-50 dark:bg-blue-950",
+          iconColor: "text-blue-600",
+          trendColor: "text-blue-600",
+        };
+    }
+  };
+
+  const colors = getStatusColors(metric.status);
+
+  return (
+    <Card
+      className="cursor-pointer hover:shadow-lg transition-all duration-200 group"
+      onClick={handleClick}
+    >
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          {metric.title}
+        </CardTitle>
+        <div className={`p-2 rounded-lg ${colors.iconBg} group-hover:scale-110 transition-transform`}>
+          <Icon className={`h-5 w-5 ${colors.iconColor}`} />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold mb-1">{metric.value}</div>
+        {metric.subtitle && (
+          <p className="text-xs text-muted-foreground mb-2">{metric.subtitle}</p>
+        )}
+        {metric.trend && (
+          <div className="flex items-center space-x-1">
+            {metric.trend.direction === "up" ? (
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            ) : (
+              <TrendingDown className="h-4 w-4 text-red-600" />
+            )}
+            <span className={`text-xs font-medium ${
+              metric.trend.direction === "up" ? "text-green-600" : "text-red-600"
+            }`}>
+              {metric.trend.value}%
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {metric.trend.period}
+            </span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+});
+
+// Memoized Quick Action Component
+const QuickActionCard = memo(({ action }: { action: QuickAction }) => {
+  const navigate = useNavigate();
+  const Icon = action.icon;
+
+  const handleClick = useCallback(() => {
+    navigate(action.url);
+  }, [navigate, action.url]);
+
+  return (
+    <Card
+      className="cursor-pointer hover:shadow-md transition-all duration-200 group"
+      onClick={handleClick}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center gap-3">
+          <div
+            className={`p-2 rounded-lg ${action.color} group-hover:scale-110 transition-transform`}
+          >
+            <Icon className="h-4 w-4 text-white" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center justify-between">
+              <p className="font-medium text-sm">{action.title}</p>
+              {action.badge && (
+                <Badge variant="secondary" className="text-xs">
+                  {action.badge}
+                </Badge>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground line-clamp-1">
+              {action.description}
+            </p>
+          </div>
+          <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
+
 const CleanPainelControle: React.FC = () => {
-  // Clean metrics with NO YELLOW
-  const metricas: MetricCard[] = [
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // State
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+
+  // Optimized metrics with useMemo
+  const metricas = useMemo((): MetricCard[] => [
     {
       id: "clientes",
       title: "Clientes Ativos",
