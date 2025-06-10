@@ -47,6 +47,11 @@ export const RouteTest: React.FC = () => {
       description: "Assistente inteligente",
     },
     {
+      path: "/ai-enhanced-test",
+      label: "IA Jurídico (Teste)",
+      description: "Versão simplificada para teste",
+    },
+    {
       path: "/ged-juridico",
       label: "GED (Redirect)",
       description: "Deve redirecionar para /crm/ged",
