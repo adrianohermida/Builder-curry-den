@@ -66,7 +66,8 @@ const CleanProfessionalDashboard = lazy(
 const CleanPainelControle = lazy(() => import("@/pages/CleanPainelControle"));
 const ModernDashboard = lazy(() => import("@/pages/ModernDashboard"));
 
-// CRM pages - Minimalist versions
+// CRM pages - Professional versions
+const CRMProfessional = lazy(() => import("@/pages/CRM/CRMProfessional"));
 const CRMShowcase = lazy(() => import("@/pages/CRM/CRMShowcase"));
 const CRMMinimalist = lazy(() => import("@/pages/CRM/CRMMinimalist"));
 const CRMClientes = lazy(() => import("@/pages/CRM/Clientes/index"));
@@ -592,7 +593,7 @@ const MinimalistRouter: React.FC = () => {
                       >
                         <Suspense
                           fallback={
-                            <PageLoadingFallback title="configuraç��es" />
+                            <PageLoadingFallback title="configurações" />
                           }
                         >
                           <Configuracoes />
