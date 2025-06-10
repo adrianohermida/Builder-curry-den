@@ -23,7 +23,7 @@ import {
   FolderOpen,
   Bell,
 } from "lucide-react";
-import { ProcessoApiService } from "@/services/ProcessoApiService";
+// import { ProcessoApiService } from "@/services/ProcessoApiService";
 
 // ===== UNIFIED TYPES =====
 export interface Cliente {
