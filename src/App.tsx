@@ -389,6 +389,9 @@ function App() {
             </Routes>
           </Suspense>
         </BrowserRouter>
+
+        {/* Debug Panel - Development Only */}
+        <DebugPanel />
       </TooltipProvider>
     </QueryClientProvider>
   );
