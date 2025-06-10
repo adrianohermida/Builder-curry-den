@@ -1,52 +1,24 @@
-import { useState, useEffect } from "react";
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import {
-  HardDrive,
-  Settings,
-  BarChart3,
-  Activity,
-  TestTube,
-  ArrowLeft,
-  ExternalLink,
-  Upload,
-  Download,
-  Shield,
-  FileText,
-  Users,
-  MessageSquare,
-  Brain,
-  Calendar,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { ConfigStorageProvider } from "@/components/Settings/ConfigStorageProvider";
-import { StorageDashboard } from "@/components/Settings/StorageDashboard";
-import { StorageAuditLogs } from "@/components/Settings/StorageAuditLogs";
-import { motion } from "framer-motion";
-import { toast } from "sonner";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
+// Página de redirecionamento para a nova estrutura
 export default function ConfiguracaoArmazenamento() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("configuracao");
-  const [storageConfig, setStorageConfig] = useState(null);
-  const [hasTestData, setHasTestData] = useState(false);
 
-  // Carregar configuração de armazenamento no mount
   useEffect(() => {
-    try {
-      const savedConfig = localStorage.getItem("lawdesk-storage-config");
-      if (savedConfig) {
+    // Redirecionar para a nova rota
+    navigate("/configuracao-armazenamento", { replace: true });
+  }, [navigate]);
+
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Redirecionando para nova página...</p>
+      </div>
+    </div>
+  );
+}
         setStorageConfig(JSON.parse(savedConfig));
       }
     } catch (error) {
