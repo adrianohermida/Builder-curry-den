@@ -1,5 +1,5 @@
 /**
- * 🎯 EXPANDABLE SIDEBAR - SIDEBAR EXPANSÍVEL OTIMIZADO
+ * 🎯 EXPANDABLE SIDEBAR - SIDEBAR EXPANSÍVEL OTIMIZADO COM SEÇÃO BETA
  *
  * Features implementadas:
  * ✅ Expansão/contração com toggle
@@ -8,6 +8,7 @@
  * ✅ Performance otimizada (sem framer-motion)
  * ✅ Animações CSS nativas rápidas
  * ✅ Responsivo para mobile
+ * ✅ Seção Beta para páginas órfãs (admin only)
  */
 
 import React, { useState, useEffect } from "react";
@@ -31,6 +32,9 @@ import {
   ChevronRight,
   Menu,
   X,
+  FlaskConical,
+  ShieldCheck,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -39,6 +43,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useOrphanDiagnostic } from "@/services/orphanDiagnostic";
 
 interface ExpandableSidebarProps {
   className?: string;
@@ -50,6 +57,8 @@ interface SidebarItem {
   path: string;
   icon: React.ReactNode;
   badge?: number;
+  adminOnly?: boolean;
+  betaCategory?: string;
 }
 
 export const ExpandableSidebar: React.FC<ExpandableSidebarProps> = ({
@@ -57,7 +66,27 @@ export const ExpandableSidebar: React.FC<ExpandableSidebarProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [orphanCount, setOrphanCount] = useState(0);
   const location = useLocation();
+  const { hasPermission } = usePermissions();
+  const { generateReport } = useOrphanDiagnostic();
+
+  // Verificar se é admin
+  const isAdmin = hasPermission("admin.sistema");
+
+  // Carregar contagem de órfãos
+  useEffect(() => {
+    if (isAdmin) {
+      try {
+        const report = generateReport();
+        setOrphanCount(
+          report.orphanedPages.length + report.orphanedComponents.length,
+        );
+      } catch (error) {
+        console.error("Erro ao carregar contagem de órfãos:", error);
+      }
+    }
+  }, [isAdmin, generateReport]);
 
   // Fechar menu mobile quando a rota mudar
   useEffect(() => {
@@ -154,6 +183,19 @@ export const ExpandableSidebar: React.FC<ExpandableSidebarProps> = ({
       path: "/configuracoes-usuario",
       icon: <Settings className="w-5 h-5" />,
     },
+    // Seção Beta (apenas para admin)
+    ...(isAdmin
+      ? [
+          {
+            id: "beta",
+            title: "🧪 Beta",
+            path: "/beta",
+            icon: <FlaskConical className="w-5 h-5" />,
+            badge: orphanCount > 0 ? orphanCount : undefined,
+            adminOnly: true,
+          },
+        ]
+      : []),
   ];
 
   const isActive = (path: string) => {
@@ -247,6 +289,11 @@ export const ExpandableSidebar: React.FC<ExpandableSidebarProps> = ({
           {sidebarItems.map((item) => {
             const itemIsActive = isActive(item.path);
 
+            // Filtrar itens admin
+            if (item.adminOnly && !isAdmin) {
+              return null;
+            }
+
             return (
               <div key={item.id}>
                 {!isExpanded && !isMobile ? (
@@ -260,6 +307,8 @@ export const ExpandableSidebar: React.FC<ExpandableSidebarProps> = ({
                           itemIsActive
                             ? "bg-blue-50 text-blue-600 shadow-sm"
                             : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                          item.adminOnly &&
+                            "border-2 border-dashed border-purple-300",
                         )}
                       >
                         {item.icon}
@@ -275,13 +324,25 @@ export const ExpandableSidebar: React.FC<ExpandableSidebarProps> = ({
                         {itemIsActive && (
                           <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-blue-600 rounded-r" />
                         )}
+
+                        {/* Admin Badge */}
+                        {item.adminOnly && !item.badge && (
+                          <span className="absolute -top-1 -right-1 bg-purple-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                            <ShieldCheck className="w-2.5 h-2.5" />
+                          </span>
+                        )}
                       </Link>
                     </TooltipTrigger>
                     <TooltipContent side="right" className="ml-2">
                       <p className="font-medium">{item.title}</p>
                       {item.badge && (
                         <p className="text-xs text-gray-500">
-                          {item.badge} pendentes
+                          {item.badge} itens
+                        </p>
+                      )}
+                      {item.adminOnly && (
+                        <p className="text-xs text-purple-600">
+                          Acesso administrativo
                         </p>
                       )}
                     </TooltipContent>
@@ -295,6 +356,8 @@ export const ExpandableSidebar: React.FC<ExpandableSidebarProps> = ({
                       itemIsActive
                         ? "bg-blue-50 text-blue-600 shadow-sm"
                         : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                      item.adminOnly &&
+                        "border border-purple-200 bg-purple-50/50",
                     )}
                   >
                     <div className="flex items-center space-x-3 flex-1 min-w-0">
@@ -309,6 +372,14 @@ export const ExpandableSidebar: React.FC<ExpandableSidebarProps> = ({
                       </span>
                     )}
 
+                    {/* Admin Badge */}
+                    {item.adminOnly && !item.badge && (
+                      <span className="ml-auto bg-purple-500 text-white text-xs rounded-full px-2 py-0.5 font-medium flex items-center gap-1">
+                        <ShieldCheck className="w-3 h-3" />
+                        Admin
+                      </span>
+                    )}
+
                     {/* Active Indicator */}
                     {itemIsActive && (
                       <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-blue-600 rounded-r" />
@@ -318,6 +389,21 @@ export const ExpandableSidebar: React.FC<ExpandableSidebarProps> = ({
               </div>
             );
           })}
+
+          {/* Aviso sobre Beta (quando expandido) */}
+          {isAdmin && (isExpanded || isMobile) && (
+            <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="w-4 h-4 text-purple-600" />
+                <span className="text-sm font-medium text-purple-800">
+                  Seção Beta
+                </span>
+              </div>
+              <p className="text-xs text-purple-700">
+                Páginas e componentes em desenvolvimento ou desconectados.
+              </p>
+            </div>
+          )}
         </nav>
 
         {/* Footer */}
