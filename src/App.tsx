@@ -117,6 +117,11 @@ const ThemeTestPage = createLazyPage(
   "Teste de Tema",
 );
 
+const BetaReportsPage = createLazyPage(
+  () => import("./pages/Beta/BetaReports"),
+  "Relatórios Beta",
+);
+
 // Configuração do QueryClient otimizada
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -387,6 +392,14 @@ function App() {
                             </div>
                           </div>
                           <ThemeTestPage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="reports"
+                      element={
+                        <PageWrapper title="Beta - Relatórios">
+                          <BetaReportsPage />
                         </PageWrapper>
                       }
                     />
