@@ -312,24 +312,32 @@ body {
 
   /* Sidebar specific fixes */
   .sidebar-container {
-    @apply bg-sidebar-background border-r border-sidebar-border;
-    @apply text-sidebar-foreground;
+    background-color: hsl(var(--sidebar-background));
+    border-right: 1px solid hsl(var(--sidebar-border));
+    color: hsl(var(--sidebar-foreground));
   }
 
   .sidebar-nav-item {
-    @apply text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground;
+    color: hsl(var(--sidebar-foreground));
     @apply transition-colors duration-200 ease-in-out;
     @apply rounded-md px-3 py-2;
   }
 
+  .sidebar-nav-item:hover {
+    background-color: hsl(var(--sidebar-accent));
+    color: hsl(var(--sidebar-accent-foreground));
+  }
+
   .sidebar-nav-item.active {
-    @apply bg-sidebar-accent text-sidebar-accent-foreground;
+    background-color: hsl(var(--sidebar-accent));
+    color: hsl(var(--sidebar-accent-foreground));
   }
 
   /* Topbar specific fixes */
   .topbar-container {
-    @apply bg-topbar-background border-b border-topbar-border;
-    @apply text-topbar-foreground;
+    background-color: hsl(var(--topbar-background));
+    border-bottom: 1px solid hsl(var(--topbar-border));
+    color: hsl(var(--topbar-foreground));
   }
 }
 
