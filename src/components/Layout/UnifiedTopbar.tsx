@@ -75,14 +75,23 @@ const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({ className = "" }) => {
           <div className="flex items-center space-x-3">
             {/* Logo Lawdesk */}
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: colors.primary }}
+              >
                 <Scale size={18} className="text-white" />
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-bold text-blue-600 leading-tight">
+                <span
+                  className="text-lg font-bold leading-tight"
+                  style={{ color: colors.primary }}
+                >
                   Lawdesk
                 </span>
-                <span className="text-xs text-blue-500 leading-none">
+                <span
+                  className="text-xs leading-none"
+                  style={{ color: colors.accent }}
+                >
                   CRM Jurídico
                 </span>
               </div>
@@ -151,7 +160,7 @@ const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({ className = "" }) => {
                           Novo andamento no processo 1234567
                         </p>
                         <p className="text-xs text-gray-400 mt-1">
-                          15 min atrás
+                          15 min atr��s
                         </p>
                       </div>
                     </div>
