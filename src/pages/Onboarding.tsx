@@ -31,6 +31,9 @@ import { performanceUtils } from "@/lib/performanceUtils";
 import Card from "@/components/ui/OptimizedCard";
 import Button from "@/components/ui/OptimizedButton";
 import Input from "@/components/ui/OptimizedInput";
+import PublicationAlertsStep from "@/components/Onboarding/PublicationAlertsStep";
+import TeamInvitationStep from "@/components/Onboarding/TeamInvitationStep";
+import DashboardTourStep from "@/components/Onboarding/DashboardTourStep";
 
 // ===== TYPES =====
 interface OnboardingStep {
@@ -940,7 +943,27 @@ const Onboarding: React.FC = () => {
       icon: CheckCircle,
       component: ProfileConfirmationStep,
     },
-    // Add more steps here...
+    {
+      id: "alerts",
+      title: "Alertas",
+      description: "Configurar publicações",
+      icon: Bell,
+      component: PublicationAlertsStep,
+    },
+    {
+      id: "team",
+      title: "Equipe",
+      description: "Convidar colaboradores",
+      icon: Users,
+      component: TeamInvitationStep,
+    },
+    {
+      id: "dashboard",
+      title: "Dashboard",
+      description: "Tour guiado final",
+      icon: Settings,
+      component: DashboardTourStep,
+    },
   ];
 
   const updateData = useCallback((updates: Partial<OnboardingData>) => {
