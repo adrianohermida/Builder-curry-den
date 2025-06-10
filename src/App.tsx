@@ -130,6 +130,10 @@ const CRMJuridicoV3 = createLazyComponent(
   () => import("./pages/CRM/CRMJuridicoV3"),
   "CRM Jurídico V3 Minimalia",
 );
+const ModernCRMHub = createLazyComponent(
+  () => import("./pages/CRM/ModernCRMHub"),
+  "Modern CRM Hub",
+);
 const RouteTest = createLazyComponent(
   () => import("./components/CRM/RouteTest"),
   "Route Test",
@@ -420,6 +424,94 @@ const App: React.FC = () => {
                               />
                             }
                           />
+
+                          {/* Modern CRM Hub - Lawdesk Refactored */}
+                          <Route path="crm-modern/*">
+                            <Route
+                              index
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <ModernCRMHub />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="clientes"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <ModernCRMHub defaultModule="clientes" />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="processos"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <ModernCRMHub defaultModule="processos" />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="contratos"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <ModernCRMHub defaultModule="contratos" />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="tarefas"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <ModernCRMHub defaultModule="tarefas" />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="financeiro"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <ModernCRMHub defaultModule="financeiro" />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="documentos"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <ModernCRMHub defaultModule="documentos" />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                          </Route>
 
                           {/* CRM V3 Minimalia - Nova Versão Principal */}
                           <Route path="crm-v3/*">
