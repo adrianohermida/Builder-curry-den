@@ -11,20 +11,20 @@
 import React, { Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TooltipProvider } from "@/shared/components/atoms/Tooltip";
-import { ThemeProvider } from "@/shared/providers/ThemeProvider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 
 // Configuration
 import { ROUTES } from "@/config/constants";
 import { CACHE_CONFIG } from "@/config/api";
 import { DEBUG_FLAGS } from "@/config/environment";
 
-// Templates
-import { MainLayout } from "@/shared/components/templates/MainLayout";
-import { PublicLayout } from "@/shared/components/templates/PublicLayout";
+// Layout Components
+import MainLayout from "@/components/Layout/MainLayout";
+import PublicLayout from "@/components/Layout/PublicLayout";
 
 // Debug Panel (development only)
-import { DebugPanel } from "@/shared/components/organisms/DebugPanel";
+import DebugPanel from "@/components/Debug/DebugPanel";
 
 // Global loading fallback component
 const GlobalLoadingFallback = () => (
@@ -76,19 +76,16 @@ const PainelControle = createLazyPage(
 );
 
 const CRMUnificado = createLazyPage(
-  () => import("@/features/crm/pages/CRMUnificado"),
+  () => import("@/pages/CRM/CRMUnificado"),
   "CRM Jurídico",
 );
 
 const PublicacoesPage = createLazyPage(
-  () => import("@/features/agenda/pages/PublicacoesPage"),
+  () => import("@/pages/Publicacoes"),
   "Publicações",
 );
 
-const AgendaPage = createLazyPage(
-  () => import("@/features/agenda/pages/AgendaPage"),
-  "Agenda",
-);
+const AgendaPage = createLazyPage(() => import("@/pages/Agenda"), "Agenda");
 
 const AtendimentoPage = createLazyPage(
   () => import("@/pages/AtendimentoEnhanced"),
@@ -115,7 +112,7 @@ const EnhancedNotFoundPage = createLazyPage(
 );
 
 // Error Boundary for CRM
-import { CRMErrorBoundary } from "@/features/crm/components/CRMErrorBoundary";
+import CRMErrorBoundary from "@/components/CRM/CRMErrorBoundary";
 
 // Page wrapper component for title management
 const PageWrapper: React.FC<{
