@@ -11,12 +11,8 @@
 
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-} from "@hello-pangea/dnd";
+import { Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import { SafeDragDropContext } from "../../../components/Common/SafeDragDropContext";
 import {
   Users,
   Grid3X3,
@@ -439,7 +435,7 @@ const ModernClientesModule: React.FC = () => {
   );
 
   const renderKanbanView = () => (
-    <DragDropContext onDragEnd={handleDragEnd}>
+    <SafeDragDropContext onDragEnd={handleDragEnd}>
       <div className="flex gap-6 overflow-x-auto pb-4">
         {kanbanColumns.map((column) => (
           <div key={column.id} className="flex-shrink-0 w-80">
@@ -502,7 +498,7 @@ const ModernClientesModule: React.FC = () => {
           </div>
         ))}
       </div>
-    </DragDropContext>
+    </SafeDragDropContext>
   );
 
   const renderListView = () => (
