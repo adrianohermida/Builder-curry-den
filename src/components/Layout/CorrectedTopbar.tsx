@@ -161,7 +161,7 @@ export function CorrectedTopbar({
     {
       label: "Documentos (GED)",
       value: "documentos",
-      href: "/ged-juridico",
+      href: "/crm/ged",
       icon: Search,
     },
     {
@@ -188,7 +188,7 @@ export function CorrectedTopbar({
       "/crm/processos": "Processos Jurídicos",
       "/crm/contratos": "Contratos",
       "/agenda": "Agenda Jurídica",
-      "/ged-juridico": "GED Jurídico",
+      "/crm/ged": "Documentos",
       "/ai-enhanced": "IA Jurídico",
       "/tarefas": "Gestão de Tarefas",
       "/publicacoes": "Publicações",
