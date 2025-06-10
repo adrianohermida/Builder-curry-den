@@ -53,6 +53,14 @@ const PAGE_TITLES: Record<string, string> = {
 const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({ className = "" }) => {
   const location = useLocation();
   const { toggleSidebar } = useUnifiedLayout();
+  const {
+    config: themeConfig,
+    colors,
+    isAdminMode,
+    switchToClientView,
+    switchToAdminView,
+    toggleTheme,
+  } = useTheme();
 
   // Get page title
   const pageTitle = PAGE_TITLES[location.pathname] || "Lawdesk";
