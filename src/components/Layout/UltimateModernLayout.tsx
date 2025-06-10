@@ -39,6 +39,9 @@ export const UltimateModernLayout: React.FC<UltimateModernLayoutProps> = ({
     initializeTheme();
     initializeAnimations();
 
+    // Initialize global color fix system
+    const cleanupColorFix = initializeGlobalColorFix();
+
     // Apply theme mode
     const root = document.documentElement;
     if (mode === "admin") {
@@ -49,6 +52,11 @@ export const UltimateModernLayout: React.FC<UltimateModernLayoutProps> = ({
 
     // Loading state
     setTimeout(() => setIsLoading(false), 100);
+
+    // Cleanup function
+    return () => {
+      cleanupColorFix();
+    };
   }, [mode]);
 
   // Route change optimization
