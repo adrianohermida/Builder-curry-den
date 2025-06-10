@@ -196,6 +196,19 @@ const NAVIGATION_SECTIONS: NavigationSection[] = [
         path: "/analytics",
         description: "Métricas e análises",
       },
+    ],
+  },
+  {
+    id: "settings",
+    label: "Configurações",
+    items: [
+      {
+        id: "storage-config",
+        label: "Armazenamento",
+        icon: HardDrive,
+        path: "/configuracao-armazenamento",
+        description: "Configuração de provedores de armazenamento",
+      },
       {
         id: "relatorios",
         label: "Relatórios",

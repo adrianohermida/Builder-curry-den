@@ -394,8 +394,9 @@ export function StorageDashboard() {
       const matchesSearch =
         file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         file.entityName.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesModule = !filterModule || file.module === filterModule;
-      const matchesType = !filterType || file.extension === filterType;
+      const matchesModule =
+        filterModule === "all" || file.module === filterModule;
+      const matchesType = filterType === "all" || file.extension === filterType;
 
       return matchesSearch && matchesModule && matchesType;
     });
@@ -464,7 +465,7 @@ export function StorageDashboard() {
             <p className="text-muted-foreground text-center mb-6 max-w-md">
               Ainda não há arquivos armazenados no sistema. Faça upload de
               documentos nos módulos ou gere dados de teste para visualizar o
-              dashboard.
+              painel de controle.
             </p>
             <Button onClick={generateTestData} size="lg">
               <Activity className="h-4 w-4 mr-2" />
@@ -792,8 +793,8 @@ export function StorageDashboard() {
                   variant="outline"
                   onClick={() => {
                     setSearchTerm("");
-                    setFilterModule("");
-                    setFilterType("");
+                    setFilterModule("all");
+                    setFilterType("all");
                   }}
                 >
                   <Filter className="h-4 w-4 mr-2" />
@@ -848,7 +849,7 @@ export function StorageDashboard() {
                               </p>
                               {file.isPublic && (
                                 <Badge variant="outline" className="text-xs">
-                                  <Globe className="h-3 w-3 mr-1" />
+                                  <Eye className="h-3 w-3 mr-1" />
                                   Público
                                 </Badge>
                               )}

@@ -46,6 +46,12 @@ const createLazyPage = (
 };
 
 // Páginas principais com lazy loading
+// Storage Management
+const StorageManagement = createLazyPage(
+  () => import("@/pages/Storage"),
+  "Gestão de Armazenamento",
+);
+
 const PainelControle = createLazyPage(
   () => import("./pages/CleanPainelControle"),
   "Painel de Controle",

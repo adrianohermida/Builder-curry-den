@@ -106,8 +106,10 @@ export function StorageAuditLogs() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterAction, setFilterAction] = useState("all");
-  const [filterUser, setFilterUser] = useState("all");
+  const [filterModule, setFilterModule] = useState("all");
+  const [filterResult, setFilterResult] = useState("all");
   const [filterRisk, setFilterRisk] = useState("all");
+  const [filterUser, setFilterUser] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
@@ -460,6 +462,21 @@ export function StorageAuditLogs() {
     }
   };
 
+  const getRiskLabel = (riskLevel: string) => {
+    switch (riskLevel) {
+      case "CRITICAL":
+        return "Crítico";
+      case "HIGH":
+        return "Alto";
+      case "MEDIUM":
+        return "Médio";
+      case "LOW":
+        return "Baixo";
+      default:
+        return riskLevel;
+    }
+  };
+
   const getDeviceIcon = (deviceType: string) => {
     switch (deviceType) {
       case "MOBILE":
@@ -468,6 +485,42 @@ export function StorageAuditLogs() {
         return <Tablet className="h-4 w-4" />;
       default:
         return <Laptop className="h-4 w-4" />;
+    }
+  };
+
+  const getActionLabel = (action: string) => {
+    switch (action) {
+      case "UPLOAD":
+        return "Upload";
+      case "DOWNLOAD":
+        return "Download";
+      case "VIEW":
+        return "Visualização";
+      case "DELETE":
+        return "Exclusão";
+      case "SHARE":
+        return "Compartilhamento";
+      case "CONFIG_CHANGE":
+        return "Mudança de Config";
+      case "LOGIN":
+        return "Login";
+      case "LOGOUT":
+        return "Logout";
+      default:
+        return action;
+    }
+  };
+
+  const getResultLabel = (result: string) => {
+    switch (result) {
+      case "SUCCESS":
+        return "Sucesso";
+      case "FAILURE":
+        return "Falha";
+      case "PARTIAL":
+        return "Parcial";
+      default:
+        return result;
     }
   };
 
@@ -480,10 +533,13 @@ export function StorageAuditLogs() {
         (log.fileName &&
           log.fileName.toLowerCase().includes(searchTerm.toLowerCase()));
 
-      const matchesAction = !filterAction || log.action === filterAction;
-      const matchesModule = !filterModule || log.module === filterModule;
-      const matchesResult = !filterResult || log.result === filterResult;
-      const matchesRisk = !filterRisk || log.riskLevel === filterRisk;
+      const matchesAction =
+        filterAction === "all" || log.action === filterAction;
+      const matchesModule =
+        filterModule === "all" || log.module === filterModule;
+      const matchesResult =
+        filterResult === "all" || log.result === filterResult;
+      const matchesRisk = filterRisk === "all" || log.riskLevel === filterRisk;
       const matchesUser =
         !filterUser ||
         log.user.toLowerCase().includes(filterUser.toLowerCase());
@@ -894,7 +950,7 @@ export function StorageAuditLogs() {
                         <TableCell>
                           <div className="flex items-center space-x-1">
                             {getActionIcon(log.action)}
-                            <span>{log.action}</span>
+                            <span>{getActionLabel(log.action)}</span>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -921,12 +977,12 @@ export function StorageAuditLogs() {
                         <TableCell>
                           <div className="flex items-center space-x-1">
                             {getResultIcon(log.result)}
-                            <span>{log.result}</span>
+                            <span>{getResultLabel(log.result)}</span>
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge className={getRiskColor(log.riskLevel)}>
-                            {log.riskLevel}
+                            {getRiskLabel(log.riskLevel)}
                           </Badge>
                         </TableCell>
                         <TableCell>

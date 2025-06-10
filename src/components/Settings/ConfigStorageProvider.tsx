@@ -127,7 +127,7 @@ const storageProviders: StorageProviderOption[] = [
       "PostgreSQL em tempo real",
       "API REST automática",
       "Autenticação integrada",
-      "Buckets configuráveis",
+      "Destinos configuráveis",
       "Transformação de imagens",
     ],
     compliance: { lgpd: false, backup: true, encryption: true },
@@ -242,6 +242,7 @@ export function ConfigStorageProvider({
   const [testProgress, setTestProgress] = useState(0);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [uploadTest, setUploadTest] = useState(false);
+  const [connectionFeedback, setConnectionFeedback] = useState<string>("");
 
   // Carregar configuração salva
   useEffect(() => {
@@ -273,6 +274,7 @@ export function ConfigStorageProvider({
       provider: newProvider,
       connectionStatus: "untested",
     }));
+    setConnectionFeedback("");
   };
 
   const handleConfigChange = (key: string, value: any) => {
@@ -283,27 +285,62 @@ export function ConfigStorageProvider({
         [key]: value,
       },
     }));
+
+    // Salvar automaticamente no localStorage para evitar perda de dados
+    const updatedConfigs = {
+      ...providerConfigs,
+      [selectedProvider]: {
+        ...providerConfigs[selectedProvider],
+        [key]: value,
+      },
+    };
+    localStorage.setItem(
+      "lawdesk-provider-configs",
+      JSON.stringify(updatedConfigs),
+    );
   };
 
   const testConnection = async () => {
     setTesting(true);
     setTestProgress(0);
+    setConnectionFeedback("");
 
     try {
       const provider = storageProviders.find((p) => p.id === selectedProvider);
       const currentConfig = providerConfigs[selectedProvider];
 
-      // Simular teste de conexão com progresso
+      // Simular teste de conexão com progresso em tempo real
       const steps = [
-        { name: "Validando configuração", delay: 500 },
-        { name: "Conectando ao provedor", delay: 1000 },
-        { name: "Testando permissões", delay: 800 },
-        { name: "Verificando estrutura", delay: 600 },
-        { name: "Finalizando teste", delay: 400 },
+        {
+          name: "Validando configuração",
+          delay: 500,
+          feedback: "Verificando parâmetros de conexão...",
+        },
+        {
+          name: "Conectando ao provedor",
+          delay: 1000,
+          feedback: `Estabelecendo conexão com ${provider?.name}...`,
+        },
+        {
+          name: "Testando permissões",
+          delay: 800,
+          feedback: "Verificando permissões de acesso...",
+        },
+        {
+          name: "Verificando estrutura",
+          delay: 600,
+          feedback: "Validando estrutura de pastas...",
+        },
+        {
+          name: "Finalizando teste",
+          delay: 400,
+          feedback: "Concluindo verificações...",
+        },
       ];
 
       for (let i = 0; i < steps.length; i++) {
         setTestProgress((i / steps.length) * 100);
+        setConnectionFeedback(steps[i].feedback);
         await new Promise((resolve) => setTimeout(resolve, steps[i].delay));
 
         // Simular falha baseada na configuração
@@ -322,6 +359,7 @@ export function ConfigStorageProvider({
       }
 
       setTestProgress(100);
+      setConnectionFeedback("Conexão estabelecida com sucesso!");
 
       // Sucesso
       setConfig((prev) => ({
@@ -338,6 +376,8 @@ export function ConfigStorageProvider({
         },
       );
     } catch (error: any) {
+      setConnectionFeedback(`Erro: ${error.message}`);
+
       setConfig((prev) => ({
         ...prev,
         connectionStatus: "error",
@@ -358,7 +398,10 @@ export function ConfigStorageProvider({
       });
     } finally {
       setTesting(false);
-      setTimeout(() => setTestProgress(0), 2000);
+      setTimeout(() => {
+        setTestProgress(0);
+        if (!testing) setConnectionFeedback("");
+      }, 2000);
     }
   };
 
@@ -400,13 +443,15 @@ export function ConfigStorageProvider({
 
     try {
       // Simular upload de teste
+      toast.loading("📤 Iniciando upload de teste...", { id: "upload-test" });
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       toast.success("📤 Upload de teste realizado com sucesso!", {
+        id: "upload-test",
         description: "Arquivo simulado enviado para o destino configurado",
       });
     } catch (error) {
-      toast.error("❌ Falha no upload de teste");
+      toast.error("❌ Falha no upload de teste", { id: "upload-test" });
     } finally {
       setUploadTest(false);
     }
@@ -415,7 +460,7 @@ export function ConfigStorageProvider({
   const generateErrorReport = () => {
     const report = {
       usuarioId: "user_12345",
-      providerSelecionado: selectedProvider,
+      provedorSelecionado: selectedProvider,
       ultimoErro: config.errorDetails,
       configuracao: providerConfigs[selectedProvider],
       timestamp: new Date().toISOString(),
@@ -465,11 +510,11 @@ export function ConfigStorageProvider({
           <Button
             variant="outline"
             onClick={() =>
-              navigate("/configuracoes/armazenamento?tab=dashboard")
+              navigate("/configuracao-armazenamento?tab=dashboard")
             }
           >
             <BarChart3 className="h-4 w-4 mr-2" />
-            Dashboard
+            Painel de Controle
           </Button>
         </div>
       </div>
@@ -596,6 +641,16 @@ export function ConfigStorageProvider({
                   ? `Conectado ao ${currentProvider?.name} com sucesso. Última verificação: ${config.lastTested?.toLocaleString("pt-BR")}`
                   : config.errorDetails?.message ||
                     "Falha na conexão com o provedor"}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Feedback de Teste em Tempo Real */}
+          {testing && connectionFeedback && (
+            <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 mt-4">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800 dark:text-blue-200">
+                {connectionFeedback}
               </AlertDescription>
             </Alert>
           )}
