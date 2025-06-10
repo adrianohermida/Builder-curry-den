@@ -248,6 +248,12 @@ const Configuracoes = createLazyComponent(
   "Configurações",
 );
 
+// User Settings Hub
+const UserSettingsHub = createLazyComponent(
+  () => import("./pages/Configuracoes/UserSettingsHub"),
+  "Configurações do Usuário",
+);
+
 // Enhanced Page wrapper with improved error boundary and loading
 const PageWrapper = ({ children }: { children: React.ReactNode }) => {
   const [isPending, startTransition] = useTransition();
@@ -1113,6 +1119,56 @@ const App: React.FC = () => {
                               />
                             }
                           />
+                          <Route
+                            path="configuracoes-usuario"
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <UserSettingsHub />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
+                          <Route path="settings/*">
+                            <Route
+                              index
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <UserSettingsHub />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="profile"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <UserSettingsHub />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="notifications"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <UserSettingsHub />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                          </Route>
                           <Route
                             path="configuracoes-prazos"
                             element={
