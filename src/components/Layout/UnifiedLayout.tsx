@@ -143,13 +143,12 @@ const UnifiedLayout: React.FC = () => {
       ...persistedState,
       isMobile,
       isTablet,
-      // Auto-hide sidebar on mobile
-      sidebarOpen: isMobile ? false : (persistedState.sidebarOpen ?? true),
-      // Auto-collapse on tablet
-      sidebarCollapsed:
-        isTablet && !isMobile
-          ? true
-          : (persistedState.sidebarCollapsed ?? false),
+      // Keep sidebar open by default, only hide on mobile if explicitly closed
+      sidebarOpen: persistedState.sidebarOpen ?? true,
+      // Auto-collapse on tablet only
+      sidebarCollapsed: isTablet
+        ? true
+        : (persistedState.sidebarCollapsed ?? false),
     };
   }, [windowSize, persistedState]);
 
