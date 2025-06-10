@@ -134,6 +134,10 @@ const AIEnhancedTest = createLazyComponent(
   () => import("./pages/AIEnhancedTest"),
   "IA Jurídico Test",
 );
+const FinanceiroTest = createLazyComponent(
+  () => import("./pages/FinanceiroTest"),
+  "Financeiro Test",
+);
 const Tarefas = createLazyComponent(() => import("./pages/Tarefas"), "Tarefas");
 const Contratos = createLazyComponent(
   () => import("./pages/Contratos"),
@@ -567,6 +571,20 @@ const App: React.FC = () => {
                                 element={
                                   <PageWrapper>
                                     <AIEnhancedTest />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
+
+                          {/* Financeiro Test Route */}
+                          <Route
+                            path="financeiro-test"
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <FinanceiroTest />
                                   </PageWrapper>
                                 }
                               />
