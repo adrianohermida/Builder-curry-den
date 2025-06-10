@@ -299,6 +299,20 @@ const MinimalistRouter: React.FC = () => {
                     }
                   />
 
+                  {/* Feed Corporativo */}
+                  <Route
+                    path="feed"
+                    element={
+                      <PageWrapper title="Feed" breadcrumb={["Home", "Feed"]}>
+                        <Suspense
+                          fallback={<PageLoadingFallback title="feed" />}
+                        >
+                          <FeedPage />
+                        </Suspense>
+                      </PageWrapper>
+                    }
+                  />
+
                   {/* Diagnóstico de Conclusão */}
                   <Route
                     path="diagnostico-conclusao"
