@@ -45,6 +45,9 @@ import { useToast } from "@/hooks/use-toast";
 // Diagnostic Widget
 import DiagnosticoAlert from "@/components/ActionPlan/DiagnosticoAlert";
 
+// New Features Widget
+import NewFeaturesAlert from "@/components/Layout/NewFeaturesAlert";
+
 // Types
 interface MetricCard {
   id: string;
