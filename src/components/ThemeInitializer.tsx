@@ -69,26 +69,26 @@ const ThemeInitializer: React.FC<ThemeInitializerProps> = ({ children }) => {
     const style = document.createElement("style");
     style.textContent = `
       /* Reset de animações para sidebar */
-      [data-sidebar] {
+      [data-sidebar="true"] {
         transition: none !important;
         transform: none !important;
       }
-      
+
       /* Cores dinâmicas baseadas no tema */
       .theme-primary {
         background-color: var(--theme-primary) !important;
         color: var(--theme-primaryText) !important;
       }
-      
+
       .theme-surface {
         background-color: var(--theme-surface) !important;
         color: var(--theme-text) !important;
       }
-      
+
       .theme-border {
         border-color: var(--theme-border) !important;
       }
-      
+
       /* Responsividade aprimorada */
       @media (max-width: 767px) {
         [data-sidebar] {
@@ -96,14 +96,14 @@ const ThemeInitializer: React.FC<ThemeInitializerProps> = ({ children }) => {
           max-width: 280px !important;
         }
       }
-      
+
       /* Modo cliente - azul */
       .client-mode {
         --mode-color: #3b82f6;
         --mode-color-hover: #2563eb;
         --mode-color-active: #1d4ed8;
       }
-      
+
       /* Modo admin - vermelho */
       .admin-mode {
         --mode-color: #dc2626;
