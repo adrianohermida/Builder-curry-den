@@ -205,8 +205,9 @@ const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="p-2 border-b">
+              <DropdownMenuContent align="end" className="w-72">
+                {/* User Info */}
+                <div className="p-3 border-b">
                   <p className="text-sm font-medium">
                     {isAdminMode() ? "Usuário Admin" : "Usuário Cliente"}
                   </p>
@@ -215,7 +216,7 @@ const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({
                       ? "admin@lawdesk.com"
                       : "cliente@lawdesk.com"}
                   </p>
-                  <div className="mt-1">
+                  <div className="mt-2">
                     <Badge
                       variant="outline"
                       className="text-xs"
@@ -228,32 +229,68 @@ const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({
                     </Badge>
                   </div>
                 </div>
-                <DropdownMenuItem>Perfil</DropdownMenuItem>
-                <DropdownMenuItem onClick={toggleTheme}>
-                  Tema: {themeConfig.themeMode === "light" ? "Claro" : "Escuro"}
+
+                {/* Basic Menu Items */}
+                <DropdownMenuItem>
+                  <User size={16} className="mr-2" />
+                  Perfil
                 </DropdownMenuItem>
-                <DropdownMenuItem>Configurações</DropdownMenuItem>
-                {isAdminMode() && (
-                  <DropdownMenuItem
-                    onClick={switchToClientView}
-                    style={{ color: "#3b82f6" }}
-                  >
-                    🔄 Visualizar como Cliente
+                <DropdownMenuItem>
+                  <Settings size={16} className="mr-2" />
+                  Configurações
+                </DropdownMenuItem>
+
+                {/* Theme Controls Section */}
+                <div className="border-t border-b p-3">
+                  <p className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">
+                    Personalização
+                  </p>
+
+                  {/* Theme Mode Toggle */}
+                  <DropdownMenuItem onClick={toggleTheme} className="mb-2">
+                    {themeConfig.themeMode === "dark" ? (
+                      <Sun size={16} className="mr-2" />
+                    ) : (
+                      <Moon size={16} className="mr-2" />
+                    )}
+                    {themeConfig.themeMode === "dark" ? "Modo Claro" : "Modo Escuro"}
                   </DropdownMenuItem>
-                )}
-                {!isAdminMode() && (
-                  <DropdownMenuItem
-                    onClick={switchToAdminView}
-                    style={{ color: "#dc2626" }}
-                  >
-                    🔄 Voltar ao Modo Admin
+
+                  {/* User Mode Toggle */}
+                  {isAdminMode() && (
+                    <DropdownMenuItem
+                      onClick={switchToClientView}
+                      className="mb-2"
+                      style={{ color: "#3b82f6" }}
+                    >
+                      <div className="w-3 h-3 rounded-full bg-blue-500 mr-2" />
+                      🔄 Visualizar como Cliente
+                    </DropdownMenuItem>
+                  )}
+                  {!isAdminMode() && (
+                    <DropdownMenuItem
+                      onClick={switchToAdminView}
+                      className="mb-2"
+                      style={{ color: "#dc2626" }}
+                    >
+                      <div className="w-3 h-3 rounded-full bg-red-500 mr-2" />
+                      🔄 Voltar ao Modo Admin
+                    </DropdownMenuItem>
+                  )}
+
+                  {/* Theme Demo Link */}
+                  <DropdownMenuItem onClick={() => window.location.href = '/theme-demo'}>
+                    <Palette size={16} className="mr-2" />
+                    Personalizar Cores
                   </DropdownMenuItem>
-                )}
+                </div>
+
+                {/* Logout */}
                 <DropdownMenuItem className="text-red-600">
+                  <LogOut size={16} className="mr-2" />
                   Sair
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
       </div>
