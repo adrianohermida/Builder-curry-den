@@ -10,12 +10,8 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-} from "@hello-pangea/dnd";
+import { Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import { SafeDragDropContext } from "../Common/SafeDragDropContext";
 import {
   Plus,
   MoreHorizontal,
@@ -308,7 +304,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   };
 
   return (
-    <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <SafeDragDropContext
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      fallback={
+        <div className="text-center py-8 text-gray-500">
+          Carregando kanban...
+        </div>
+      }
+    >
       <div
         className={`
         flex gap-4 overflow-x-auto pb-4
@@ -388,7 +392,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                           >
                             <Card
                               className={`
-                                cursor-pointer border border-gray-200 
+                                cursor-pointer border border-gray-200
                                 hover:border-gray-300 transition-colors
                                 ${draggedItem === item.id ? "opacity-50" : ""}
                               `}
@@ -444,7 +448,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           </div>
         ))}
       </div>
-    </DragDropContext>
+    </SafeDragDropContext>
   );
 };
 
