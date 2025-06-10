@@ -3,8 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-// Layout principal com branding Lawdesk refinado
-import LawdeskBrandedLayout from "@/components/Layout/LawdeskBrandedLayout";
+// Ultimate Optimized Layout V2 - Single consolidated layout
+import UltimateOptimizedLayout from "@/components/Layout/UltimateOptimizedLayout";
 
 // Componente de Loading global
 const GlobalLoadingFallback = () => (
@@ -147,8 +147,8 @@ function App() {
         <BrowserRouter>
           <Suspense fallback={<GlobalLoadingFallback />}>
             <Routes>
-              {/* Layout principal com todas as rotas aninhadas */}
-              <Route path="/" element={<LawdeskBrandedLayout />}>
+              {/* Ultimate Optimized Layout - Single unified system */}
+              <Route path="/" element={<UltimateOptimizedLayout />}>
                 {/* Home redirect */}
                 <Route index element={<Navigate to="/painel" replace />} />
 
