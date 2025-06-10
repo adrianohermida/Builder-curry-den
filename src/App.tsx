@@ -122,6 +122,10 @@ const CRMJuridico = createLazyComponent(
   () => import("./pages/CRM/CRMJuridico"),
   "CRM Jurídico",
 );
+const CRMJuridicoSaaS = createLazyComponent(
+  () => import("./pages/CRM/CRMJuridicoSaaS"),
+  "CRM Jurídico SaaS",
+);
 const RouteTest = createLazyComponent(
   () => import("./components/CRM/RouteTest"),
   "Route Test",
@@ -146,6 +150,10 @@ const Contratos = createLazyComponent(
 const Financeiro = createLazyComponent(
   () => import("./pages/Financeiro"),
   "Financeiro",
+);
+const Publicacoes = createLazyComponent(
+  () => import("./pages/Publicacoes"),
+  "Publicações",
 );
 const AgendaJuridica = createLazyComponent(
   () => import("./pages/Agenda"),
@@ -399,7 +407,95 @@ const App: React.FC = () => {
                             }
                           />
 
-                          {/* CRM Jurídico Routes */}
+                          {/* CRM SaaS V2 - Núcleo Central */}
+                          <Route path="crm-saas/*">
+                            <Route
+                              index
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <CRMJuridicoSaaS />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="clientes"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <CRMJuridicoSaaS defaultModule="clientes" />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="processos"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <CRMJuridicoSaaS defaultModule="processos" />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="publicacoes"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <CRMJuridicoSaaS defaultModule="publicacoes" />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="tarefas"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <CRMJuridicoSaaS defaultModule="tarefas" />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="financeiro"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <CRMJuridicoSaaS defaultModule="financeiro" />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                            <Route
+                              path="documentos"
+                              element={
+                                <SafeRoute
+                                  element={
+                                    <PageWrapper>
+                                      <CRMJuridicoSaaS defaultModule="documentos" />
+                                    </PageWrapper>
+                                  }
+                                />
+                              }
+                            />
+                          </Route>
+
+                          {/* CRM Jurídico V1 - Mantido para compatibilidade */}
                           <Route path="crm/*">
                             <Route
                               index
