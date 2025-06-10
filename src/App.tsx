@@ -525,6 +525,20 @@ const App: React.FC = () => {
                             }
                           />
 
+                          {/* AI Jurídico Enhanced */}
+                          <Route
+                            path="ai-enhanced"
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <AIEnhanced />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
+
                           {/* Redirect legacy GED route to CRM GED */}
                           <Route
                             path="ged-juridico"
