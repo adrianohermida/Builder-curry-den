@@ -38,12 +38,12 @@ class CRMErrorBoundary extends React.Component<
     });
 
     // Log do erro para monitoramento
-    if (process.env.NODE_ENV === "development") {
+    if (IS_DEVELOPMENT) {
       console.error("CRM Error Boundary caught an error:", error, errorInfo);
     }
 
     // Integrar com serviços de monitoramento como Sentry em produção
-    if (process.env.NODE_ENV === "production") {
+    if (IS_PRODUCTION) {
       // Sentry.captureException(error, { contexts: { react: errorInfo } });
 
       // Por enquanto, usar um sistema simples de logging
@@ -106,7 +106,7 @@ const DefaultErrorFallback: React.FC<{
   errorInfo?: React.ErrorInfo;
   resetError: () => void;
 }> = ({ error, errorInfo, resetError }) => {
-  const isDevelopment = process.env.NODE_ENV === "development";
+  const isDevelopment = IS_DEVELOPMENT;
 
   const handleReload = () => {
     window.location.reload();

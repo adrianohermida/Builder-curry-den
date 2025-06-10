@@ -83,7 +83,7 @@ export const useCleanupEffect = (cleanup: () => void) => {
 
 // Performance monitoring
 export const measurePerformance = (name: string, fn: () => void) => {
-  if (process.env.NODE_ENV === "development") {
+  if (import.meta.env?.MODE === "development") {
     performance.mark(`${name}-start`);
     fn();
     performance.mark(`${name}-end`);
