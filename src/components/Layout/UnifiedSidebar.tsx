@@ -561,11 +561,10 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
     return (
       <div
         className={`
-          fixed left-0 z-40 h-full
+          ${isMobile ? "fixed left-0 z-40 h-full top-0" : "relative z-10 h-screen"}
           ${isCollapsed ? "w-16" : "w-64"}
           border-r shadow-lg
           flex flex-col
-          ${isMobile ? "top-0" : "top-14 h-[calc(100vh-3.5rem)]"}
           ${isOpen ? "block" : "hidden"}
           ${className}
         `}
