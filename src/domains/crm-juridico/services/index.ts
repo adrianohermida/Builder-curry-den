@@ -24,7 +24,7 @@ import type {
 /**
  * Serviço para gestão de clientes jurídicos
  */
-export class ClienteJuridicoService {
+class ClienteJuridicoService {
   private basePath = `${API_ENDPOINTS.CRM.BASE}/juridico/clientes`;
 
   async getClientes(
@@ -77,7 +77,7 @@ export class ClienteJuridicoService {
 /**
  * Serviço para gestão de processos jurídicos
  */
-export class ProcessoJuridicoService {
+class ProcessoJuridicoService {
   private basePath = `${API_ENDPOINTS.CRM.BASE}/juridico/processos`;
 
   async getProcessos(
@@ -132,7 +132,7 @@ export class ProcessoJuridicoService {
 /**
  * Serviço para gestão de contratos jurídicos
  */
-export class ContratoJuridicoService {
+class ContratoJuridicoService {
   private basePath = `${API_ENDPOINTS.CRM.BASE}/juridico/contratos`;
 
   async getContratos(
@@ -179,7 +179,7 @@ export class ContratoJuridicoService {
 /**
  * Serviço para gestão de tarefas jurídicas
  */
-export class TarefaJuridicoService {
+class TarefaJuridicoService {
   private basePath = `${API_ENDPOINTS.CRM.BASE}/juridico/tarefas`;
 
   async getTarefas(
@@ -228,7 +228,7 @@ export class TarefaJuridicoService {
 /**
  * Serviço para métricas e analytics do CRM Jurídico
  */
-export class CRMJuridicoAnalyticsService {
+class CRMJuridicoAnalyticsService {
   private basePath = `${API_ENDPOINTS.CRM.BASE}/juridico/analytics`;
 
   async getMetrics(): Promise<CRMJuridicoMetrics> {
@@ -266,7 +266,7 @@ export class CRMJuridicoAnalyticsService {
  * Serviço principal do CRM Jurídico
  * Agregador de todos os serviços específicos
  */
-export class CRMJuridicoService {
+class CRMJuridicoService {
   public clientes: ClienteJuridicoService;
   public processos: ProcessoJuridicoService;
   public contratos: ContratoJuridicoService;
