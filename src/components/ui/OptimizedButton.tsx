@@ -256,6 +256,3 @@ export default OptimizedButtonMemo;
 
 // Re-export for convenience
 export { OptimizedButtonMemo as Button };
-
-// ===== CALLBACK OPTIMIZATION =====
-const useCallback = performanceUtils.componentOptimization.debounce;
