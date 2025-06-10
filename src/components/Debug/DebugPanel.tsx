@@ -4,12 +4,13 @@
  * Painel de debug para desenvolvimento
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { IS_PRODUCTION, getNodeEnv } from "@/lib/env";
 
 const DebugPanel: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  if (process.env.NODE_ENV === "production") {
+  if (IS_PRODUCTION) {
     return null;
   }
 
@@ -19,7 +20,7 @@ const DebugPanel: React.FC = () => {
         <div className="bg-black text-white p-4 rounded-lg shadow-lg mb-2 max-w-xs">
           <h3 className="font-bold text-sm mb-2">Debug Info</h3>
           <div className="text-xs space-y-1">
-            <div>Environment: {process.env.NODE_ENV}</div>
+            <div>Environment: {getNodeEnv()}</div>
             <div>Route: {window.location.pathname}</div>
             <div>Theme: {document.documentElement.classList.toString()}</div>
           </div>
