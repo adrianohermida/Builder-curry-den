@@ -283,6 +283,20 @@ const CorrectedRouter: React.FC = () => {
                     }
                   />
 
+                  {/* Diagnóstico de Conclusão */}
+                  <Route
+                    path="diagnostico-conclusao"
+                    element={
+                      <PageWrapper title="Diagnóstico de Conclusão">
+                        <Suspense
+                          fallback={<PageLoadingFallback title="diagnóstico" />}
+                        >
+                          <DiagnosticoConclusaoPage />
+                        </Suspense>
+                      </PageWrapper>
+                    }
+                  />
+
                   {/* CRM Unificado */}
                   <Route
                     path="crm/*"
