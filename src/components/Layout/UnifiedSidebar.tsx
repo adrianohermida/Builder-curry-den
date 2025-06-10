@@ -817,10 +817,11 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
         className={`
         fixed left-0 z-40 h-full
         ${isCollapsed ? "w-16" : "w-64"}
-        bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800
+        bg-white border-r border-gray-200 shadow-lg
         transition-all duration-300 ease-in-out
         flex flex-col
         ${isMobile ? "top-0" : "top-14 h-[calc(100vh-3.5rem)]"}
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
         ${className}
       `}
       >
