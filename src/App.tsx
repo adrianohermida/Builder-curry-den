@@ -134,6 +134,10 @@ const ModernCRMHub = createLazyComponent(
   () => import("./pages/CRM/ModernCRMHub"),
   "Modern CRM Hub",
 );
+const ModernCRMHubV2 = createLazyComponent(
+  () => import("./pages/CRM/ModernCRMHubV2"),
+  "Modern CRM Hub V2",
+);
 const RouteTest = createLazyComponent(
   () => import("./components/CRM/RouteTest"),
   "Route Test",
@@ -424,14 +428,14 @@ const App: React.FC = () => {
                               <SafeRoute
                                 element={
                                   <PageWrapper>
-                                    <ModernCRMHub />
+                                    <ModernCRMHubV2 />
                                   </PageWrapper>
                                 }
                               />
                             }
                           />
 
-                          {/* Modern CRM Hub - Lawdesk Refactored */}
+                          {/* Modern CRM Hub V2 - Lawdesk Fully Integrated */}
                           <Route path="crm-modern/*">
                             <Route
                               index
@@ -439,7 +443,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <ModernCRMHub />
+                                      <ModernCRMHubV2 />
                                     </PageWrapper>
                                   }
                                 />
@@ -451,7 +455,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <ModernCRMHub defaultModule="clientes" />
+                                      <ModernCRMHubV2 defaultModule="clientes" />
                                     </PageWrapper>
                                   }
                                 />
@@ -463,7 +467,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <ModernCRMHub defaultModule="processos" />
+                                      <ModernCRMHubV2 defaultModule="processos" />
                                     </PageWrapper>
                                   }
                                 />
@@ -475,7 +479,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <ModernCRMHub defaultModule="contratos" />
+                                      <ModernCRMHubV2 defaultModule="contratos" />
                                     </PageWrapper>
                                   }
                                 />
@@ -487,7 +491,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <ModernCRMHub defaultModule="tarefas" />
+                                      <ModernCRMHubV2 defaultModule="tarefas" />
                                     </PageWrapper>
                                   }
                                 />
@@ -499,7 +503,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <ModernCRMHub defaultModule="financeiro" />
+                                      <ModernCRMHubV2 defaultModule="financeiro" />
                                     </PageWrapper>
                                   }
                                 />
@@ -511,7 +515,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <ModernCRMHub defaultModule="documentos" />
+                                      <ModernCRMHubV2 defaultModule="documentos" />
                                     </PageWrapper>
                                   }
                                 />
