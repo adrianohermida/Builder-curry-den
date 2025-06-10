@@ -1,215 +1,137 @@
 /**
- * 📊 PAINEL DE CONTROLE - PÁGINA PRINCIPAL
+ * 🏛️ PAINEL DE CONTROLE - DASHBOARD PRINCIPAL
  *
- * Dashboard principal como mostrado na imagem:
- * - 4 cards de métricas no topo
- * - Seções: Tarefas Recentes, Atividades Recentes, Próximos Eventos
- * - Design fiel à imagem fornecida
+ * Dashboard principal do Lawdesk CRM exatamente como na imagem:
+ * ✅ Métricas principais (Clientes, Processos, Receita, Tarefas)
+ * ✅ Layout de três colunas
+ * ✅ Design tradicional e limpo
+ * ✅ Responsivo
  */
 
 import React from "react";
-import { motion } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   Users,
   Scale,
   DollarSign,
   CheckSquare,
   Calendar,
-  Eye,
-  Plus,
-  ChevronRight,
   Clock,
-  User,
+  TrendingUp,
+  AlertCircle,
   FileText,
-  FolderOpen,
+  MessageCircle,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
 
-interface MetricCard {
-  title: string;
-  value: string;
-  change: string;
-  changeType: "positive" | "negative";
-  meta: string;
-  progress: number;
-  icon: React.ReactNode;
-  iconColor: string;
-}
+export default function PainelControle() {
+  const metricas = {
+    clientes: 1234,
+    processos: 892,
+    receita: 284000,
+    tarefas: 47,
+  };
 
-interface Task {
-  id: string;
-  title: string;
-  client: string;
-  date: string;
-  priority: "alta" | "media" | "baixa";
-  status: "pendente" | "agendada" | "em_andamento";
-}
-
-interface Activity {
-  id: string;
-  type: "client" | "process" | "task" | "document";
-  title: string;
-  description: string;
-  time: string;
-  icon: React.ReactNode;
-}
-
-interface Event {
-  id: string;
-  title: string;
-  date: string;
-  time: string;
-  type: "reuniao" | "audiencia" | "prazo";
-}
-
-export const PainelControle: React.FC = () => {
-  // Métricas do dashboard
-  const metrics: MetricCard[] = [
+  const tarefasRecentes = [
     {
-      title: "Clientes",
-      value: "1,234",
-      change: "+12%",
-      changeType: "positive",
-      meta: "Meta: 1.500",
-      progress: 82,
-      icon: <Users className="w-6 h-6" />,
-      iconColor: "text-blue-600",
+      id: 1,
+      titulo: "Revisar contrato ABC Corp",
+      cliente: "ABC Corporation",
+      prazo: "Hoje",
+      prioridade: "alta",
+      progresso: 75,
     },
     {
-      title: "Processos",
-      value: "892",
-      change: "+8%",
-      changeType: "positive",
-      meta: "Meta: 1.000",
-      progress: 89,
-      icon: <Scale className="w-6 h-6" />,
-      iconColor: "text-blue-600",
+      id: 2,
+      titulo: "Petição inicial - Caso Silva",
+      cliente: "João Silva",
+      prazo: "Amanhã",
+      prioridade: "media",
+      progresso: 30,
     },
     {
-      title: "Receita",
-      value: "R$ 284k",
-      change: "+22%",
-      changeType: "positive",
-      meta: "Meta: 300.000",
-      progress: 95,
-      icon: <DollarSign className="w-6 h-6" />,
-      iconColor: "text-blue-600",
+      id: 3,
+      titulo: "Audiência - Processo 123/2024",
+      cliente: "Maria Santos",
+      prazo: "2 dias",
+      prioridade: "alta",
+      progresso: 90,
     },
     {
-      title: "Tarefas",
-      value: "47",
-      change: "-5%",
-      changeType: "negative",
-      meta: "Meta: 30",
-      progress: 157,
-      icon: <CheckSquare className="w-6 h-6" />,
-      iconColor: "text-blue-600",
+      id: 4,
+      titulo: "Análise de documentos XYZ",
+      cliente: "XYZ Ltda",
+      prazo: "3 dias",
+      prioridade: "baixa",
+      progresso: 10,
     },
   ];
 
-  // Tarefas recentes
-  const recentTasks: Task[] = [
+  const atividades = [
     {
-      id: "1",
-      title: "Revisar contrato João Silva",
-      client: "João Silva",
-      date: "2024-01-25",
-      priority: "alta",
-      status: "pendente",
+      id: 1,
+      acao: "Novo cliente cadastrado",
+      usuario: "Dr. João Silva",
+      tempo: "5 min atrás",
+      tipo: "cliente",
     },
     {
-      id: "2",
-      title: "Audiência Processo 1234567",
-      client: "Maria Santos",
-      date: "2024-01-26",
-      priority: "alta",
-      status: "agendada",
+      id: 2,
+      acao: "Processo atualizado",
+      usuario: "Dra. Maria Santos",
+      tempo: "15 min atrás",
+      tipo: "processo",
     },
     {
-      id: "3",
-      title: "Análise de documentos GED",
-      client: "Empresa XYZ",
-      date: "2024-01-27",
-      priority: "media",
-      status: "em_andamento",
+      id: 3,
+      acao: "Documento enviado",
+      usuario: "Dr. Pedro Costa",
+      tempo: "1h atrás",
+      tipo: "documento",
     },
     {
-      id: "4",
-      title: "Preparar petição inicial",
-      client: "Carlos Oliveira",
-      date: "2024-01-28",
-      priority: "alta",
-      status: "pendente",
+      id: 4,
+      acao: "Reunião agendada",
+      usuario: "Secretária Ana",
+      tempo: "2h atrás",
+      tipo: "agenda",
     },
   ];
 
-  // Atividades recentes
-  const recentActivities: Activity[] = [
+  const proximosEventos = [
     {
-      id: "1",
-      type: "client",
-      title: "Novo cliente cadastrado: João Silva",
-      description: "",
-      time: "2h",
-      icon: <User className="w-4 h-4" />,
+      id: 1,
+      titulo: "Audiência - Caso Silva vs ABC",
+      data: "Hoje, 14:00",
+      local: "1ª Vara Cível",
+      tipo: "audiencia",
     },
     {
-      id: "2",
-      type: "process",
-      title: "Processo atualizado: 1234567-89.2024",
-      description: "",
-      time: "4h",
-      icon: <Scale className="w-4 h-4" />,
+      id: 2,
+      titulo: "Reunião com cliente XYZ",
+      data: "Amanhã, 10:00",
+      local: "Escritório",
+      tipo: "reuniao",
     },
     {
-      id: "3",
-      type: "task",
-      title: "Tarefa concluída: Análise de contrato",
-      description: "",
-      time: "6h",
-      icon: <CheckSquare className="w-4 h-4" />,
+      id: 3,
+      titulo: "Prazo para recurso",
+      data: "23/12/2024",
+      local: "TRF 3ª Região",
+      tipo: "prazo",
     },
     {
-      id: "4",
-      type: "document",
-      title: "Documento adicionado ao GED",
-      description: "",
-      time: "1d",
-      icon: <FolderOpen className="w-4 h-4" />,
+      id: 4,
+      titulo: "Vencimento de contrato",
+      data: "25/12/2024",
+      local: "Cliente ABC Corp",
+      tipo: "vencimento",
     },
   ];
 
-  // Próximos eventos
-  const upcomingEvents: Event[] = [
-    {
-      id: "1",
-      title: "Reunião com João Silva",
-      date: "25/01",
-      time: "14:00",
-      type: "reuniao",
-    },
-    {
-      id: "2",
-      title: "Audiência Processo 1234567",
-      date: "26/01",
-      time: "10:30",
-      type: "audiencia",
-    },
-    {
-      id: "3",
-      title: "Prazo para recurso",
-      date: "27/01",
-      time: "23:59",
-      type: "prazo",
-    },
-  ];
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
+  const getPrioridadeColor = (prioridade: string) => {
+    switch (prioridade) {
       case "alta":
         return "bg-red-100 text-red-800";
       case "media":
@@ -221,222 +143,236 @@ export const PainelControle: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pendente":
-        return "bg-orange-100 text-orange-800";
-      case "agendada":
-        return "bg-green-100 text-green-800";
-      case "em_andamento":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getEventTypeColor = (type: string) => {
-    switch (type) {
-      case "reuniao":
-        return "bg-blue-100 text-blue-800";
+  const getTipoIcon = (tipo: string) => {
+    switch (tipo) {
+      case "cliente":
+        return <Users className="w-4 h-4" />;
+      case "processo":
+        return <Scale className="w-4 h-4" />;
+      case "documento":
+        return <FileText className="w-4 h-4" />;
+      case "agenda":
+        return <Calendar className="w-4 h-4" />;
       case "audiencia":
-        return "bg-red-100 text-red-800";
+        return <Scale className="w-4 h-4 text-blue-600" />;
+      case "reuniao":
+        return <MessageCircle className="w-4 h-4 text-green-600" />;
       case "prazo":
-        return "bg-orange-100 text-orange-800";
+        return <AlertCircle className="w-4 h-4 text-orange-600" />;
+      case "vencimento":
+        return <Clock className="w-4 h-4 text-red-600" />;
       default:
-        return "bg-gray-100 text-gray-800";
+        return <FileText className="w-4 h-4" />;
     }
   };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header com botões */}
+    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-gray-900">
             Painel de Controle
           </h1>
-          <p className="text-gray-600">
-            Visão geral das atividades do escritório
+          <p className="text-gray-600 mt-1">
+            Visão geral do seu escritório jurídico
           </p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" className="gap-2">
-            <Calendar className="w-4 h-4" />
-            Agenda
-          </Button>
-          <Button className="gap-2">
-            <Users className="w-4 h-4" />
-            CRM
-          </Button>
+        <div className="text-sm text-gray-500">
+          Última atualização: {new Date().toLocaleString("pt-BR")}
         </div>
       </div>
 
-      {/* Cards de Métricas */}
+      {/* Métricas Principais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {metrics.map((metric, index) => (
-          <motion.div
-            key={metric.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      {metric.title}
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {metric.value}
-                    </p>
-                  </div>
-                  <div
-                    className={cn(
-                      "p-2 rounded-lg bg-blue-50",
-                      metric.iconColor,
-                    )}
-                  >
-                    {metric.icon}
-                  </div>
-                </div>
+        {/* Clientes */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Clientes</p>
+              <p className="text-3xl font-bold text-gray-900">
+                {metricas.clientes.toLocaleString()}
+              </p>
+              <div className="flex items-center mt-2">
+                <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                <span className="text-sm text-green-600">+12% este mês</span>
+              </div>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Users className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </Card>
 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span
-                      className={cn(
-                        "font-medium",
-                        metric.changeType === "positive"
-                          ? "text-green-600"
-                          : "text-red-600",
-                      )}
-                    >
-                      {metric.change}
-                    </span>
-                    <span className="text-gray-500">{metric.progress}%</span>
-                  </div>
-                  <Progress
-                    value={metric.progress}
-                    className="h-2"
-                    max={metric.progress > 100 ? metric.progress : 100}
-                  />
-                  <p className="text-xs text-gray-500">{metric.meta}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+        {/* Processos */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Processos</p>
+              <p className="text-3xl font-bold text-gray-900">
+                {metricas.processos.toLocaleString()}
+              </p>
+              <div className="flex items-center mt-2">
+                <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                <span className="text-sm text-green-600">+8% este mês</span>
+              </div>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <Scale className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
+        </Card>
+
+        {/* Receita */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Receita</p>
+              <p className="text-3xl font-bold text-gray-900">
+                R$ {(metricas.receita / 1000).toFixed(0)}k
+              </p>
+              <div className="flex items-center mt-2">
+                <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                <span className="text-sm text-green-600">+15% este mês</span>
+              </div>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+        </Card>
+
+        {/* Tarefas */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Tarefas</p>
+              <p className="text-3xl font-bold text-gray-900">
+                {metricas.tarefas}
+              </p>
+              <div className="flex items-center mt-2">
+                <AlertCircle className="w-4 h-4 text-orange-600 mr-1" />
+                <span className="text-sm text-orange-600">
+                  {Math.floor(metricas.tarefas * 0.3)} urgentes
+                </span>
+              </div>
+            </div>
+            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+              <CheckSquare className="w-6 h-6 text-orange-600" />
+            </div>
+          </div>
+        </Card>
       </div>
 
-      {/* Seções Inferiores */}
+      {/* Seção Principal - Três Colunas */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Tarefas Recentes */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-semibold">
+        <Card className="p-6">
+          <CardHeader className="p-0 pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <CheckSquare className="w-5 h-5 text-orange-600" />
               Tarefas Recentes
             </CardTitle>
-            <Button variant="ghost" size="sm">
-              <Eye className="w-4 h-4" />
-            </Button>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {recentTasks.map((task) => (
-              <div
-                key={task.id}
-                className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer group"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 truncate">
-                    {task.title}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {task.client} • {task.date}
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    <Badge
-                      variant="secondary"
-                      className={cn("text-xs", getPriorityColor(task.priority))}
-                    >
-                      {task.priority}
-                    </Badge>
-                    <Badge
-                      variant="secondary"
-                      className={cn("text-xs", getStatusColor(task.status))}
-                    >
-                      {task.status}
+          <CardContent className="p-0">
+            <div className="space-y-4">
+              {tarefasRecentes.map((tarefa) => (
+                <div
+                  key={tarefa.id}
+                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-medium text-gray-900 text-sm">
+                      {tarefa.titulo}
+                    </h4>
+                    <Badge className={getPrioridadeColor(tarefa.prioridade)}>
+                      {tarefa.prioridade}
                     </Badge>
                   </div>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Cliente: {tarefa.cliente}
+                  </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-gray-500">
+                      Prazo: {tarefa.prazo}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {tarefa.progresso}%
+                    </span>
+                  </div>
+                  <Progress value={tarefa.progresso} className="h-2" />
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
-              </div>
-            ))}
+              ))}
+            </div>
           </CardContent>
         </Card>
 
         {/* Atividades Recentes */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">
+        <Card className="p-6">
+          <CardHeader className="p-0 pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-blue-600" />
               Atividades Recentes
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {recentActivities.map((activity) => (
-              <div key={activity.id} className="flex items-start gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg">{activity.icon}</div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">
-                    {activity.title}
-                  </p>
-                  <p className="text-xs text-gray-500">{activity.time}</p>
+          <CardContent className="p-0">
+            <div className="space-y-4">
+              {atividades.map((atividade) => (
+                <div
+                  key={atividade.id}
+                  className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg"
+                >
+                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    {getTipoIcon(atividade.tipo)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">
+                      {atividade.acao}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      por {atividade.usuario}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {atividade.tempo}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </CardContent>
         </Card>
 
         {/* Próximos Eventos */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-semibold">
+        <Card className="p-6">
+          <CardHeader className="p-0 pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-green-600" />
               Próximos Eventos
             </CardTitle>
-            <Button variant="ghost" size="sm">
-              <Plus className="w-4 h-4" />
-            </Button>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {upcomingEvents.map((event) => (
-              <div
-                key={event.id}
-                className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900">{event.title}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-sm text-gray-500">
-                      {event.date} às {event.time}
-                    </span>
+          <CardContent className="p-0">
+            <div className="space-y-4">
+              {proximosEventos.map((evento) => (
+                <div
+                  key={evento.id}
+                  className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg"
+                >
+                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    {getTipoIcon(evento.tipo)}
                   </div>
-                  <Badge
-                    variant="secondary"
-                    className={cn(
-                      "text-xs mt-2",
-                      getEventTypeColor(event.type),
-                    )}
-                  >
-                    {event.type}
-                  </Badge>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">
+                      {evento.titulo}
+                    </p>
+                    <p className="text-sm text-gray-600">{evento.data}</p>
+                    <p className="text-xs text-gray-500 mt-1">{evento.local}</p>
+                  </div>
                 </div>
-                <Clock className="w-4 h-4 text-gray-400" />
-              </div>
-            ))}
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
     </div>
   );
-};
-
-export default PainelControle;
+}

@@ -1,11 +1,7 @@
 import React, { Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeInitializer } from "@/components/ThemeInitializer";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 // Layout principal otimizado
 import OptimizedTraditionalLayout from "@/components/Layout/OptimizedTraditionalLayout";
@@ -29,20 +25,18 @@ const createLazyPage = (
   const LazyComponent = React.lazy(importFn);
 
   return React.forwardRef<any, any>((props, ref) => (
-    <ErrorBoundary>
-      <Suspense
-        fallback={
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Carregando {pageName}...</p>
-            </div>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Carregando {pageName}...</p>
           </div>
-        }
-      >
-        <LazyComponent {...props} ref={ref} />
-      </Suspense>
-    </ErrorBoundary>
+        </div>
+      }
+    >
+      <LazyComponent {...props} ref={ref} />
+    </Suspense>
   ));
 };
 
@@ -92,31 +86,6 @@ const BetaDashboard = createLazyPage(
   "Beta Dashboard",
 );
 
-const AIEnhancedPage = createLazyPage(
-  () => import("./pages/AIEnhanced"),
-  "IA Avançada",
-);
-
-const TestDashboardPage = createLazyPage(
-  () => import("./pages/TestDashboard"),
-  "Dashboard de Testes",
-);
-
-const MobileDashboardPage = createLazyPage(
-  () => import("./pages/MobileDashboard"),
-  "Dashboard Mobile",
-);
-
-const TicketsPage = createLazyPage(
-  () => import("./pages/Tickets"),
-  "Sistema de Tickets",
-);
-
-const ThemeTestPage = createLazyPage(
-  () => import("./pages/ThemeTestPage"),
-  "Teste de Tema",
-);
-
 const BetaReportsPage = createLazyPage(
   () => import("./pages/Beta/BetaReports"),
   "Relatórios Beta",
@@ -132,7 +101,6 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutos
-      cacheTime: 1000 * 60 * 10, // 10 minutos
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -158,275 +126,195 @@ const PageWrapper: React.FC<{
 
 function App() {
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ThemeInitializer />
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Suspense fallback={<GlobalLoadingFallback />}>
-              <Routes>
-                {/* Layout principal com todas as rotas aninhadas */}
-                <Route path="/" element={<OptimizedTraditionalLayout />}>
-                  {/* Home redirect */}
-                  <Route index element={<Navigate to="/painel" replace />} />
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <BrowserRouter>
+          <Suspense fallback={<GlobalLoadingFallback />}>
+            <Routes>
+              {/* Layout principal com todas as rotas aninhadas */}
+              <Route path="/" element={<OptimizedTraditionalLayout />}>
+                {/* Home redirect */}
+                <Route index element={<Navigate to="/painel" replace />} />
 
-                  {/* Painel de Controle */}
+                {/* Painel de Controle */}
+                <Route
+                  path="painel"
+                  element={
+                    <PageWrapper title="Painel de Controle">
+                      <PainelControle />
+                    </PageWrapper>
+                  }
+                />
+
+                {/* CRM Jurídico - Rotas unificadas */}
+                <Route path="crm-modern/*">
                   <Route
-                    path="painel"
+                    index
                     element={
-                      <PageWrapper title="Painel de Controle">
-                        <PainelControle />
+                      <PageWrapper title="CRM Jurídico">
+                        <ModernCRMHub />
                       </PageWrapper>
                     }
                   />
-
-                  {/* CRM Jurídico - Rotas unificadas */}
-                  <Route path="crm-modern/*">
-                    <Route
-                      index
-                      element={
-                        <PageWrapper title="CRM Jurídico">
-                          <ModernCRMHub />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="clientes"
-                      element={
-                        <PageWrapper title="Clientes">
-                          <ModernCRMHub defaultModule="clientes" />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="processos"
-                      element={
-                        <PageWrapper title="Processos">
-                          <ModernCRMHub defaultModule="processos" />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="tarefas"
-                      element={
-                        <PageWrapper title="Tarefas">
-                          <ModernCRMHub defaultModule="tarefas" />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="contratos"
-                      element={
-                        <PageWrapper title="Contratos">
-                          <ModernCRMHub defaultModule="contratos" />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="financeiro"
-                      element={
-                        <PageWrapper title="Financeiro">
-                          <ModernCRMHub defaultModule="financeiro" />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="documentos"
-                      element={
-                        <PageWrapper title="Documentos">
-                          <ModernCRMHub defaultModule="documentos" />
-                        </PageWrapper>
-                      }
-                    />
-                  </Route>
-
-                  {/* Outras páginas principais */}
                   <Route
-                    path="agenda"
+                    path="clientes"
                     element={
-                      <PageWrapper title="Agenda">
-                        <AgendaPage />
+                      <PageWrapper title="Clientes">
+                        <ModernCRMHub defaultModule="clientes" />
                       </PageWrapper>
                     }
                   />
-
                   <Route
-                    path="publicacoes"
+                    path="processos"
                     element={
-                      <PageWrapper title="Publicações">
-                        <PublicacoesPage />
+                      <PageWrapper title="Processos">
+                        <ModernCRMHub defaultModule="processos" />
                       </PageWrapper>
                     }
                   />
-
-                  <Route
-                    path="atendimento"
-                    element={
-                      <PageWrapper title="Atendimento">
-                        <AtendimentoPage />
-                      </PageWrapper>
-                    }
-                  />
-
-                  <Route
-                    path="financeiro"
-                    element={
-                      <PageWrapper title="Financeiro">
-                        <FinanceiroPage />
-                      </PageWrapper>
-                    }
-                  />
-
-                  <Route
-                    path="contratos"
-                    element={
-                      <PageWrapper title="Contratos">
-                        <ContratosPage />
-                      </PageWrapper>
-                    }
-                  />
-
                   <Route
                     path="tarefas"
                     element={
                       <PageWrapper title="Tarefas">
-                        <TarefasPage />
+                        <ModernCRMHub defaultModule="tarefas" />
                       </PageWrapper>
                     }
                   />
-
                   <Route
-                    path="tempo"
+                    path="contratos"
                     element={
-                      <PageWrapper title="Controle de Tempo">
-                        <TarefasPage />
+                      <PageWrapper title="Contratos">
+                        <ModernCRMHub defaultModule="contratos" />
                       </PageWrapper>
                     }
                   />
-
                   <Route
-                    path="configuracoes-usuario"
+                    path="financeiro"
                     element={
-                      <PageWrapper title="Configurações">
-                        <ConfiguracoesPage />
+                      <PageWrapper title="Financeiro">
+                        <ModernCRMHub defaultModule="financeiro" />
                       </PageWrapper>
                     }
                   />
-
-                  {/* Seção Beta - Páginas Órfãs (Admin Only) */}
-                  <Route path="beta/*">
-                    <Route
-                      index
-                      element={
-                        <PageWrapper title="Beta - Páginas Órfãs">
-                          <BetaDashboard />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="aienhanced"
-                      element={
-                        <PageWrapper title="Beta - IA Avançada">
-                          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg mb-4">
-                            <div className="flex items-center gap-2 text-purple-800">
-                              <span className="text-sm font-medium">
-                                🧪 Página Beta: Não conectada ao menu principal
-                              </span>
-                            </div>
-                          </div>
-                          <AIEnhancedPage />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="testdashboard"
-                      element={
-                        <PageWrapper title="Beta - Dashboard de Testes">
-                          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg mb-4">
-                            <div className="flex items-center gap-2 text-purple-800">
-                              <span className="text-sm font-medium">
-                                🧪 Página Beta: Não conectada ao menu principal
-                              </span>
-                            </div>
-                          </div>
-                          <TestDashboardPage />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="mobiledashboard"
-                      element={
-                        <PageWrapper title="Beta - Dashboard Mobile">
-                          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg mb-4">
-                            <div className="flex items-center gap-2 text-purple-800">
-                              <span className="text-sm font-medium">
-                                🧪 Página Beta: Não conectada ao menu principal
-                              </span>
-                            </div>
-                          </div>
-                          <MobileDashboardPage />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="tickets"
-                      element={
-                        <PageWrapper title="Beta - Sistema de Tickets">
-                          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg mb-4">
-                            <div className="flex items-center gap-2 text-purple-800">
-                              <span className="text-sm font-medium">
-                                🧪 Página Beta: Não conectada ao menu principal
-                              </span>
-                            </div>
-                          </div>
-                          <TicketsPage />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="themetest"
-                      element={
-                        <PageWrapper title="Beta - Teste de Tema">
-                          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg mb-4">
-                            <div className="flex items-center gap-2 text-purple-800">
-                              <span className="text-sm font-medium">
-                                🧪 Página Beta: Não conectada ao menu principal
-                              </span>
-                            </div>
-                          </div>
-                          <ThemeTestPage />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="reports"
-                      element={
-                        <PageWrapper title="Beta - Relatórios">
-                          <BetaReportsPage />
-                        </PageWrapper>
-                      }
-                    />
-                    <Route
-                      path="optimization"
-                      element={
-                        <PageWrapper title="Beta - Higienização de Código">
-                          <CodeOptimizationPage />
-                        </PageWrapper>
-                      }
-                    />
-                  </Route>
+                  <Route
+                    path="documentos"
+                    element={
+                      <PageWrapper title="Documentos">
+                        <ModernCRMHub defaultModule="documentos" />
+                      </PageWrapper>
+                    }
+                  />
                 </Route>
 
-                {/* Fallback para rotas não encontradas */}
-                <Route path="*" element={<Navigate to="/painel" replace />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+                {/* Outras páginas principais */}
+                <Route
+                  path="agenda"
+                  element={
+                    <PageWrapper title="Agenda">
+                      <AgendaPage />
+                    </PageWrapper>
+                  }
+                />
+
+                <Route
+                  path="publicacoes"
+                  element={
+                    <PageWrapper title="Publicações">
+                      <PublicacoesPage />
+                    </PageWrapper>
+                  }
+                />
+
+                <Route
+                  path="atendimento"
+                  element={
+                    <PageWrapper title="Atendimento">
+                      <AtendimentoPage />
+                    </PageWrapper>
+                  }
+                />
+
+                <Route
+                  path="financeiro"
+                  element={
+                    <PageWrapper title="Financeiro">
+                      <FinanceiroPage />
+                    </PageWrapper>
+                  }
+                />
+
+                <Route
+                  path="contratos"
+                  element={
+                    <PageWrapper title="Contratos">
+                      <ContratosPage />
+                    </PageWrapper>
+                  }
+                />
+
+                <Route
+                  path="tarefas"
+                  element={
+                    <PageWrapper title="Tarefas">
+                      <TarefasPage />
+                    </PageWrapper>
+                  }
+                />
+
+                <Route
+                  path="tempo"
+                  element={
+                    <PageWrapper title="Controle de Tempo">
+                      <TarefasPage />
+                    </PageWrapper>
+                  }
+                />
+
+                <Route
+                  path="configuracoes-usuario"
+                  element={
+                    <PageWrapper title="Configurações">
+                      <ConfiguracoesPage />
+                    </PageWrapper>
+                  }
+                />
+
+                {/* Seção Beta - Páginas Órfãs (Admin Only) */}
+                <Route path="beta/*">
+                  <Route
+                    index
+                    element={
+                      <PageWrapper title="Beta - Páginas Órfãs">
+                        <BetaDashboard />
+                      </PageWrapper>
+                    }
+                  />
+                  <Route
+                    path="reports"
+                    element={
+                      <PageWrapper title="Beta - Relatórios">
+                        <BetaReportsPage />
+                      </PageWrapper>
+                    }
+                  />
+                  <Route
+                    path="optimization"
+                    element={
+                      <PageWrapper title="Beta - Higienização de Código">
+                        <CodeOptimizationPage />
+                      </PageWrapper>
+                    }
+                  />
+                </Route>
+              </Route>
+
+              {/* Fallback para rotas não encontradas */}
+              <Route path="*" element={<Navigate to="/painel" replace />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 
