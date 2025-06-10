@@ -193,4 +193,5 @@ export const crmJuridicoRoutes = {
   },
 };
 
+export { CRMJuridicoRoutes };
 export default CRMJuridicoRoutes;
