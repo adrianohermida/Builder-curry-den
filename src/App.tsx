@@ -46,7 +46,7 @@ const createLazyPage = (
   ));
 };
 
-// Páginas principais com lazy loading
+// ===== PÁGINAS PRINCIPAIS =====
 // Storage Management
 const StorageManagement = createLazyPage(
   () => import("@/pages/Storage"),
@@ -97,6 +97,9 @@ const ConfiguracoesPage = createLazyPage(
   "Configurações",
 );
 
+// ===== PÁGINAS PÚBLICAS =====
+const LoginPage = createLazyPage(() => import("./pages/Login"), "Login");
+
 // Onboarding Pages
 const OnboardingPage = createLazyPage(
   () => import("./pages/Onboarding"),
@@ -108,13 +111,10 @@ const OnboardingLandingPage = createLazyPage(
   "Bem-vindo ao Lawdesk",
 );
 
-// CRM Error Boundary
-import CRMErrorBoundary from "./components/CRM/CRMErrorBoundary";
-
-// Páginas Gerenciais
+// ===== PÁGINAS ADMINISTRATIVAS =====
 const TarefasGerencialPage = createLazyPage(
   () => import("./pages/TarefasGerencial"),
-  "Tarefas Gerencial",
+  "Gestão de Tarefas",
 );
 
 const UsersGerencialPage = createLazyPage(
@@ -127,10 +127,102 @@ const MetricsGerencialPage = createLazyPage(
   "Métricas Gerenciais",
 );
 
+const FinanceiroGerencialPage = createLazyPage(
+  () => import("./pages/FinanceiroGerencial"),
+  "Financeiro Gerencial",
+);
+
+const DashboardExecutivoPage = createLazyPage(
+  () => import("./pages/DashboardExecutivo"),
+  "Dashboard Executivo",
+);
+
+const SystemHealthPage = createLazyPage(
+  () => import("./pages/SystemHealth"),
+  "Saúde do Sistema",
+);
+
+const UpdatePage = createLazyPage(
+  () => import("./pages/Update"),
+  "Atualizações",
+);
+
+// ===== PÁGINAS DE MÓDULOS =====
+const AIPage = createLazyPage(() => import("./pages/AI"), "IA Jurídica");
+
+const ActionPlanPage = createLazyPage(
+  () => import("./pages/ActionPlan"),
+  "Plano de Ação",
+);
+
+const GEDPage = createLazyPage(
+  () => import("./pages/GEDJuridico"),
+  "GED Jurídico",
+);
+
+const GEDOrganizacionalPage = createLazyPage(
+  () => import("./pages/GEDOrganizacional"),
+  "GED Organizacional",
+);
+
+const TicketsPage = createLazyPage(() => import("./pages/Tickets"), "Tickets");
+
+const PortalClientePage = createLazyPage(
+  () => import("./pages/PortalCliente"),
+  "Portal do Cliente",
+);
+
+const ConfiguracoesPrazosPage = createLazyPage(
+  () => import("./pages/ConfiguracoesPrazosPage"),
+  "Configurações de Prazos",
+);
+
+// ===== PÁGINAS BETA/EXPERIMENTAL =====
+const BetaDashboardPage = createLazyPage(
+  () => import("./pages/Beta/BetaDashboard"),
+  "Beta Dashboard",
+);
+
+const BetaReportsPage = createLazyPage(
+  () => import("./pages/Beta/BetaReports"),
+  "Beta Reports",
+);
+
 const CodeOptimizationPage = createLazyPage(
   () => import("./pages/Beta/CodeOptimization"),
   "Code Optimization",
 );
+
+const TestDashboardPage = createLazyPage(
+  () => import("./pages/TestDashboard"),
+  "Test Dashboard",
+);
+
+const PublicacoesExamplePage = createLazyPage(
+  () => import("./pages/PublicacoesExample"),
+  "Publicações Example",
+);
+
+const CompleteResponsiveDashboardPage = createLazyPage(
+  () => import("./pages/CompleteResponsiveDashboard"),
+  "Complete Responsive Dashboard",
+);
+
+const ThemeTestPage = createLazyPage(
+  () => import("./pages/ThemeTestPage"),
+  "Theme Test",
+);
+
+const LaunchPage = createLazyPage(() => import("./pages/Launch"), "Launch");
+
+// ===== PÁGINAS DE ERRO =====
+const EnhancedNotFoundPage = createLazyPage(
+  () => import("./pages/EnhancedNotFound"),
+  "Página Não Encontrada",
+);
+
+// CRM Error Boundary
+import CRMErrorBoundary from "./components/CRM/CRMErrorBoundary";
 
 // Wrapper para páginas com título
 const PageWrapper: React.FC<{
@@ -138,7 +230,7 @@ const PageWrapper: React.FC<{
   children: React.ReactNode;
 }> = ({ title, children }) => {
   React.useEffect(() => {
-    document.title = title;
+    document.title = `${title} - Lawdesk CRM`;
   }, [title]);
 
   return <>{children}</>;
@@ -165,7 +257,7 @@ function App() {
           <BrowserRouter>
             <Suspense fallback={<GlobalLoadingFallback />}>
               <Routes>
-                {/* Public Routes */}
+                {/* ===== ROTAS PÚBLICAS ===== */}
                 <Route
                   path="/login"
                   element={<PublicLayout variant="centered" />}
@@ -173,9 +265,9 @@ function App() {
                   <Route
                     index
                     element={
-                      <div className="p-8 text-center">
-                        Login Page - Em construção
-                      </div>
+                      <PageWrapper title="Login">
+                        <LoginPage />
+                      </PageWrapper>
                     }
                   />
                 </Route>
@@ -187,9 +279,12 @@ function App() {
                   <Route
                     index
                     element={
-                      <div className="p-8 text-center">
-                        Registro Page - Em construção
-                      </div>
+                      <PageWrapper title="Registro">
+                        <div className="p-8 text-center">
+                          <h1 className="text-2xl font-bold mb-4">Registro</h1>
+                          <p>Página de registro - Em construção</p>
+                        </div>
+                      </PageWrapper>
                     }
                   />
                 </Route>
@@ -198,15 +293,22 @@ function App() {
                   path="/onboarding-start"
                   element={<PublicLayout variant="default" />}
                 >
-                  <Route index element={<OnboardingLandingPage />} />
+                  <Route
+                    index
+                    element={
+                      <PageWrapper title="Bem-vindo">
+                        <OnboardingLandingPage />
+                      </PageWrapper>
+                    }
+                  />
                 </Route>
 
-                {/* Private Routes with Main Layout */}
+                {/* ===== ROTAS PRIVADAS (MAIN LAYOUT) ===== */}
                 <Route path="/" element={<MainLayout />}>
                   {/* Home redirect */}
                   <Route index element={<Navigate to="/painel" replace />} />
 
-                  {/* Painel de Controle */}
+                  {/* ===== PÁGINAS PRINCIPAIS ===== */}
                   <Route
                     path="painel"
                     element={
@@ -228,7 +330,7 @@ function App() {
                     }
                   />
 
-                  {/* Publicações */}
+                  {/* ===== MÓDULOS PRINCIPAIS ===== */}
                   <Route
                     path="publicacoes"
                     element={
@@ -238,7 +340,6 @@ function App() {
                     }
                   />
 
-                  {/* Agenda */}
                   <Route
                     path="agenda"
                     element={
@@ -248,7 +349,6 @@ function App() {
                     }
                   />
 
-                  {/* Atendimento */}
                   <Route
                     path="atendimento"
                     element={
@@ -258,7 +358,6 @@ function App() {
                     }
                   />
 
-                  {/* Financeiro */}
                   <Route
                     path="financeiro"
                     element={
@@ -268,7 +367,6 @@ function App() {
                     }
                   />
 
-                  {/* Contratos */}
                   <Route
                     path="contratos"
                     element={
@@ -278,7 +376,6 @@ function App() {
                     }
                   />
 
-                  {/* Tarefas */}
                   <Route
                     path="tarefas"
                     element={
@@ -288,7 +385,53 @@ function App() {
                     }
                   />
 
-                  {/* Configurações */}
+                  <Route
+                    path="tickets"
+                    element={
+                      <PageWrapper title="Tickets">
+                        <TicketsPage />
+                      </PageWrapper>
+                    }
+                  />
+
+                  {/* ===== MÓDULOS ESPECIALIZADOS ===== */}
+                  <Route
+                    path="ia"
+                    element={
+                      <PageWrapper title="IA Jurídica">
+                        <AIPage />
+                      </PageWrapper>
+                    }
+                  />
+
+                  <Route
+                    path="ged"
+                    element={
+                      <PageWrapper title="GED Jurídico">
+                        <GEDPage />
+                      </PageWrapper>
+                    }
+                  />
+
+                  <Route
+                    path="ged/organizacional"
+                    element={
+                      <PageWrapper title="GED Organizacional">
+                        <GEDOrganizacionalPage />
+                      </PageWrapper>
+                    }
+                  />
+
+                  <Route
+                    path="portal-cliente"
+                    element={
+                      <PageWrapper title="Portal do Cliente">
+                        <PortalClientePage />
+                      </PageWrapper>
+                    }
+                  />
+
+                  {/* ===== CONFIGURAÇÕES ===== */}
                   <Route
                     path="configuracoes"
                     element={
@@ -298,7 +441,15 @@ function App() {
                     }
                   />
 
-                  {/* Storage Management */}
+                  <Route
+                    path="configuracoes/prazos"
+                    element={
+                      <PageWrapper title="Configurações de Prazos">
+                        <ConfiguracoesPrazosPage />
+                      </PageWrapper>
+                    }
+                  />
+
                   <Route
                     path="configuracao-armazenamento"
                     element={
@@ -308,7 +459,6 @@ function App() {
                     }
                   />
 
-                  {/* Storage Test Page */}
                   <Route
                     path="teste-configuracao-storage"
                     element={
@@ -318,7 +468,35 @@ function App() {
                     }
                   />
 
-                  {/* Gestão/Admin Routes */}
+                  {/* ===== ROTAS ADMINISTRATIVAS ===== */}
+                  <Route path="admin">
+                    <Route
+                      path="action-plan"
+                      element={
+                        <PageWrapper title="Plano de Ação">
+                          <ActionPlanPage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="system-health"
+                      element={
+                        <PageWrapper title="Saúde do Sistema">
+                          <SystemHealthPage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="updates"
+                      element={
+                        <PageWrapper title="Atualizações">
+                          <UpdatePage />
+                        </PageWrapper>
+                      }
+                    />
+                  </Route>
+
+                  {/* ===== ROTAS GERENCIAIS ===== */}
                   <Route path="gestao">
                     <Route
                       path="tarefas"
@@ -345,10 +523,98 @@ function App() {
                       }
                     />
                     <Route
+                      path="financeiro"
+                      element={
+                        <PageWrapper title="Financeiro Gerencial">
+                          <FinanceiroGerencialPage />
+                        </PageWrapper>
+                      }
+                    />
+                  </Route>
+
+                  {/* ===== ROTAS EXECUTIVAS ===== */}
+                  <Route path="executivo">
+                    <Route
+                      path="dashboard"
+                      element={
+                        <PageWrapper title="Dashboard Executivo">
+                          <DashboardExecutivoPage />
+                        </PageWrapper>
+                      }
+                    />
+                  </Route>
+
+                  {/* ===== ROTAS BETA/EXPERIMENTAL ===== */}
+                  <Route path="beta">
+                    <Route
+                      index
+                      element={
+                        <PageWrapper title="Beta Dashboard">
+                          <BetaDashboardPage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="dashboard"
+                      element={
+                        <PageWrapper title="Beta Dashboard">
+                          <BetaDashboardPage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="reports"
+                      element={
+                        <PageWrapper title="Beta Reports">
+                          <BetaReportsPage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
                       path="code-optimization"
                       element={
                         <PageWrapper title="Code Optimization">
                           <CodeOptimizationPage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="test-dashboard"
+                      element={
+                        <PageWrapper title="Test Dashboard">
+                          <TestDashboardPage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="publicacoes-example"
+                      element={
+                        <PageWrapper title="Publicações Example">
+                          <PublicacoesExamplePage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="responsive-dashboard"
+                      element={
+                        <PageWrapper title="Responsive Dashboard">
+                          <CompleteResponsiveDashboardPage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="theme-test"
+                      element={
+                        <PageWrapper title="Theme Test">
+                          <ThemeTestPage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="launch"
+                      element={
+                        <PageWrapper title="Launch">
+                          <LaunchPage />
                         </PageWrapper>
                       }
                     />
@@ -364,11 +630,21 @@ function App() {
                     }
                   />
 
+                  {/* 404 - Página não encontrada */}
+                  <Route
+                    path="404"
+                    element={
+                      <PageWrapper title="Página Não Encontrada">
+                        <EnhancedNotFoundPage />
+                      </PageWrapper>
+                    }
+                  />
+
                   {/* Fallback para rotas não encontradas */}
-                  <Route path="*" element={<Navigate to="/painel" replace />} />
+                  <Route path="*" element={<Navigate to="/404" replace />} />
                 </Route>
 
-                {/* SaaS Routes with Enhanced Layout */}
+                {/* ===== ROTAS SAAS (LAYOUT ADMINISTRATIVO) ===== */}
                 <Route path="/saas" element={<LawdeskLayoutSaaS />}>
                   <Route
                     index
@@ -419,6 +695,9 @@ function App() {
                     }
                   />
                 </Route>
+
+                {/* Fallback global para rotas completamente não encontradas */}
+                <Route path="*" element={<Navigate to="/404" replace />} />
               </Routes>
             </Suspense>
           </BrowserRouter>
