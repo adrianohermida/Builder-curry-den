@@ -156,11 +156,13 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
   const [notifications, setNotifications] = useState(NOTIFICATIONS);
 
   // Theme Management
-  const updateThemeConfig = useCallback((updates: Partial<ThemeConfig>) => {
-    const newConfig = { ...themeConfig, ...updates };
-    setThemeConfig(newConfig);
-    applyThemeConfig(newConfig);
-  }, [themeConfig, setThemeConfig]);
+  const updateThemeConfig = useCallback(
+    (updates: Partial<ThemeConfig>) => {
+      const newConfig = { ...themeConfig, ...updates };
+      setThemeConfig(newConfig);
+      applyThemeConfig(newConfig);
+    },
+    [themeConfig, setThemeConfig],
   );
 
   const applyTheme = useCallback(
