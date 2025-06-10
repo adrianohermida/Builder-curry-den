@@ -70,8 +70,13 @@ const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({ className = "" }) => {
     >
       <div className="px-4">
         <div className="flex items-center justify-between h-14">
-          {/* Left Section - Menu and Title */}
-          <div className="flex items-center space-x-4">
+          {/* Left Section - Logo, Menu and Title */}
+          <div className="flex items-center space-x-3">
+            {/* Logo */}
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">L</span>
+            </div>
+
             {/* Menu Hamburger */}
             <Button
               variant="ghost"
