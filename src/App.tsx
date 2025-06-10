@@ -99,63 +99,49 @@ import CRMErrorBoundary from "./components/CRM/CRMErrorBoundary";
 // Páginas Gerenciais
 const TarefasGerencialPage = createLazyPage(
   () => import("./pages/TarefasGerencial"),
-  "Tarefas Gerenciais",
+  "Tarefas Gerencial",
 );
 
-const GEDOrganizacionalPage = createLazyPage(
-  () => import("./pages/GEDOrganizacional"),
-  "GED Organizacional",
+const UsersGerencialPage = createLazyPage(
+  () => import("./pages/UsersGerencial"),
+  "Gestão de Usuários",
 );
 
-const FinanceiroGerencialPage = createLazyPage(
-  () => import("./pages/FinanceiroGerencial"),
-  "Financeiro Gerencial",
-);
-
-// Páginas Beta (órfãs)
-const BetaDashboard = createLazyPage(
-  () => import("./pages/Beta/BetaDashboard"),
-  "Beta Dashboard",
-);
-
-const BetaReportsPage = createLazyPage(
-  () => import("./pages/Beta/BetaReports"),
-  "Relatórios Beta",
+const MetricsGerencialPage = createLazyPage(
+  () => import("./pages/MetricsGerencial"),
+  "Métricas Gerenciais",
 );
 
 const CodeOptimizationPage = createLazyPage(
-  () => import("./pages/Beta/CodeOptimization"),
-  "Higienização de Código",
+  () => import("./pages/CodeOptimization"),
+  "Code Optimization",
 );
 
-// Configuração do QueryClient otimizada
+// Wrapper para páginas com título
+const PageWrapper: React.FC<{
+  title: string;
+  children: React.ReactNode;
+}> = ({ title, children }) => {
+  React.useEffect(() => {
+    document.title = title;
+  }, [title]);
+
+  return <>{children}</>;
+};
+
+// Query Client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutos
-      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes
       refetchOnWindowFocus: false,
-    },
-    mutations: {
-      retry: 0,
+      retry: 1,
     },
   },
 });
 
-// Wrapper para páginas com tratamento de erro
-const PageWrapper: React.FC<{
-  children: React.ReactNode;
-  title?: string;
-}> = ({ children, title }) => {
-  React.useEffect(() => {
-    if (title) {
-      document.title = `${title} - Lawdesk CRM`;
-    }
-  }, [title]);
-
-  return <div className="w-full h-full overflow-auto fade-in">{children}</div>;
-};
-
+// ===== MAIN APP COMPONENT =====
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -163,15 +149,39 @@ function App() {
         <BrowserRouter>
           <Suspense fallback={<GlobalLoadingFallback />}>
             <Routes>
-              {/* Ultimate Optimized Layout - Single unified system */}
               {/* Public Routes */}
-              <Route path="/login" element={<PublicLayout variant="centered" />}>
-                <Route index element={<div>Login Page</div>} />
+              <Route
+                path="/login"
+                element={<PublicLayout variant="centered" />}
+              >
+                <Route
+                  index
+                  element={
+                    <div className="p-8 text-center">
+                      Login Page - Em construção
+                    </div>
+                  }
+                />
               </Route>
-              <Route path="/registro" element={<PublicLayout variant="centered" />}>
-                <Route index element={<div>Registro Page</div>} />
+
+              <Route
+                path="/registro"
+                element={<PublicLayout variant="centered" />}
+              >
+                <Route
+                  index
+                  element={
+                    <div className="p-8 text-center">
+                      Registro Page - Em construção
+                    </div>
+                  }
+                />
               </Route>
-              <Route path="/onboarding-start" element={<PublicLayout variant="default" />}>
+
+              <Route
+                path="/onboarding-start"
+                element={<PublicLayout variant="default" />}
+              >
                 <Route index element={<OnboardingLandingPage />} />
               </Route>
 
@@ -195,95 +205,16 @@ function App() {
                   <Route
                     index
                     element={
-                      <PageWrapper title="CRM Jurídico">
+                      <PageWrapper title="CRM Jur��dico">
                         <CRMErrorBoundary>
                           <CRMUnificado />
                         </CRMErrorBoundary>
                       </PageWrapper>
                     }
                   />
-                  <Route
-                    path="clientes"
-                    element={
-                      <PageWrapper title="Clientes">
-                        <CRMErrorBoundary>
-                          <CRMUnificado defaultModule="clientes" />
-                        </CRMErrorBoundary>
-                      </PageWrapper>
-                    }
-                  />
-                  <Route
-                    path="processos"
-                    element={
-                      <PageWrapper title="Processos">
-                        <CRMErrorBoundary>
-                          <CRMUnificado defaultModule="processos" />
-                        </CRMErrorBoundary>
-                      </PageWrapper>
-                    }
-                  />
-                  <Route
-                    path="tarefas"
-                    element={
-                      <PageWrapper title="Tarefas">
-                        <CRMErrorBoundary>
-                          <CRMUnificado defaultModule="tarefas" />
-                        </CRMErrorBoundary>
-                      </PageWrapper>
-                    }
-                  />
-                  <Route
-                    path="contratos"
-                    element={
-                      <PageWrapper title="Contratos">
-                        <CRMErrorBoundary>
-                          <CRMUnificado defaultModule="contratos" />
-                        </CRMErrorBoundary>
-                      </PageWrapper>
-                    }
-                  />
-                  <Route
-                    path="financeiro"
-                    element={
-                      <PageWrapper title="Financeiro">
-                        <CRMErrorBoundary>
-                          <CRMUnificado defaultModule="financeiro" />
-                        </CRMErrorBoundary>
-                      </PageWrapper>
-                    }
-                  />
-                  <Route
-                    path="documentos"
-                    element={
-                      <PageWrapper title="Documentos">
-                        <CRMErrorBoundary>
-                          <CRMUnificado defaultModule="documentos" />
-                        </CRMErrorBoundary>
-                      </PageWrapper>
-                    }
-                  />
-                  <Route
-                    path="publicacoes"
-                    element={
-                      <PageWrapper title="Publicações">
-                        <CRMErrorBoundary>
-                          <CRMUnificado defaultModule="publicacoes" />
-                        </CRMErrorBoundary>
-                      </PageWrapper>
-                    }
-                  />
                 </Route>
 
-                {/* Outras páginas principais */}
-                <Route
-                  path="agenda"
-                  element={
-                    <PageWrapper title="Agenda">
-                      <AgendaPage />
-                    </PageWrapper>
-                  }
-                />
-
+                {/* Publicações */}
                 <Route
                   path="publicacoes"
                   element={
@@ -293,6 +224,17 @@ function App() {
                   }
                 />
 
+                {/* Agenda */}
+                <Route
+                  path="agenda"
+                  element={
+                    <PageWrapper title="Agenda">
+                      <AgendaPage />
+                    </PageWrapper>
+                  }
+                />
+
+                {/* Atendimento */}
                 <Route
                   path="atendimento"
                   element={
@@ -302,6 +244,7 @@ function App() {
                   }
                 />
 
+                {/* Financeiro */}
                 <Route
                   path="financeiro"
                   element={
@@ -311,6 +254,7 @@ function App() {
                   }
                 />
 
+                {/* Contratos */}
                 <Route
                   path="contratos"
                   element={
@@ -320,6 +264,7 @@ function App() {
                   }
                 />
 
+                {/* Tarefas */}
                 <Route
                   path="tarefas"
                   element={
@@ -329,17 +274,9 @@ function App() {
                   }
                 />
 
+                {/* Configurações */}
                 <Route
-                  path="tempo"
-                  element={
-                    <PageWrapper title="Controle de Tempo">
-                      <TarefasPage />
-                    </PageWrapper>
-                  }
-                />
-
-                <Route
-                  path="configuracoes-usuario"
+                  path="configuracoes"
                   element={
                     <PageWrapper title="Configurações">
                       <ConfiguracoesPage />
@@ -347,80 +284,51 @@ function App() {
                   }
                 />
 
-                {/* Páginas Gerenciais */}
-                <Route
-                  path="tarefas-gerencial"
-                  element={
-                    <PageWrapper title="Tarefas Gerenciais">
-                      <TarefasGerencialPage />
-                    </PageWrapper>
-                  }
-                />
-
-                <Route
-                  path="ged-organizacional"
-                  element={
-                    <PageWrapper title="GED Organizacional">
-                      <GEDOrganizacionalPage />
-                    </PageWrapper>
-                  }
-                />
-
-                <Route
-                  path="financeiro-gerencial"
-                  element={
-                    <PageWrapper title="Financeiro Gerencial">
-                      <FinanceiroGerencialPage />
-                    </PageWrapper>
-                  }
-                />
-
-                {/* Seção Beta - Páginas Órfãs (Admin Only) */}
-                <Route path="beta/*">
+                {/* Gestão/Admin Routes */}
+                <Route path="gestao">
                   <Route
-                    index
+                    path="tarefas"
                     element={
-                      <PageWrapper title="Beta - Páginas Órfãs">
-                        <BetaDashboard />
+                      <PageWrapper title="Gestão de Tarefas">
+                        <TarefasGerencialPage />
                       </PageWrapper>
                     }
                   />
                   <Route
-                    path="reports"
+                    path="usuarios"
                     element={
-                      <PageWrapper title="Beta - Relatórios">
-                        <BetaReportsPage />
+                      <PageWrapper title="Gestão de Usuários">
+                        <UsersGerencialPage />
                       </PageWrapper>
                     }
                   />
                   <Route
-                    path="optimization"
+                    path="metricas"
                     element={
-                      <PageWrapper title="Beta - Higienização de Código">
+                      <PageWrapper title="Métricas Gerenciais">
+                        <MetricsGerencialPage />
+                      </PageWrapper>
+                    }
+                  />
+                  <Route
+                    path="code-optimization"
+                    element={
+                      <PageWrapper title="Code Optimization">
                         <CodeOptimizationPage />
                       </PageWrapper>
                     }
                   />
                 </Route>
-              </Route>
 
-              {/* Onboarding Routes - Outside main layout for clean experience */}
-              <Route
-                path="/onboarding-start"
-                element={
-                  <PageWrapper title="Bem-vindo ao Lawdesk">
-                    <OnboardingLandingPage />
-                  </PageWrapper>
-                }
-              />
-              <Route
-                path="onboarding"
-                element={
-                  <PageWrapper title="Configuração Inicial">
-                    <OnboardingPage />
-                  </PageWrapper>
-                }
-              />
+                {/* Onboarding Routes - Inside main layout for authenticated users */}
+                <Route
+                  path="onboarding"
+                  element={
+                    <PageWrapper title="Configuração Inicial">
+                      <OnboardingPage />
+                    </PageWrapper>
+                  }
+                />
 
                 {/* Fallback para rotas não encontradas */}
                 <Route path="*" element={<Navigate to="/painel" replace />} />
@@ -428,14 +336,58 @@ function App() {
 
               {/* SaaS Routes with Enhanced Layout */}
               <Route path="/saas" element={<LawdeskLayoutSaaS />}>
-                <Route index element={<Navigate to="/saas/dashboard" replace />} />
-                <Route path="dashboard" element={<PainelControle />} />
-                <Route path="crm/*" element={<CRMUnificado />} />
-                <Route path="analytics" element={<div>SaaS Analytics</div>} />
-                <Route path="billing" element={<div>SaaS Billing</div>} />
+                <Route
+                  index
+                  element={<Navigate to="/saas/dashboard" replace />}
+                />
+                <Route
+                  path="dashboard"
+                  element={
+                    <PageWrapper title="SaaS Dashboard">
+                      <PainelControle />
+                    </PageWrapper>
+                  }
+                />
+                <Route
+                  path="crm/*"
+                  element={
+                    <PageWrapper title="SaaS CRM">
+                      <CRMErrorBoundary>
+                        <CRMUnificado />
+                      </CRMErrorBoundary>
+                    </PageWrapper>
+                  }
+                />
+                <Route
+                  path="analytics"
+                  element={
+                    <PageWrapper title="SaaS Analytics">
+                      <div className="p-8">
+                        <h1 className="text-2xl font-bold mb-4">
+                          SaaS Analytics
+                        </h1>
+                        <p>Advanced analytics dashboard para planos SaaS</p>
+                      </div>
+                    </PageWrapper>
+                  }
+                />
+                <Route
+                  path="billing"
+                  element={
+                    <PageWrapper title="SaaS Billing">
+                      <div className="p-8">
+                        <h1 className="text-2xl font-bold mb-4">
+                          SaaS Billing
+                        </h1>
+                        <p>Gerenciamento de faturamento e planos SaaS</p>
+                      </div>
+                    </PageWrapper>
+                  }
+                />
               </Route>
             </Routes>
-          </BrowserRouter>
+          </Suspense>
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );
