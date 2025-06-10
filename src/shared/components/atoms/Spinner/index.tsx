@@ -66,3 +66,6 @@ Spinner.displayName = "Spinner";
 
 export { Spinner, spinnerVariants };
 export type { SpinnerProps };
+
+// Alias for backward compatibility
+export { Spinner as LoadingSpinner };
