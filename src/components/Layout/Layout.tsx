@@ -96,7 +96,7 @@ export function Layout() {
       {isMobile && <MobileNav />}
 
       {/* Development Tools */}
-      {process.env.NODE_ENV === "development" && <ResponsiveInspector />}
+      {IS_DEVELOPMENT && <ResponsiveInspector />}
 
       {/* Bottom padding for mobile navigation */}
       {isMobile && <div className="h-16 lg:h-0" />}

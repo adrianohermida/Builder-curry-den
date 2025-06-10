@@ -5,7 +5,8 @@
  * Apenas disponível em modo desenvolvimento
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { IS_DEVELOPMENT } from "@/lib/env";
 import {
   Monitor,
   Smartphone,
@@ -162,7 +163,7 @@ const TAILWIND_BREAKPOINTS = {
 };
 
 export const ResponsiveInspector: React.FC<ResponsiveInspectorProps> = ({
-  enabled = process.env.NODE_ENV === "development",
+  enabled = IS_DEVELOPMENT,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [currentViewport, setCurrentViewport] = useState<ViewportSize | null>(
