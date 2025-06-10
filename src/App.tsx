@@ -16,7 +16,7 @@ import { ViewModeProvider } from "@/contexts/ViewModeContext";
 import { PermissionsProvider } from "@/contexts/PermissionsContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuditProvider } from "@/contexts/AuditContext";
-import { ModernLayoutV2 } from "@/components/Layout/ModernLayoutV2";
+import { LawdeskOriginalLayout } from "@/components/Layout/LawdeskOriginalLayout";
 import { ThemeInitializer } from "@/components/ThemeInitializer";
 import { StorageProvider } from "@/hooks/useStorageConfig";
 import { RegrasProcessuaisProvider } from "@/contexts/RegrasProcessuaisContext";
@@ -397,7 +397,7 @@ const App: React.FC = () => {
                         />
 
                         {/* Main Application Routes with ModernLayoutV2 */}
-                        <Route path="/" element={<ModernLayoutV2 />}>
+                        <Route path="/" element={<LawdeskOriginalLayout />}>
                           <Route
                             path="index"
                             element={
