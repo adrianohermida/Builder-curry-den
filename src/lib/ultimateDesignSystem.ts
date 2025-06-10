@@ -468,42 +468,18 @@ export const colorViolationDetector = {
     return violations;
   },
 
-  // Fix violations by applying theme colors
+  // Fix violations by applying theme colors (DISABLED to prevent CSS-in-JS)
   fixViolations: (theme: ThemeConfig) => {
     const violations = colorViolationDetector.scanForViolations();
-    const properties = generateCSSCustomProperties(theme);
 
-    violations.forEach((element) => {
-      const computedStyle = window.getComputedStyle(element);
+    // Log violations for debugging in development
+    if (process.env.NODE_ENV === "development" && violations.length > 0) {
+      console.warn(
+        `🎨 Color violations detected: ${violations.length} elements. Consider using TailwindCSS classes instead.`,
+      );
+    }
 
-      // Replace background colors
-      if (
-        colorViolationDetector.forbiddenColors.some((forbidden) =>
-          computedStyle.backgroundColor.includes(forbidden),
-        )
-      ) {
-        element.style.backgroundColor = properties["--surface-secondary"];
-      }
-
-      // Replace text colors
-      if (
-        colorViolationDetector.forbiddenColors.some((forbidden) =>
-          computedStyle.color.includes(forbidden),
-        )
-      ) {
-        element.style.color = properties["--text-primary"];
-      }
-
-      // Replace border colors
-      if (
-        colorViolationDetector.forbiddenColors.some((forbidden) =>
-          computedStyle.borderColor.includes(forbidden),
-        )
-      ) {
-        element.style.borderColor = properties["--border-primary"];
-      }
-    });
-
+    // Return violation count without applying inline styles
     return violations.length;
   },
 
