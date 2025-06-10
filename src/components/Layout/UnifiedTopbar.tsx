@@ -160,7 +160,7 @@ const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({ className = "" }) => {
                           Novo andamento no processo 1234567
                         </p>
                         <p className="text-xs text-gray-400 mt-1">
-                          15 min atr��s
+                          15 min atrás
                         </p>
                       </div>
                     </div>
@@ -199,16 +199,50 @@ const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({ className = "" }) => {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-56">
                 <div className="p-2 border-b">
-                  <p className="text-sm font-medium">Usuário Admin</p>
-                  <p className="text-xs text-gray-500">admin@lawdesk.com</p>
+                  <p className="text-sm font-medium">
+                    {isAdminMode() ? "Usuário Admin" : "Usuário Cliente"}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {isAdminMode()
+                      ? "admin@lawdesk.com"
+                      : "cliente@lawdesk.com"}
+                  </p>
+                  <div className="mt-1">
+                    <Badge
+                      variant="outline"
+                      className="text-xs"
+                      style={{
+                        borderColor: colors.primary,
+                        color: colors.primary,
+                      }}
+                    >
+                      {isAdminMode() ? "Modo Admin" : "Modo Cliente"}
+                    </Badge>
+                  </div>
                 </div>
                 <DropdownMenuItem>Perfil</DropdownMenuItem>
-                <DropdownMenuItem>Configurações</DropdownMenuItem>
-                <DropdownMenuItem>
-                  <span className="text-blue-600">Modo Cliente</span>
+                <DropdownMenuItem onClick={toggleTheme}>
+                  Tema: {themeConfig.themeMode === "light" ? "Claro" : "Escuro"}
                 </DropdownMenuItem>
+                <DropdownMenuItem>Configurações</DropdownMenuItem>
+                {isAdminMode() && (
+                  <DropdownMenuItem
+                    onClick={switchToClientView}
+                    style={{ color: "#3b82f6" }}
+                  >
+                    🔄 Visualizar como Cliente
+                  </DropdownMenuItem>
+                )}
+                {!isAdminMode() && (
+                  <DropdownMenuItem
+                    onClick={switchToAdminView}
+                    style={{ color: "#dc2626" }}
+                  >
+                    🔄 Voltar ao Modo Admin
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem className="text-red-600">
                   Sair
                 </DropdownMenuItem>
