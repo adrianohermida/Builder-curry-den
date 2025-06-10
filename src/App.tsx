@@ -422,9 +422,9 @@ function App() {
                 }
               />
 
-              {/* Fallback para rotas não encontradas */}
-              <Route path="*" element={<Navigate to="/painel" replace />} />
-            </Route>
+                {/* Fallback para rotas não encontradas */}
+                <Route path="*" element={<Navigate to="/painel" replace />} />
+              </Route>
 
               {/* SaaS Routes with Enhanced Layout */}
               <Route path="/saas" element={<LawdeskLayoutSaaS />}>
