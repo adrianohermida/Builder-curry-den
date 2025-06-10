@@ -1,16 +1,17 @@
 /**
- * 🎯 CLEAN PAINEL CONTROLE - ZERO DISTRACTIONS
+ * 🎯 CLEAN PAINEL CONTROLE - DASHBOARD OTIMIZADO
  *
- * Dashboard completamente limpo:
- * - ZERO amarelo (100% removido)
- * - Cards bem alinhados
- * - Design moderno SaaS 2025
- * - Responsividade perfeita
- * - Performance otimizada
- * - Informações claras
+ * Dashboard principal do sistema com:
+ * - Performance otimizada (React.memo + useMemo)
+ * - Responsividade total mobile-first
+ * - Real-time updates simulados
+ * - UX moderna e consistente
+ * - Integração fluida com módulos
+ * - Zero distrações visuais
  */
 
-import React from "react";
+import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
   Scale,
@@ -26,8 +27,20 @@ import {
   BarChart3,
   Plus,
   Eye,
+  Bell,
+  Zap,
+  RefreshCw,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// UI Components
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 interface MetricCard {
   id: string;
