@@ -52,6 +52,11 @@ const StorageManagement = createLazyPage(
   "Gestão de Armazenamento",
 );
 
+const TesteConfiguracaoStorage = createLazyPage(
+  () => import("@/pages/TesteConfiguracaoStorage"),
+  "Teste de Configuração de Storage",
+);
+
 const PainelControle = createLazyPage(
   () => import("./pages/CleanPainelControle"),
   "Painel de Controle",
@@ -297,6 +302,16 @@ function App() {
                   element={
                     <PageWrapper title="Gestão de Armazenamento">
                       <StorageManagement />
+                    </PageWrapper>
+                  }
+                />
+
+                {/* Storage Test Page */}
+                <Route
+                  path="teste-configuracao-storage"
+                  element={
+                    <PageWrapper title="Teste de Configuração de Storage">
+                      <TesteConfiguracaoStorage />
                     </PageWrapper>
                   }
                 />
