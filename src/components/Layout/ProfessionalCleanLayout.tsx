@@ -37,6 +37,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import { usePermissions } from "@/hooks/usePermissions";
+import GlobalNotificationsWidget from "@/components/Feed/GlobalNotificationsWidget";
 import { cn } from "@/lib/utils";
 
 // Types
