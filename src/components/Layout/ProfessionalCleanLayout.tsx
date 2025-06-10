@@ -60,7 +60,7 @@ const ProfessionalCleanLayout: React.FC<{ children: React.ReactNode }> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedItems, setExpandedItems] = useState<string[]>(["crm"]);
 
-  // Navigation structure - MUITO SIMPLIFICADO
+  // Navigation structure - COMPLETA COM FEED E INTEGRAÇÕES
   const navigationItems: NavigationItem[] = [
     {
       id: "dashboard",
@@ -68,6 +68,13 @@ const ProfessionalCleanLayout: React.FC<{ children: React.ReactNode }> = ({
       icon: Home,
       path: "/painel",
       isActive: location.pathname === "/painel",
+    },
+    {
+      id: "feed",
+      label: "Feed",
+      icon: Rss,
+      path: "/feed",
+      isActive: location.pathname.startsWith("/feed"),
     },
     {
       id: "crm",
@@ -85,7 +92,7 @@ const ProfessionalCleanLayout: React.FC<{ children: React.ReactNode }> = ({
         },
         {
           id: "processes",
-          label: "Processos",
+          label: "Casos e Processos",
           icon: Scale,
           path: "/crm/processos",
           isActive: location.pathname.startsWith("/crm/processos"),
@@ -97,14 +104,35 @@ const ProfessionalCleanLayout: React.FC<{ children: React.ReactNode }> = ({
           path: "/crm/contratos",
           isActive: location.pathname.startsWith("/crm/contratos"),
         },
+        {
+          id: "tasks",
+          label: "Tarefas",
+          icon: Target,
+          path: "/crm/tarefas",
+          isActive: location.pathname.startsWith("/crm/tarefas"),
+        },
       ],
     },
     {
       id: "calendar",
-      label: "Agenda",
+      label: "Calendário",
       icon: Calendar,
       path: "/agenda",
       isActive: location.pathname.startsWith("/agenda"),
+    },
+    {
+      id: "communication",
+      label: "Comunicação",
+      icon: MessageCircle,
+      path: "/comunicacao",
+      isActive: location.pathname.startsWith("/comunicacao"),
+    },
+    {
+      id: "documents",
+      label: "Documentos",
+      icon: FolderOpen,
+      path: "/ged",
+      isActive: location.pathname.startsWith("/ged"),
     },
     {
       id: "reports",
