@@ -119,7 +119,7 @@ export const ModernLayout: React.FC<ModernLayoutProps> = ({ children }) => {
               </div>
               <span className="font-semibold text-gray-900">Lawdesk</span>
             </div>
-            <div className="w-8" /> {/* Spacer for centering */}
+            <div className="w-8"></div>
           </div>
         )}
 
