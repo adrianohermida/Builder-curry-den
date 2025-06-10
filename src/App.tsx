@@ -46,8 +46,8 @@ const PainelControle = createLazyPage(
   "Painel de Controle",
 );
 
-const ModernCRMHub = createLazyPage(
-  () => import("./pages/CRM/ModernCRMHubV2"),
+const CRMUnificado = createLazyPage(
+  () => import("./pages/CRM/CRMUnificado"),
   "CRM Jurídico",
 );
 
@@ -173,13 +173,13 @@ function App() {
                   }
                 />
 
-                {/* CRM Jurídico - Rotas unificadas */}
+                {/* CRM Jurídico - Sistema Unificado */}
                 <Route path="crm-modern/*">
                   <Route
                     index
                     element={
                       <PageWrapper title="CRM Jurídico">
-                        <ModernCRMHub />
+                        <CRMUnificado />
                       </PageWrapper>
                     }
                   />
@@ -187,7 +187,7 @@ function App() {
                     path="clientes"
                     element={
                       <PageWrapper title="Clientes">
-                        <ModernCRMHub defaultModule="clientes" />
+                        <CRMUnificado defaultModule="clientes" />
                       </PageWrapper>
                     }
                   />
@@ -195,7 +195,7 @@ function App() {
                     path="processos"
                     element={
                       <PageWrapper title="Processos">
-                        <ModernCRMHub defaultModule="processos" />
+                        <CRMUnificado defaultModule="processos" />
                       </PageWrapper>
                     }
                   />
@@ -203,7 +203,7 @@ function App() {
                     path="tarefas"
                     element={
                       <PageWrapper title="Tarefas">
-                        <ModernCRMHub defaultModule="tarefas" />
+                        <CRMUnificado defaultModule="tarefas" />
                       </PageWrapper>
                     }
                   />
@@ -211,7 +211,7 @@ function App() {
                     path="contratos"
                     element={
                       <PageWrapper title="Contratos">
-                        <ModernCRMHub defaultModule="contratos" />
+                        <CRMUnificado defaultModule="contratos" />
                       </PageWrapper>
                     }
                   />
@@ -219,7 +219,7 @@ function App() {
                     path="financeiro"
                     element={
                       <PageWrapper title="Financeiro">
-                        <ModernCRMHub defaultModule="financeiro" />
+                        <CRMUnificado defaultModule="financeiro" />
                       </PageWrapper>
                     }
                   />
@@ -227,7 +227,15 @@ function App() {
                     path="documentos"
                     element={
                       <PageWrapper title="Documentos">
-                        <ModernCRMHub defaultModule="documentos" />
+                        <CRMUnificado defaultModule="documentos" />
+                      </PageWrapper>
+                    }
+                  />
+                  <Route
+                    path="publicacoes"
+                    element={
+                      <PageWrapper title="Publicações">
+                        <CRMUnificado defaultModule="publicacoes" />
                       </PageWrapper>
                     }
                   />
