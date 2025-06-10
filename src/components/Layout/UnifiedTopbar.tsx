@@ -109,7 +109,7 @@ const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={toggleSidebar}
+              onClick={onToggleSidebar}
               className="h-8 w-8 p-0 hover:bg-gray-100 ml-4"
             >
               <Menu size={18} className="text-gray-600" />
