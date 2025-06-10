@@ -132,6 +132,44 @@ export const componentOptimization = {
       return result;
     }) as T;
   },
+
+  // Measure component render time
+  measureRenderTime: (
+    componentName: string,
+    callback?: () => void,
+  ): (() => void) => {
+    const startTime = performance.now();
+
+    // Schedule measurement after render
+    const measurementTimer = setTimeout(() => {
+      const endTime = performance.now();
+      const renderTime = endTime - startTime;
+
+      // Log performance metrics in development
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          `🚀 ${componentName} render time: ${renderTime.toFixed(2)}ms`,
+        );
+
+        // Warn if render time is high
+        if (renderTime > 100) {
+          console.warn(
+            `⚠️ ${componentName} slow render detected: ${renderTime.toFixed(2)}ms`,
+          );
+        }
+      }
+
+      // Execute callback if provided
+      if (callback) {
+        callback();
+      }
+    }, 0);
+
+    // Return cleanup function
+    return () => {
+      clearTimeout(measurementTimer);
+    };
+  },
 };
 
 // ===== VIRTUAL SCROLLING =====
