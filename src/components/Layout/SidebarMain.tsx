@@ -105,6 +105,12 @@ const NAVIGATION_SECTIONS: NavigationSection[] = [
             path: "/crm-modern?module=contatos",
           },
           {
+            id: "crm-clientes",
+            label: "Clientes",
+            icon: Users,
+            path: "/crm-modern?module=clientes",
+          },
+          {
             id: "crm-negocios",
             label: "Negócios",
             icon: Briefcase,

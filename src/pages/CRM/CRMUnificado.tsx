@@ -53,6 +53,7 @@ import { useCRMUnificado } from "@/hooks/useCRMUnificado";
 
 // Lazy-loaded subcomponents for performance
 const ContatosCard = lazy(() => import("@/components/CRM/ContatosCard"));
+const ClientesModule = lazy(() => import("@/pages/CRM/Clientes"));
 const NegociosCard = lazy(() => import("@/components/CRM/NegociosCard"));
 const ProcessosTimeline = lazy(
   () => import("@/components/CRM/ProcessosTimeline"),
@@ -70,6 +71,7 @@ const DocumentosGallery = lazy(
 export type CRMModule =
   | "dashboard"
   | "contatos"
+  | "clientes"
   | "negocios"
   | "processos"
   | "contratos"
@@ -108,12 +110,22 @@ const MODULE_CONFIG: ModuleConfig[] = [
     enabled: true,
   },
   {
+    id: "clientes",
+    title: "Clientes",
+    description: "Gestão de clientes e relacionamentos",
+    icon: Users,
+    component: ClientesModule,
+    shortcut: "2",
+    color: "var(--primary-600)",
+    enabled: true,
+  },
+  {
     id: "negocios",
     title: "Negócios",
     description: "Pipeline de negócios e oportunidades",
     icon: Briefcase,
     component: NegociosCard,
-    shortcut: "2",
+    shortcut: "3",
     color: "var(--color-success)",
     enabled: true,
   },
@@ -123,7 +135,7 @@ const MODULE_CONFIG: ModuleConfig[] = [
     description: "Acompanhamento processual",
     icon: Scale,
     component: ProcessosTimeline,
-    shortcut: "3",
+    shortcut: "4",
     color: "var(--color-info)",
     enabled: true,
   },
@@ -133,7 +145,7 @@ const MODULE_CONFIG: ModuleConfig[] = [
     description: "Gestão de contratos e documentos",
     icon: FileSignature,
     component: ContratosGrid,
-    shortcut: "4",
+    shortcut: "5",
     color: "var(--color-warning)",
     enabled: true,
   },
@@ -143,7 +155,7 @@ const MODULE_CONFIG: ModuleConfig[] = [
     description: "Organização e produtividade",
     icon: CheckSquare,
     component: TarefasKanban,
-    shortcut: "5",
+    shortcut: "6",
     color: "var(--text-accent)",
     enabled: true,
   },
@@ -153,7 +165,7 @@ const MODULE_CONFIG: ModuleConfig[] = [
     description: "Controle financeiro e faturamento",
     icon: DollarSign,
     component: FinanceiroMetrics,
-    shortcut: "6",
+    shortcut: "7",
     color: "var(--color-success)",
     enabled: true,
   },
@@ -163,7 +175,7 @@ const MODULE_CONFIG: ModuleConfig[] = [
     description: "GED e biblioteca de documentos",
     icon: FolderOpen,
     component: DocumentosGallery,
-    shortcut: "7",
+    shortcut: "8",
     color: "var(--text-secondary)",
     enabled: true,
   },
