@@ -34,6 +34,9 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 // Environment utilities
 import { IS_DEVELOPMENT } from "@/lib/env";
 
+// Theme system
+import { useTheme } from "@/lib/themeSystem";
+
 // ===== TYPES =====
 interface LayoutState {
   sidebarOpen: boolean;
