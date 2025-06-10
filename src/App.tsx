@@ -517,6 +517,12 @@ const App: React.FC = () => {
                             }
                           />
 
+                          {/* Redirect legacy GED route to CRM GED */}
+                          <Route
+                            path="ged-juridico"
+                            element={<Navigate to="/crm/ged" replace />}
+                          />
+
                           {/* Test Routes */}
                           <Route
                             path="teste-agenda"
