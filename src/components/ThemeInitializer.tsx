@@ -91,7 +91,7 @@ const ThemeInitializer: React.FC<ThemeInitializerProps> = ({ children }) => {
 
       /* Responsividade aprimorada */
       @media (max-width: 767px) {
-        [data-sidebar] {
+        [data-sidebar="true"] {
           width: 100% !important;
           max-width: 280px !important;
         }
