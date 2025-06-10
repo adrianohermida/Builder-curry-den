@@ -4,12 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { UserProvider } from "@/contexts/UserContext";
-import { PermissionProvider } from "@/contexts/PermissionContext";
-import { ViewModeProvider } from "@/contexts/ViewModeContext";
 import { ThemeInitializer } from "@/components/ThemeInitializer";
-import { SafeRoute } from "@/components/SafeRoute";
-import { PageWrapper } from "@/components/PageWrapper";
 import { TraditionalLayout } from "@/components/Layout/TraditionalLayout";
 
 // Lazy loading function
@@ -34,73 +29,41 @@ const createLazyComponent = (
   ));
 };
 
-// Lazy components
-const Login = createLazyComponent(() => import("./pages/Login"), "Login");
-const Dashboard = createLazyComponent(
-  () => import("./pages/Dashboard"),
-  "Dashboard",
-);
+// Lazy components - apenas os que existem
 const PainelControle = createLazyComponent(
   () => import("./pages/PainelControle"),
   "Painel de Controle",
 );
-const ModernCRMHub = createLazyComponent(
-  () => import("./pages/CRM/ModernCRMHub"),
-  "CRM Moderno",
+const Dashboard = createLazyComponent(
+  () => import("./pages/Dashboard"),
+  "Dashboard",
 );
 const ModernCRMHubV2 = createLazyComponent(
   () => import("./pages/CRM/ModernCRMHubV2"),
   "CRM Moderno V2",
 );
-const CRMJuridicoV3 = createLazyComponent(
-  () => import("./pages/CRM/CRMJuridicoV3"),
-  "CRM Jurídico V3",
-);
-const UserSettingsHub = createLazyComponent(
-  () => import("./pages/Configuracoes/UserSettingsHub"),
-  "Configurações de Usuário",
-);
+const Agenda = createLazyComponent(() => import("./pages/Agenda"), "Agenda");
 const Configuracoes = createLazyComponent(
   () => import("./pages/Configuracoes"),
   "Configurações",
 );
-const GEDJuridicoV2 = createLazyComponent(
-  () => import("./pages/GED/GEDJuridicoV2"),
-  "GED Jurídico V2",
+const Atendimento = createLazyComponent(
+  () => import("./pages/AtendimentoEnhanced"),
+  "Atendimento",
 );
-const TarefasV2 = createLazyComponent(
-  () => import("./pages/Tarefas/TarefasV2"),
-  "Tarefas V2",
-);
-const FinanceiroSaaS = createLazyComponent(
-  () => import("./pages/Financeiro/FinanceiroSaaS"),
-  "Financeiro SaaS",
-);
-const CRMSaaS = createLazyComponent(
-  () => import("./pages/CRM/CRMSaaS"),
-  "CRM SaaS",
-);
-const ContratosV2 = createLazyComponent(
-  () => import("./pages/Contratos/ContratosV2"),
-  "Contratos V2",
-);
-const AtendimentoV2 = createLazyComponent(
-  () => import("./pages/Atendimento/AtendimentoV2"),
-  "Atendimento V2",
-);
-const Agenda = createLazyComponent(() => import("./pages/Agenda"), "Agenda");
 const Publicacoes = createLazyComponent(
   () => import("./pages/Publicacoes"),
   "Publicações",
 );
-const Atendimento = createLazyComponent(
-  () => import("./pages/Atendimento"),
-  "Atendimento",
+const Financeiro = createLazyComponent(
+  () => import("./pages/Financeiro"),
+  "Financeiro",
 );
-const ConfiguracoesV2 = createLazyComponent(
-  () => import("./pages/Configuracoes/ConfiguracoesV2"),
-  "Configurações V2",
+const Contratos = createLazyComponent(
+  () => import("./pages/Contratos"),
+  "Contratos",
 );
+const Tarefas = createLazyComponent(() => import("./pages/Tarefas"), "Tarefas");
 
 // Create query client
 const queryClient = new QueryClient({
@@ -112,399 +75,256 @@ const queryClient = new QueryClient({
   },
 });
 
+// Safe route wrapper
+const SafeRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
+  return <div className="w-full h-full">{element}</div>;
+};
+
+// Page wrapper
+const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return <div className="w-full h-full overflow-auto">{children}</div>;
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <UserProvider>
-        <PermissionProvider>
-          <ViewModeProvider>
-            <ThemeInitializer />
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  {/* Login Route */}
-                  <Route
-                    path="/login"
+      <ThemeInitializer />
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Main Application Routes with Traditional Layout */}
+            <Route path="/" element={<TraditionalLayout />}>
+              <Route index element={<Navigate to="/painel" replace />} />
+
+              {/* Painel de Controle */}
+              <Route
+                path="painel"
+                element={
+                  <SafeRoute
                     element={
-                      <SafeRoute
-                        element={
-                          <PageWrapper>
-                            <Login />
-                          </PageWrapper>
-                        }
-                      />
+                      <PageWrapper>
+                        <PainelControle />
+                      </PageWrapper>
                     }
                   />
+                }
+              />
 
-                  {/* Main Application Routes with Traditional Layout */}
-                  <Route path="/" element={<TraditionalLayout />}>
-                    <Route index element={<Navigate to="/painel" replace />} />
+              {/* Dashboard */}
+              <Route
+                path="dashboard"
+                element={
+                  <SafeRoute
+                    element={
+                      <PageWrapper>
+                        <Dashboard />
+                      </PageWrapper>
+                    }
+                  />
+                }
+              />
 
-                    {/* Painel de Controle */}
-                    <Route
-                      path="painel"
+              {/* Modern CRM Routes */}
+              <Route path="crm-modern/*">
+                <Route
+                  index
+                  element={
+                    <SafeRoute
                       element={
-                        <SafeRoute
-                          element={
-                            <PageWrapper>
-                              <PainelControle />
-                            </PageWrapper>
-                          }
-                        />
+                        <PageWrapper>
+                          <ModernCRMHubV2 />
+                        </PageWrapper>
                       }
                     />
-
-                    {/* Dashboard */}
-                    <Route
-                      path="dashboard"
+                  }
+                />
+                <Route
+                  path="clientes"
+                  element={
+                    <SafeRoute
                       element={
-                        <SafeRoute
-                          element={
-                            <PageWrapper>
-                              <Dashboard />
-                            </PageWrapper>
-                          }
-                        />
+                        <PageWrapper>
+                          <ModernCRMHubV2 defaultModule="clientes" />
+                        </PageWrapper>
                       }
                     />
-
-                    {/* Modern CRM Routes */}
-                    <Route path="crm-modern/*">
-                      <Route
-                        index
-                        element={
-                          <SafeRoute
-                            element={
-                              <PageWrapper>
-                                <ModernCRMHubV2 />
-                              </PageWrapper>
-                            }
-                          />
-                        }
-                      />
-                      <Route
-                        path="clientes"
-                        element={
-                          <SafeRoute
-                            element={
-                              <PageWrapper>
-                                <ModernCRMHubV2 defaultModule="clientes" />
-                              </PageWrapper>
-                            }
-                          />
-                        }
-                      />
-                      <Route
-                        path="processos"
-                        element={
-                          <SafeRoute
-                            element={
-                              <PageWrapper>
-                                <ModernCRMHubV2 defaultModule="processos" />
-                              </PageWrapper>
-                            }
-                          />
-                        }
-                      />
-                      <Route
-                        path="tarefas"
-                        element={
-                          <SafeRoute
-                            element={
-                              <PageWrapper>
-                                <ModernCRMHubV2 defaultModule="tarefas" />
-                              </PageWrapper>
-                            }
-                          />
-                        }
-                      />
-                      <Route
-                        path="contratos"
-                        element={
-                          <SafeRoute
-                            element={
-                              <PageWrapper>
-                                <ModernCRMHubV2 defaultModule="contratos" />
-                              </PageWrapper>
-                            }
-                          />
-                        }
-                      />
-                      <Route
-                        path="financeiro"
-                        element={
-                          <SafeRoute
-                            element={
-                              <PageWrapper>
-                                <ModernCRMHubV2 defaultModule="financeiro" />
-                              </PageWrapper>
-                            }
-                          />
-                        }
-                      />
-                      <Route
-                        path="documentos"
-                        element={
-                          <SafeRoute
-                            element={
-                              <PageWrapper>
-                                <ModernCRMHubV2 defaultModule="documentos" />
-                              </PageWrapper>
-                            }
-                          />
-                        }
-                      />
-                    </Route>
-
-                    {/* CRM V3 Routes */}
-                    <Route path="crm-v3/*">
-                      <Route
-                        index
-                        element={
-                          <SafeRoute
-                            element={
-                              <PageWrapper>
-                                <CRMJuridicoV3 />
-                              </PageWrapper>
-                            }
-                          />
-                        }
-                      />
-                      <Route
-                        path="clientes"
-                        element={
-                          <SafeRoute
-                            element={
-                              <PageWrapper>
-                                <CRMJuridicoV3 defaultModule="clientes" />
-                              </PageWrapper>
-                            }
-                          />
-                        }
-                      />
-                      <Route
-                        path="processos"
-                        element={
-                          <SafeRoute
-                            element={
-                              <PageWrapper>
-                                <CRMJuridicoV3 defaultModule="processos" />
-                              </PageWrapper>
-                            }
-                          />
-                        }
-                      />
-                    </Route>
-
-                    {/* Other Application Routes */}
-                    <Route
-                      path="agenda"
+                  }
+                />
+                <Route
+                  path="processos"
+                  element={
+                    <SafeRoute
                       element={
-                        <SafeRoute
-                          element={
-                            <PageWrapper>
-                              <Agenda />
-                            </PageWrapper>
-                          }
-                        />
+                        <PageWrapper>
+                          <ModernCRMHubV2 defaultModule="processos" />
+                        </PageWrapper>
                       }
                     />
-
-                    <Route
-                      path="publicacoes"
+                  }
+                />
+                <Route
+                  path="tarefas"
+                  element={
+                    <SafeRoute
                       element={
-                        <SafeRoute
-                          element={
-                            <PageWrapper>
-                              <Publicacoes />
-                            </PageWrapper>
-                          }
-                        />
+                        <PageWrapper>
+                          <ModernCRMHubV2 defaultModule="tarefas" />
+                        </PageWrapper>
                       }
                     />
-
-                    <Route
-                      path="atendimento"
+                  }
+                />
+                <Route
+                  path="contratos"
+                  element={
+                    <SafeRoute
                       element={
-                        <SafeRoute
-                          element={
-                            <PageWrapper>
-                              <Atendimento />
-                            </PageWrapper>
-                          }
-                        />
+                        <PageWrapper>
+                          <ModernCRMHubV2 defaultModule="contratos" />
+                        </PageWrapper>
                       }
                     />
-
-                    <Route
-                      path="atendimento-v2"
+                  }
+                />
+                <Route
+                  path="financeiro"
+                  element={
+                    <SafeRoute
                       element={
-                        <SafeRoute
-                          element={
-                            <PageWrapper>
-                              <AtendimentoV2 />
-                            </PageWrapper>
-                          }
-                        />
+                        <PageWrapper>
+                          <ModernCRMHubV2 defaultModule="financeiro" />
+                        </PageWrapper>
                       }
                     />
-
-                    <Route
-                      path="configuracoes"
+                  }
+                />
+                <Route
+                  path="documentos"
+                  element={
+                    <SafeRoute
                       element={
-                        <SafeRoute
-                          element={
-                            <PageWrapper>
-                              <Configuracoes />
-                            </PageWrapper>
-                          }
-                        />
+                        <PageWrapper>
+                          <ModernCRMHubV2 defaultModule="documentos" />
+                        </PageWrapper>
                       }
                     />
+                  }
+                />
+              </Route>
 
-                    <Route
-                      path="configuracoes-usuario"
-                      element={
-                        <SafeRoute
-                          element={
-                            <PageWrapper>
-                              <UserSettingsHub />
-                            </PageWrapper>
-                          }
-                        />
-                      }
-                    />
+              {/* Other Application Routes */}
+              <Route
+                path="agenda"
+                element={
+                  <SafeRoute
+                    element={
+                      <PageWrapper>
+                        <Agenda />
+                      </PageWrapper>
+                    }
+                  />
+                }
+              />
 
-                    <Route
-                      path="configuracoes-v2"
-                      element={
-                        <SafeRoute
-                          element={
-                            <PageWrapper>
-                              <ConfiguracoesV2 />
-                            </PageWrapper>
-                          }
-                        />
-                      }
-                    />
+              <Route
+                path="publicacoes"
+                element={
+                  <SafeRoute
+                    element={
+                      <PageWrapper>
+                        <Publicacoes />
+                      </PageWrapper>
+                    }
+                  />
+                }
+              />
 
-                    {/* Settings Routes */}
-                    <Route path="settings/*">
-                      <Route
-                        index
-                        element={
-                          <SafeRoute
-                            element={
-                              <PageWrapper>
-                                <UserSettingsHub />
-                              </PageWrapper>
-                            }
-                          />
-                        }
-                      />
-                      <Route
-                        path="profile"
-                        element={
-                          <SafeRoute
-                            element={
-                              <PageWrapper>
-                                <UserSettingsHub />
-                              </PageWrapper>
-                            }
-                          />
-                        }
-                      />
-                      <Route
-                        path="notifications"
-                        element={
-                          <SafeRoute
-                            element={
-                              <PageWrapper>
-                                <UserSettingsHub />
-                              </PageWrapper>
-                            }
-                          />
-                        }
-                      />
-                    </Route>
+              <Route
+                path="atendimento"
+                element={
+                  <SafeRoute
+                    element={
+                      <PageWrapper>
+                        <Atendimento />
+                      </PageWrapper>
+                    }
+                  />
+                }
+              />
 
-                    {/* Additional Routes */}
-                    <Route
-                      path="ged-juridico-v2"
-                      element={
-                        <SafeRoute
-                          element={
-                            <PageWrapper>
-                              <GEDJuridicoV2 />
-                            </PageWrapper>
-                          }
-                        />
-                      }
-                    />
+              <Route
+                path="financeiro"
+                element={
+                  <SafeRoute
+                    element={
+                      <PageWrapper>
+                        <Financeiro />
+                      </PageWrapper>
+                    }
+                  />
+                }
+              />
 
-                    <Route
-                      path="tarefas-v2"
-                      element={
-                        <SafeRoute
-                          element={
-                            <PageWrapper>
-                              <TarefasV2 />
-                            </PageWrapper>
-                          }
-                        />
-                      }
-                    />
+              <Route
+                path="contratos"
+                element={
+                  <SafeRoute
+                    element={
+                      <PageWrapper>
+                        <Contratos />
+                      </PageWrapper>
+                    }
+                  />
+                }
+              />
 
-                    <Route
-                      path="financeiro-saas"
-                      element={
-                        <SafeRoute
-                          element={
-                            <PageWrapper>
-                              <FinanceiroSaaS />
-                            </PageWrapper>
-                          }
-                        />
-                      }
-                    />
+              <Route
+                path="tarefas"
+                element={
+                  <SafeRoute
+                    element={
+                      <PageWrapper>
+                        <Tarefas />
+                      </PageWrapper>
+                    }
+                  />
+                }
+              />
 
-                    <Route
-                      path="crm-saas"
-                      element={
-                        <SafeRoute
-                          element={
-                            <PageWrapper>
-                              <CRMSaaS />
-                            </PageWrapper>
-                          }
-                        />
-                      }
-                    />
+              <Route
+                path="configuracoes-usuario"
+                element={
+                  <SafeRoute
+                    element={
+                      <PageWrapper>
+                        <Configuracoes />
+                      </PageWrapper>
+                    }
+                  />
+                }
+              />
 
-                    <Route
-                      path="contratos-v2"
-                      element={
-                        <SafeRoute
-                          element={
-                            <PageWrapper>
-                              <ContratosV2 />
-                            </PageWrapper>
-                          }
-                        />
-                      }
-                    />
-                  </Route>
+              <Route
+                path="configuracoes"
+                element={
+                  <SafeRoute
+                    element={
+                      <PageWrapper>
+                        <Configuracoes />
+                      </PageWrapper>
+                    }
+                  />
+                }
+              />
+            </Route>
 
-                  {/* Fallback */}
-                  <Route path="*" element={<Navigate to="/painel" replace />} />
-                </Routes>
-              </BrowserRouter>
-            </TooltipProvider>
-          </ViewModeProvider>
-        </PermissionProvider>
-      </UserProvider>
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/painel" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }
