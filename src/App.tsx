@@ -5,328 +5,284 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeInitializer } from "@/components/ThemeInitializer";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+
+// Layout principal otimizado
 import OptimizedTraditionalLayout from "@/components/Layout/OptimizedTraditionalLayout";
 
-// Lazy loading function
-const createLazyComponent = (
+// Componente de Loading global
+const GlobalLoadingFallback = () => (
+  <div className="flex items-center justify-center h-screen bg-gray-50">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">Lawdesk CRM</h3>
+      <p className="text-gray-600">Carregando sistema...</p>
+    </div>
+  </div>
+);
+
+// Função para criar componentes lazy com fallback personalizado
+const createLazyPage = (
   importFn: () => Promise<{ default: React.ComponentType<any> }>,
-  componentName: string,
+  pageName: string,
 ) => {
   const LazyComponent = React.lazy(importFn);
+
   return React.forwardRef<any, any>((props, ref) => (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Carregando {componentName}...</p>
+    <ErrorBoundary>
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Carregando {pageName}...</p>
+            </div>
           </div>
-        </div>
-      }
-    >
-      <LazyComponent {...props} ref={ref} />
-    </Suspense>
+        }
+      >
+        <LazyComponent {...props} ref={ref} />
+      </Suspense>
+    </ErrorBoundary>
   ));
 };
 
-// Lazy components - apenas os que existem
-const PainelControle = createLazyComponent(
+// Páginas principais com lazy loading
+const PainelControle = createLazyPage(
   () => import("./pages/PainelControle"),
   "Painel de Controle",
 );
-const Dashboard = createLazyComponent(
-  () => import("./pages/Dashboard"),
-  "Dashboard",
-);
-const ModernCRMHubV2 = createLazyComponent(
+
+const ModernCRMHub = createLazyPage(
   () => import("./pages/CRM/ModernCRMHubV2"),
-  "CRM Moderno V2",
+  "CRM Jurídico",
 );
-const Agenda = createLazyComponent(() => import("./pages/Agenda"), "Agenda");
-const Configuracoes = createLazyComponent(
-  () => import("./pages/Configuracoes"),
-  "Configurações",
-);
-const Atendimento = createLazyComponent(
-  () => import("./pages/AtendimentoEnhanced"),
-  "Atendimento",
-);
-const Publicacoes = createLazyComponent(
+
+const PublicacoesPage = createLazyPage(
   () => import("./pages/Publicacoes"),
   "Publicações",
 );
-const Financeiro = createLazyComponent(
+
+const AgendaPage = createLazyPage(() => import("./pages/Agenda"), "Agenda");
+
+const AtendimentoPage = createLazyPage(
+  () => import("./pages/AtendimentoEnhanced"),
+  "Atendimento",
+);
+
+const FinanceiroPage = createLazyPage(
   () => import("./pages/Financeiro"),
   "Financeiro",
 );
-const Contratos = createLazyComponent(
+
+const ContratosPage = createLazyPage(
   () => import("./pages/Contratos"),
   "Contratos",
 );
-const Tarefas = createLazyComponent(() => import("./pages/Tarefas"), "Tarefas");
 
-// Create query client
+const TarefasPage = createLazyPage(() => import("./pages/Tarefas"), "Tarefas");
+
+const ConfiguracoesPage = createLazyPage(
+  () => import("./pages/Configuracoes/UserSettingsHub"),
+  "Configurações",
+);
+
+// Configuração do QueryClient otimizada
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5, // 5 minutos
+      cacheTime: 1000 * 60 * 10, // 10 minutos
       retry: 1,
+      refetchOnWindowFocus: false,
+    },
+    mutations: {
+      retry: 0,
     },
   },
 });
 
-// Safe route wrapper
-const SafeRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
-  return <div className="w-full h-full">{element}</div>;
-};
+// Wrapper para páginas com tratamento de erro
+const PageWrapper: React.FC<{
+  children: React.ReactNode;
+  title?: string;
+}> = ({ children, title }) => {
+  React.useEffect(() => {
+    if (title) {
+      document.title = `${title} - Lawdesk CRM`;
+    }
+  }, [title]);
 
-// Page wrapper
-const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return <div className="w-full h-full overflow-auto">{children}</div>;
+  return <div className="w-full h-full overflow-auto fade-in">{children}</div>;
 };
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeInitializer />
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Main Application Routes with Traditional Layout */}
-            <OptimizedTraditionalLayout />
-            <Route path="/" element={<TraditionalLayout />}>
-              <Route index element={<Navigate to="/painel" replace />} />
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeInitializer />
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Suspense fallback={<GlobalLoadingFallback />}>
+              <Routes>
+                {/* Layout principal com todas as rotas aninhadas */}
+                <Route path="/" element={<OptimizedTraditionalLayout />}>
+                  {/* Home redirect */}
+                  <Route index element={<Navigate to="/painel" replace />} />
 
-              {/* Painel de Controle */}
-              <Route
-                path="painel"
-                element={
-                  <SafeRoute
+                  {/* Painel de Controle */}
+                  <Route
+                    path="painel"
                     element={
-                      <PageWrapper>
+                      <PageWrapper title="Painel de Controle">
                         <PainelControle />
                       </PageWrapper>
                     }
                   />
-                }
-              />
 
-              {/* Dashboard */}
-              <Route
-                path="dashboard"
-                element={
-                  <SafeRoute
-                    element={
-                      <PageWrapper>
-                        <Dashboard />
-                      </PageWrapper>
-                    }
-                  />
-                }
-              />
-
-              {/* Modern CRM Routes */}
-              <Route path="crm-modern/*">
-                <Route
-                  index
-                  element={
-                    <SafeRoute
+                  {/* CRM Jurídico - Rotas unificadas */}
+                  <Route path="crm-modern/*">
+                    <Route
+                      index
                       element={
-                        <PageWrapper>
-                          <ModernCRMHubV2 />
+                        <PageWrapper title="CRM Jurídico">
+                          <ModernCRMHub />
                         </PageWrapper>
                       }
                     />
-                  }
-                />
-                <Route
-                  path="clientes"
-                  element={
-                    <SafeRoute
+                    <Route
+                      path="clientes"
                       element={
-                        <PageWrapper>
-                          <ModernCRMHubV2 defaultModule="clientes" />
+                        <PageWrapper title="Clientes">
+                          <ModernCRMHub defaultModule="clientes" />
                         </PageWrapper>
                       }
                     />
-                  }
-                />
-                <Route
-                  path="processos"
-                  element={
-                    <SafeRoute
+                    <Route
+                      path="processos"
                       element={
-                        <PageWrapper>
-                          <ModernCRMHubV2 defaultModule="processos" />
+                        <PageWrapper title="Processos">
+                          <ModernCRMHub defaultModule="processos" />
                         </PageWrapper>
                       }
                     />
-                  }
-                />
-                <Route
-                  path="tarefas"
-                  element={
-                    <SafeRoute
+                    <Route
+                      path="tarefas"
                       element={
-                        <PageWrapper>
-                          <ModernCRMHubV2 defaultModule="tarefas" />
+                        <PageWrapper title="Tarefas">
+                          <ModernCRMHub defaultModule="tarefas" />
                         </PageWrapper>
                       }
                     />
-                  }
-                />
-                <Route
-                  path="contratos"
-                  element={
-                    <SafeRoute
+                    <Route
+                      path="contratos"
                       element={
-                        <PageWrapper>
-                          <ModernCRMHubV2 defaultModule="contratos" />
+                        <PageWrapper title="Contratos">
+                          <ModernCRMHub defaultModule="contratos" />
                         </PageWrapper>
                       }
                     />
-                  }
-                />
-                <Route
-                  path="financeiro"
-                  element={
-                    <SafeRoute
+                    <Route
+                      path="financeiro"
                       element={
-                        <PageWrapper>
-                          <ModernCRMHubV2 defaultModule="financeiro" />
+                        <PageWrapper title="Financeiro">
+                          <ModernCRMHub defaultModule="financeiro" />
                         </PageWrapper>
                       }
                     />
-                  }
-                />
-                <Route
-                  path="documentos"
-                  element={
-                    <SafeRoute
+                    <Route
+                      path="documentos"
                       element={
-                        <PageWrapper>
-                          <ModernCRMHubV2 defaultModule="documentos" />
+                        <PageWrapper title="Documentos">
+                          <ModernCRMHub defaultModule="documentos" />
                         </PageWrapper>
                       }
                     />
-                  }
-                />
-              </Route>
+                  </Route>
 
-              {/* Other Application Routes */}
-              <Route
-                path="agenda"
-                element={
-                  <SafeRoute
+                  {/* Outras páginas principais */}
+                  <Route
+                    path="agenda"
                     element={
-                      <PageWrapper>
-                        <Agenda />
+                      <PageWrapper title="Agenda">
+                        <AgendaPage />
                       </PageWrapper>
                     }
                   />
-                }
-              />
 
-              <Route
-                path="publicacoes"
-                element={
-                  <SafeRoute
+                  <Route
+                    path="publicacoes"
                     element={
-                      <PageWrapper>
-                        <Publicacoes />
+                      <PageWrapper title="Publicações">
+                        <PublicacoesPage />
                       </PageWrapper>
                     }
                   />
-                }
-              />
 
-              <Route
-                path="atendimento"
-                element={
-                  <SafeRoute
+                  <Route
+                    path="atendimento"
                     element={
-                      <PageWrapper>
-                        <Atendimento />
+                      <PageWrapper title="Atendimento">
+                        <AtendimentoPage />
                       </PageWrapper>
                     }
                   />
-                }
-              />
 
-              <Route
-                path="financeiro"
-                element={
-                  <SafeRoute
+                  <Route
+                    path="financeiro"
                     element={
-                      <PageWrapper>
-                        <Financeiro />
+                      <PageWrapper title="Financeiro">
+                        <FinanceiroPage />
                       </PageWrapper>
                     }
                   />
-                }
-              />
 
-              <Route
-                path="contratos"
-                element={
-                  <SafeRoute
+                  <Route
+                    path="contratos"
                     element={
-                      <PageWrapper>
-                        <Contratos />
+                      <PageWrapper title="Contratos">
+                        <ContratosPage />
                       </PageWrapper>
                     }
                   />
-                }
-              />
 
-              <Route
-                path="tarefas"
-                element={
-                  <SafeRoute
+                  <Route
+                    path="tarefas"
                     element={
-                      <PageWrapper>
-                        <Tarefas />
+                      <PageWrapper title="Tarefas">
+                        <TarefasPage />
                       </PageWrapper>
                     }
                   />
-                }
-              />
 
-              <Route
-                path="configuracoes-usuario"
-                element={
-                  <SafeRoute
+                  <Route
+                    path="tempo"
                     element={
-                      <PageWrapper>
-                        <Configuracoes />
+                      <PageWrapper title="Controle de Tempo">
+                        <TarefasPage />
                       </PageWrapper>
                     }
                   />
-                }
-              />
 
-              <Route
-                path="configuracoes"
-                element={
-                  <SafeRoute
+                  <Route
+                    path="configuracoes-usuario"
                     element={
-                      <PageWrapper>
-                        <Configuracoes />
+                      <PageWrapper title="Configurações">
+                        <ConfiguracoesPage />
                       </PageWrapper>
                     }
                   />
-                }
-              />
-            </Route>
+                </Route>
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/painel" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+                {/* Fallback para rotas não encontradas */}
+                <Route path="*" element={<Navigate to="/painel" replace />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
