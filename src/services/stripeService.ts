@@ -73,8 +73,11 @@ class StripeService {
   private baseUrl: string;
 
   private constructor() {
-    this.apiKey = process.env.STRIPE_SECRET_KEY || "";
-    this.webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
+    // Import env utility dynamically to avoid circular dependencies
+    import("../lib/env").then(({ env }) => {
+      this.apiKey = env.STRIPE_SECRET_KEY || "";
+      this.webhookSecret = env.STRIPE_WEBHOOK_SECRET || "";
+    });
     this.baseUrl = "https://api.stripe.com/v1";
   }
 

@@ -146,7 +146,7 @@ export const componentOptimization = {
       const renderTime = endTime - startTime;
 
       // Log performance metrics in development
-      if (process.env.NODE_ENV === "development") {
+      if (import.meta.env?.MODE === "development") {
         console.log(
           `🚀 ${componentName} render time: ${renderTime.toFixed(2)}ms`,
         );
