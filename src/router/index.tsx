@@ -17,6 +17,7 @@ import { IS_DEVELOPMENT } from "@/lib/env";
 
 // Layouts existentes
 import MainLayout from "@/components/Layout/MainLayout";
+import UnifiedLayout from "@/components/Layout/UnifiedLayout";
 import PublicLayout from "@/components/Layout/PublicLayout";
 
 // Componente de loading global
