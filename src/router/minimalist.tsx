@@ -82,6 +82,9 @@ const DiagnosticoConclusaoPage = lazy(
   () => import("@/pages/DiagnosticoConclusao"),
 );
 
+// Feed module
+const FeedPage = lazy(() => import("@/pages/Feed/index"));
+
 // Other modules
 const Agenda = lazy(() => import("@/pages/Agenda"));
 const Publicacoes = lazy(() => import("@/pages/Publicacoes"));
