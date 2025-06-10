@@ -197,14 +197,14 @@ const MainLayout: React.FC = () => {
     const pathSegments = currentPath.split("/").filter(Boolean);
     const breadcrumbItems: BreadcrumbItem[] = [{ label: "Home", path: "/" }];
 
-    let currentPath = "";
+    let buildPath = "";
     pathSegments.forEach((segment, index) => {
-      currentPath += `/${segment}`;
+      buildPath += `/${segment}`;
       const isLast = index === pathSegments.length - 1;
 
       breadcrumbItems.push({
         label: segment.charAt(0).toUpperCase() + segment.slice(1),
-        path: isLast ? undefined : currentPath,
+        path: isLast ? undefined : buildPath,
       });
     });
 
