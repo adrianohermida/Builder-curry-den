@@ -234,6 +234,12 @@ const WidgetConversacao = createLazyComponent(
   "Widget Conversação",
 );
 
+// Main Configuracoes page
+const Configuracoes = createLazyComponent(
+  () => import("./pages/Configuracoes"),
+  "Configurações",
+);
+
 // Enhanced Page wrapper with improved error boundary and loading
 const PageWrapper = ({ children }: { children: React.ReactNode }) => {
   const [isPending, startTransition] = useTransition();
@@ -911,6 +917,18 @@ const App: React.FC = () => {
                           </Route>
 
                           {/* Configuration Routes */}
+                          <Route
+                            path="configuracoes"
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <Configuracoes />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
                           <Route
                             path="configuracoes-prazos"
                             element={
