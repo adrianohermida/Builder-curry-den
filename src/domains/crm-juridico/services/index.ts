@@ -374,7 +374,7 @@ class CRMJuridicoService {
   }
 }
 
-// Instância singleton do serviço
+// Instância singleton do servi��o
 export const crmJuridicoService = new CRMJuridicoService();
 
 // Hook para usar o serviço
@@ -389,6 +389,7 @@ export {
   ContratoJuridicoService,
   TarefaJuridicoService,
   CRMJuridicoAnalyticsService,
+  CRMJuridicoService,
 };
 
 export default CRMJuridicoService;
