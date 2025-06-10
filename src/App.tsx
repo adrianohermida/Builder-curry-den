@@ -80,10 +80,15 @@ const ConfiguracoesPage = createLazyPage(
   "Configurações",
 );
 
-// Onboarding Page
+// Onboarding Pages
 const OnboardingPage = createLazyPage(
   () => import("./pages/Onboarding"),
   "Configuração Inicial",
+);
+
+const OnboardingLandingPage = createLazyPage(
+  () => import("./pages/OnboardingLanding"),
+  "Bem-vindo ao Lawdesk",
 );
 
 // Páginas Gerenciais
@@ -358,7 +363,15 @@ function App() {
                 </Route>
               </Route>
 
-              {/* Onboarding Route - Outside main layout for clean experience */}
+              {/* Onboarding Routes - Outside main layout for clean experience */}
+              <Route
+                path="/onboarding-start"
+                element={
+                  <PageWrapper title="Bem-vindo ao Lawdesk">
+                    <OnboardingLandingPage />
+                  </PageWrapper>
+                }
+              />
               <Route
                 path="/onboarding"
                 element={
