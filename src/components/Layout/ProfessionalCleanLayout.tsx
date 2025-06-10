@@ -151,33 +151,40 @@ const ProfessionalCleanLayout: React.FC = () => {
         color: colors.text,
       }}
     >
-      {/* Topbar */}
-      <UnifiedTopbar onToggleSidebar={toggleSidebar} />
+      {/* Topbar Fixo */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <UnifiedTopbar onToggleSidebar={toggleSidebar} />
+      </div>
 
-      {/* Sidebar */}
-      <UnifiedSidebar
-        isOpen={layoutState.sidebarOpen}
-        isCollapsed={layoutState.sidebarCollapsed}
-        onToggle={toggleSidebar}
-        onClose={closeSidebar}
-        isMobile={layoutState.isMobile}
-      />
+      {/* Container Principal com Sidebar + Content */}
+      <div className="flex pt-14">
+        {/* Sidebar que acompanha scroll */}
+        {layoutState.sidebarOpen && (
+          <UnifiedSidebar
+            isOpen={layoutState.sidebarOpen}
+            isCollapsed={layoutState.sidebarCollapsed}
+            onToggle={toggleSidebar}
+            onClose={closeSidebar}
+            isMobile={layoutState.isMobile}
+          />
+        )}
 
-      {/* Mobile Sidebar Overlay */}
-      {layoutState.isMobile && layoutState.sidebarOpen && (
-        <div
-          className="fixed inset-0 top-14 z-30 bg-black bg-opacity-50 lg:hidden"
-          onClick={closeSidebar}
-          aria-hidden="true"
-        />
-      )}
+        {/* Mobile Sidebar Overlay */}
+        {layoutState.isMobile && layoutState.sidebarOpen && (
+          <div
+            className="fixed inset-0 top-14 z-30 bg-black bg-opacity-50 lg:hidden"
+            onClick={closeSidebar}
+            aria-hidden="true"
+          />
+        )}
 
-      {/* Main Content */}
-      <div className={mainClasses}>
-        <main className={contentClasses}>
-          {/* Page Content */}
-          <Outlet />
-        </main>
+        {/* Main Content */}
+        <div className="flex-1">
+          <main className={contentClasses}>
+            {/* Page Content */}
+            <Outlet />
+          </main>
+        </div>
       </div>
 
       {/* Toast Notifications */}
