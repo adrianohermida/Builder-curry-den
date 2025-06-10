@@ -126,6 +126,10 @@ const RouteTest = createLazyComponent(
   () => import("./components/CRM/RouteTest"),
   "Route Test",
 );
+const AIEnhanced = createLazyComponent(
+  () => import("./pages/AIEnhanced"),
+  "IA Jurídico",
+);
 const Tarefas = createLazyComponent(() => import("./pages/Tarefas"), "Tarefas");
 const Contratos = createLazyComponent(
   () => import("./pages/Contratos"),
