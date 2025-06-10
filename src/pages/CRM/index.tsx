@@ -42,7 +42,6 @@ import { useCRM, ModuloCRM } from "@/hooks/useCRM";
 import ClientesModule from "./Clientes";
 import ProcessosModule from "./Processos";
 import ContratosModule from "./Contratos";
-import ContratosEnhanced from "./Contratos/ContratosEnhanced";
 import AgendaJuridica from "@/pages/Agenda";
 
 interface CRMDashboardProps {
@@ -870,7 +869,7 @@ const CRMJuridicoModerno: React.FC<CRMDashboardProps> = ({
                   </TabsContent>
 
                   <TabsContent value="contratos" className="mt-0">
-                    <ContratosEnhanced />
+                    <ContratosModule />
                   </TabsContent>
 
                   <TabsContent value="agenda" className="mt-0">
