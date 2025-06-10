@@ -8,12 +8,8 @@
 
 import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-} from "@hello-pangea/dnd";
+import { Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import { SafeDragDropContext } from "../Common/SafeDragDropContext";
 import {
   MoreVertical,
   MessageSquare,
@@ -432,13 +428,13 @@ export const ConfigurableList: React.FC<ConfigurableListProps> = ({
           </div>
         </div>
       ) : (
-        <DragDropContext onDragEnd={handleDragEnd}>
+        <SafeDragDropContext onDragEnd={handleDragEnd}>
           <div className="flex space-x-4 overflow-x-auto pb-4">
             {statusColumns.map((status) =>
               renderKanbanColumn(status, itemsByStatus[status] || []),
             )}
           </div>
-        </DragDropContext>
+        </SafeDragDropContext>
       )}
 
       {/* Dialog de discussões */}
