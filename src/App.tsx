@@ -23,7 +23,7 @@ import {
 
 function App() {
   return (
-    <>
+    <ThemeInitializer>
       <AppRouter />
 
       {/* Development Tools - Development Only */}
@@ -34,7 +34,7 @@ function App() {
           <MigrationStatus />
         </>
       )}
-    </>
+    </ThemeInitializer>
   );
 }
 
