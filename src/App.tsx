@@ -11,6 +11,9 @@ import AppRouter from "@/router";
 // Import environment and theme utilities
 import { IS_DEVELOPMENT } from "@/lib/env";
 
+// Theme system
+import ThemeInitializer from "@/components/ThemeInitializer";
+
 // Development tools
 import DebugPanel from "@/components/Debug/DebugPanel";
 import {
