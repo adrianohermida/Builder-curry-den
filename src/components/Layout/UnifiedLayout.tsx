@@ -483,6 +483,3 @@ const UnifiedLayout: React.FC = () => {
 };
 
 export default UnifiedLayout;
-
-// Export context hook for external use
-export { useUnifiedLayout };
