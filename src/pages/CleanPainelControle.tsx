@@ -68,6 +68,14 @@ interface QuickAction {
   badge?: string;
 }
 
+interface WidgetData {
+  id: string;
+  title: string;
+  value: string;
+  description: string;
+  color: string;
+}
+
 // Memoized Metric Card Component
 const MetricCardComponent = memo(({ metric }: { metric: MetricCard }) => {
   const navigate = useNavigate();
@@ -83,25 +91,21 @@ const MetricCardComponent = memo(({ metric }: { metric: MetricCard }) => {
         return {
           iconBg: "bg-green-50 dark:bg-green-950",
           iconColor: "text-green-600",
-          trendColor: "text-green-600",
         };
       case "warning":
         return {
           iconBg: "bg-amber-50 dark:bg-amber-950",
           iconColor: "text-amber-600",
-          trendColor: "text-amber-600",
         };
       case "error":
         return {
           iconBg: "bg-red-50 dark:bg-red-950",
           iconColor: "text-red-600",
-          trendColor: "text-red-600",
         };
       default:
         return {
           iconBg: "bg-blue-50 dark:bg-blue-950",
           iconColor: "text-blue-600",
-          trendColor: "text-blue-600",
         };
     }
   };
@@ -117,14 +121,18 @@ const MetricCardComponent = memo(({ metric }: { metric: MetricCard }) => {
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {metric.title}
         </CardTitle>
-        <div className={`p-2 rounded-lg ${colors.iconBg} group-hover:scale-110 transition-transform`}>
+        <div
+          className={`p-2 rounded-lg ${colors.iconBg} group-hover:scale-110 transition-transform`}
+        >
           <Icon className={`h-5 w-5 ${colors.iconColor}`} />
         </div>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold mb-1">{metric.value}</div>
         {metric.subtitle && (
-          <p className="text-xs text-muted-foreground mb-2">{metric.subtitle}</p>
+          <p className="text-xs text-muted-foreground mb-2">
+            {metric.subtitle}
+          </p>
         )}
         {metric.trend && (
           <div className="flex items-center space-x-1">
@@ -133,9 +141,13 @@ const MetricCardComponent = memo(({ metric }: { metric: MetricCard }) => {
             ) : (
               <TrendingDown className="h-4 w-4 text-red-600" />
             )}
-            <span className={`text-xs font-medium ${
-              metric.trend.direction === "up" ? "text-green-600" : "text-red-600"
-            }`}>
+            <span
+              className={`text-xs font-medium ${
+                metric.trend.direction === "up"
+                  ? "text-green-600"
+                  : "text-red-600"
+              }`}
+            >
               {metric.trend.value}%
             </span>
             <span className="text-xs text-muted-foreground">
@@ -199,351 +211,394 @@ const CleanPainelControle: React.FC = () => {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   // Optimized metrics with useMemo
-  const metricas = useMemo((): MetricCard[] => [
-    {
-      id: "clientes",
-      title: "Clientes Ativos",
-      value: "1,247",
-      subtitle: "Total cadastrados",
-      icon: <Users className="w-5 h-5" />,
-      trend: {
-        value: 12.5,
-        direction: "up",
-        period: "vs mês anterior",
+  const metricas = useMemo(
+    (): MetricCard[] => [
+      {
+        id: "clientes",
+        title: "Clientes Ativos",
+        value: "1,247",
+        subtitle: "Total cadastrados",
+        icon: Users,
+        trend: {
+          value: 12.5,
+          direction: "up",
+          period: "vs mês anterior",
+        },
+        status: "success",
+        actionUrl: "/crm",
       },
-      status: "success",
-    },
-    {
-      id: "processos",
-      title: "Processos em Andamento",
-      value: "342",
-      subtitle: "Requerem atenção",
-      icon: <Scale className="w-5 h-5" />,
-      trend: {
-        value: 3.2,
-        direction: "down",
-        period: "vs semana anterior",
+      {
+        id: "processos",
+        title: "Processos em Andamento",
+        value: "342",
+        subtitle: "Requerem atenção",
+        icon: Scale,
+        trend: {
+          value: 3.2,
+          direction: "down",
+          period: "vs semana anterior",
+        },
+        status: "info",
+        actionUrl: "/crm/processos",
       },
-      status: "info",
-    },
-    {
-      id: "receita",
-      title: "Receita Mensal",
-      value: "R$ 284.500",
-      subtitle: "Faturamento atual",
-      icon: <DollarSign className="w-5 h-5" />,
-      trend: {
-        value: 18.7,
-        direction: "up",
-        period: "vs mês anterior",
+      {
+        id: "receita",
+        title: "Receita Mensal",
+        value: "R$ 284.500",
+        subtitle: "Faturamento atual",
+        icon: DollarSign,
+        trend: {
+          value: 18.7,
+          direction: "up",
+          period: "vs mês anterior",
+        },
+        status: "success",
+        actionUrl: "/financeiro",
       },
-      status: "success",
-    },
-    {
-      id: "tarefas",
-      title: "Tarefas Pendentes",
-      value: "47",
-      subtitle: "Vencendo hoje",
-      icon: <CheckSquare className="w-5 h-5" />,
-      trend: {
-        value: 8.3,
-        direction: "up",
-        period: "vs ontem",
+      {
+        id: "tarefas",
+        title: "Tarefas Pendentes",
+        value: "47",
+        subtitle: "Vencendo hoje",
+        icon: CheckSquare,
+        trend: {
+          value: 8.3,
+          direction: "up",
+          period: "vs ontem",
+        },
+        status: "warning",
+        actionUrl: "/crm/tarefas",
       },
-      status: "warning", // Orange, NOT yellow
-    },
-  ];
+    ],
+    [],
+  );
 
-  const quickActions = [
-    {
-      id: "novo-cliente",
-      title: "Novo Cliente",
-      description: "Cadastrar cliente no sistema",
-      icon: <Users className="w-5 h-5" />,
-      primary: true,
-    },
-    {
-      id: "novo-processo",
-      title: "Novo Processo",
-      description: "Registrar processo judicial",
-      icon: <Scale className="w-5 h-5" />,
-      primary: true,
-    },
-    {
-      id: "nova-tarefa",
-      title: "Nova Tarefa",
-      description: "Criar tarefa ou lembrete",
-      icon: <CheckSquare className="w-5 h-5" />,
-      primary: true,
-    },
-    {
-      id: "agenda",
-      title: "Ver Agenda",
-      description: "Compromissos de hoje",
-      icon: <Calendar className="w-5 h-5" />,
-      primary: false,
-    },
-    {
-      id: "relatorios",
-      title: "Relatórios",
-      description: "Analytics e dashboards",
-      icon: <BarChart3 className="w-5 h-5" />,
-      primary: false,
-    },
-    {
-      id: "documentos",
-      title: "Documentos",
-      description: "Gestão documental",
-      icon: <FileText className="w-5 h-5" />,
-      primary: false,
-    },
-  ];
+  const quickActions = useMemo(
+    (): QuickAction[] => [
+      {
+        id: "new-client",
+        title: "Novo Cliente",
+        description: "Cadastrar novo cliente",
+        icon: Users,
+        url: "/crm/clientes?action=new",
+        color: "bg-blue-500",
+      },
+      {
+        id: "new-task",
+        title: "Nova Tarefa",
+        description: "Criar nova tarefa",
+        icon: CheckSquare,
+        url: "/crm/tarefas?action=new",
+        color: "bg-green-500",
+      },
+      {
+        id: "agenda",
+        title: "Agenda",
+        description: "Ver compromissos",
+        icon: Calendar,
+        url: "/agenda",
+        color: "bg-orange-500",
+        badge: "3 hoje",
+      },
+      {
+        id: "ged",
+        title: "Documentos",
+        description: "Acessar GED",
+        icon: FileText,
+        url: "/ged",
+        color: "bg-purple-500",
+      },
+      {
+        id: "notifications",
+        title: "Publicações",
+        description: "Ver intimações",
+        icon: Bell,
+        url: "/publicacoes",
+        color: "bg-red-500",
+        badge: "2 novas",
+      },
+      {
+        id: "ai",
+        title: "IA Jurídica",
+        description: "Assistente inteligente",
+        icon: Zap,
+        url: "/ai",
+        color: "bg-indigo-500",
+      },
+    ],
+    [],
+  );
 
-  const recentActivities = [
-    {
-      id: "1",
-      title: "Cliente cadastrado",
-      description: "Maria Silva foi adicionada ao sistema",
-      time: "2 min atrás",
-      icon: <Users className="w-4 h-4" />,
-      status: "success" as const,
-    },
-    {
-      id: "2",
-      title: "Processo atualizado",
-      description: "Processo 5024.2024 teve andamento registrado",
-      time: "15 min atrás",
-      icon: <Scale className="w-4 h-4" />,
-      status: "info" as const,
-    },
-    {
-      id: "3",
-      title: "Tarefa vencendo",
-      description: "Petição deve ser protocolada até amanhã",
-      time: "1 hora atrás",
-      icon: <AlertTriangle className="w-4 h-4" />,
-      status: "warning" as const, // Orange, NOT yellow
-    },
-    {
-      id: "4",
-      title: "Pagamento recebido",
-      description: "R$ 5.500 creditados na conta",
-      time: "2 horas atrás",
-      icon: <DollarSign className="w-4 h-4" />,
-      status: "success" as const,
-    },
-  ];
+  const widgets = useMemo(
+    (): WidgetData[] => [
+      {
+        id: "analytics",
+        title: "Analytics e dashboards",
+        value: "Sistema de Business Intelligence",
+        description:
+          "Relatórios avançados, gráficos interativos e métricas em tempo real",
+        color: "bg-purple-500",
+      },
+      {
+        id: "automation",
+        title: "Automação Inteligente",
+        value: "IA Jurídica Integrada",
+        description:
+          "Assistente virtual, análise de documentos e automação de processos",
+        color: "bg-indigo-500",
+      },
+      {
+        id: "collaboration",
+        title: "Colaboração em Equipe",
+        value: "Workspace Unificado",
+        description:
+          "Chat integrado, compartilhamento de arquivos e gestão de projetos",
+        color: "bg-green-500",
+      },
+      {
+        id: "security",
+        title: "Segurança e Compliance",
+        value: "LGPD & Auditoria",
+        description:
+          "Criptografia end-to-end, logs de auditoria e conformidade regulatória",
+        color: "bg-red-500",
+      },
+    ],
+    [],
+  );
 
-  // Clean status colors - NO YELLOW!
-  const getStatusStyles = (status: string) => {
-    const styles = {
-      success: "text-green-600 bg-green-50 border-green-200",
-      warning: "text-orange-600 bg-orange-50 border-orange-200", // Orange instead of yellow
-      error: "text-red-600 bg-red-50 border-red-200",
-      info: "text-blue-600 bg-blue-50 border-blue-200",
-    };
-    return styles[status as keyof typeof styles] || styles.info;
-  };
+  // Data loading simulation
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
 
-  const getTrendStyles = (direction: "up" | "down") => {
-    return direction === "up"
-      ? "text-green-600 bg-green-50"
-      : "text-red-600 bg-red-50";
-  };
+    return () => clearTimeout(timer);
+  }, []);
 
-  const getTrendIcon = (direction: "up" | "down") => {
-    return direction === "up" ? (
-      <TrendingUp className="w-3 h-3" />
-    ) : (
-      <TrendingDown className="w-3 h-3" />
+  // Auto-refresh simulation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLastUpdated(new Date());
+    }, 30000); // Update every 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Manual refresh handler
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    setLastUpdated(new Date());
+    setIsRefreshing(false);
+
+    toast({
+      title: "Dashboard atualizado",
+      description: "Dados atualizados com sucesso",
+    });
+  }, [toast]);
+
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-1/3" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Skeleton key={i} className="h-64" />
+          ))}
+        </div>
+      </div>
     );
-  };
+  }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      {/* Clean Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {metricas.map((metrica) => (
-          <div
-            key={metrica.id}
-            className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow duration-200"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div
-                className={cn(
-                  "p-3 rounded-lg border",
-                  getStatusStyles(metrica.status),
-                )}
-              >
-                {metrica.icon}
-              </div>
-              {metrica.trend && (
-                <div
-                  className={cn(
-                    "flex items-center gap-1 text-sm font-medium px-2 py-1 rounded-full",
-                    getTrendStyles(metrica.trend.direction),
-                  )}
-                >
-                  {getTrendIcon(metrica.trend.direction)}
-                  {metrica.trend.value}%
-                </div>
-              )}
-            </div>
+    <div className="space-y-6 p-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">
+            Painel de Controle
+          </h1>
+          <p className="text-muted-foreground">
+            Visão geral do escritório • Última atualização:{" "}
+            {lastUpdated.toLocaleTimeString("pt-BR")}
+          </p>
+        </div>
 
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-gray-600">
-                {metrica.title}
-              </h3>
-              <p className="text-2xl font-bold text-gray-900">
-                {metrica.value}
-              </p>
-              {metrica.subtitle && (
-                <p className="text-sm text-gray-500">{metrica.subtitle}</p>
-              )}
-              {metrica.trend && (
-                <p className="text-xs text-gray-400">{metrica.trend.period}</p>
-              )}
-            </div>
-          </div>
+        <div className="flex items-center space-x-3">
+          <Badge variant="outline" className="gap-1">
+            <Activity className="h-3 w-3" />
+            Sistema Online
+          </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+            />
+            Atualizar
+          </Button>
+        </div>
+      </div>
+
+      {/* Metrics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {metricas.map((metric) => (
+          <MetricCardComponent key={metric.id} metric={metric} />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Clean Quick Actions */}
-        <div className="lg:col-span-2">
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Ações Rápidas
-              </h2>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {quickActions.map((action) => (
-                  <button
-                    key={action.id}
-                    className={cn(
-                      "h-auto p-4 flex flex-col items-start space-y-2 text-left rounded-lg border transition-all duration-200",
-                      action.primary
-                        ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                        : "bg-white hover:bg-gray-50 text-gray-900 border-gray-200 hover:border-gray-300",
-                    )}
-                  >
-                    <div className="flex items-center gap-2 w-full">
-                      {action.icon}
-                      <span className="font-medium">{action.title}</span>
-                    </div>
-                    <span
-                      className={cn(
-                        "text-xs",
-                        action.primary ? "text-blue-100" : "text-gray-500",
-                      )}
-                    >
-                      {action.description}
-                    </span>
-                  </button>
-                ))}
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              Ações Rápidas
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {quickActions.map((action) => (
+              <QuickActionCard key={action.id} action={action} />
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* System Overview */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Visão Geral do Sistema
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Taxa de Sucesso</span>
+                  <span className="font-medium">92%</span>
+                </div>
+                <Progress value={92} className="h-2" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Satisfação Cliente</span>
+                  <span className="font-medium">96%</span>
+                </div>
+                <Progress value={96} className="h-2" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Eficiência IA</span>
+                  <span className="font-medium">78%</span>
+                </div>
+                <Progress value={78} className="h-2" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>SLA Médio</span>
+                  <span className="font-medium">84%</span>
+                </div>
+                <Progress value={84} className="h-2" />
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Clean Recent Activities */}
-        <div>
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-            <div className="px-6 py-4 border-b border-gray-100">
+      {/* Feature Widgets */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {widgets.map((widget) => (
+          <Card
+            key={widget.id}
+            className="cursor-pointer hover:shadow-md transition-all duration-200 group"
+          >
+            <CardContent className="p-6">
+              <div className="flex items-start space-x-4">
+                <div
+                  className={`p-3 rounded-lg ${widget.color} group-hover:scale-110 transition-transform`}
+                >
+                  <Activity className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <h3 className="font-semibold text-sm">{widget.title}</h3>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {widget.value}
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {widget.description}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Recent Activity Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Resumo de Atividades
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Atividades Recentes
-                </h2>
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                  <Activity className="w-3 h-3 mr-1" />
-                  {recentActivities.length}
+                <span className="text-sm text-muted-foreground">Hoje</span>
+                <Badge variant="outline">24 atividades</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                3 novos clientes, 8 tarefas concluídas, 2 processos atualizados
+              </p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  Esta Semana
                 </span>
+                <Badge variant="outline">156 atividades</Badge>
               </div>
+              <p className="text-xs text-muted-foreground">
+                18 novos clientes, 45 tarefas, 12 audiências realizadas
+              </p>
             </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {recentActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-3">
-                    <div
-                      className={cn(
-                        "p-2 rounded-lg border flex-shrink-0",
-                        getStatusStyles(activity.status),
-                      )}
-                    >
-                      {activity.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">
-                        {activity.title}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">
-                        {activity.description}
-                      </p>
-                      <div className="flex items-center gap-1 mt-1">
-                        <Clock className="w-3 h-3 text-gray-400" />
-                        <span className="text-xs text-gray-400">
-                          {activity.time}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Este Mês</span>
+                <Badge variant="outline">892 atividades</Badge>
               </div>
-
-              <button className="w-full mt-4 text-sm text-gray-600 hover:text-gray-900 py-2 transition-colors">
-                Ver todas as atividades
-              </button>
+              <p className="text-xs text-muted-foreground">
+                78 novos clientes, 234 tarefas, 56 processos finalizados
+              </p>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Clean System Status */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Status do Sistema
-          </h2>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">Sistema</p>
-                <p className="text-xs text-gray-500">Online</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  Banco de Dados
-                </p>
-                <p className="text-xs text-gray-500">Operacional</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">Backup</p>
-                <p className="text-xs text-gray-500">Atualizado</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">Manutenção</p>
-                <p className="text-xs text-gray-500">Agendada</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
 
-export default CleanPainelControle;
+// Add display name for debugging
+CleanPainelControle.displayName = "CleanPainelControle";
+
+export default memo(CleanPainelControle);
