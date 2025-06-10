@@ -335,6 +335,9 @@ const UnifiedLayout: React.FC = () => {
   return (
     <LayoutContext.Provider value={contextValue}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Topbar */}
+        <UnifiedTopbar />
+
         {/* Sidebar */}
         <UnifiedSidebar
           isOpen={layoutState.sidebarOpen}
