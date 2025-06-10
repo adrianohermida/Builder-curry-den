@@ -1,17 +1,20 @@
 /**
- * 🎯 APP COMPONENT - CLEAN AND MODERN
+ * 🎯 APP COMPONENT - SISTEMA CORRIGIDO ATIVO
  *
- * Main application component using the modern router system
- * with domain-based architecture and existing pages.
+ * Main application component usando o sistema totalmente corrigido:
+ * - CorrectedRouter com layout responsivo
+ * - ThemeInitializer para tema completo
+ * - Mobile-first design
+ * - Cores sólidas sem transparências
  */
 
-import React, { useEffect } from "react";
-import OptimizedRouter from "@/router/optimized";
+import React from "react";
+import CorrectedRouter from "@/router/corrected";
 
-// Corrected theme system
-import { applyThemeToDocument } from "@/lib/correctedThemeSystem";
+// Sistema de tema corrigido completo
+import ThemeInitializer from "@/components/ThemeInitializer";
 
-// Global styles
+// Global styles corrigidos
 import "@/styles/globals.css";
 
 // Import environment utilities
@@ -21,18 +24,13 @@ import { IS_DEVELOPMENT } from "@/lib/env";
 import DebugPanel from "@/components/Debug/DebugPanel";
 
 function App() {
-  // Apply corrected theme on mount
-  useEffect(() => {
-    applyThemeToDocument();
-  }, []);
-
   return (
-    <>
-      <OptimizedRouter />
+    <ThemeInitializer>
+      <CorrectedRouter />
 
       {/* Development Tools - Development Only */}
       {IS_DEVELOPMENT && <DebugPanel />}
-    </>
+    </ThemeInitializer>
   );
 }
 
