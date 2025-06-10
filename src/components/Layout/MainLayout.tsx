@@ -1,16 +1,13 @@
 /**
- * 🎯 MAIN LAYOUT - LAYOUT PRINCIPAL CONSOLIDADO
+ * 🎯 MAIN LAYOUT - LAYOUT PRINCIPAL RESTAURADO
  *
- * Layout pai padrão do sistema que centraliza:
- * - Estrutura base modular
- * - Gerenciamento de tema dark/light
- * - Responsividade completa
- * - Context de permissões e sessão
- * - Breadcrumbs e navegação
- * - Notificações e badges
- *
- * Substitui: UltimateOptimizedLayout e outros layouts duplicados
- * Modularidade: Carregamento dinâmico de layouts por tipo de rota
+ * Layout completamente refeito com:
+ * - Sistema de tema dark/light robusto
+ * - Responsividade mobile-first
+ * - Sidebar e topbar integrados
+ * - Gestão de estado otimizada
+ * - Performance melhorada
+ * - Acessibilidade completa
  */
 
 import React, {
@@ -21,19 +18,18 @@ import React, {
   createContext,
   useContext,
 } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 
 // Layout Components
 import TopbarMain from "./TopbarMain";
 import SidebarMain from "./SidebarMain";
 
-// Design System
-import { ultimateDesignSystem } from "@/lib/ultimateDesignSystem";
-import { performanceUtils } from "@/lib/performanceUtils";
+// Hooks
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 // Types
-interface LayoutConfig {
+export interface LayoutConfig {
   showSidebar: boolean;
   showTopbar: boolean;
   sidebarVariant: "expanded" | "collapsed" | "hidden";
@@ -42,46 +38,23 @@ interface LayoutConfig {
   backgroundPattern: "none" | "dots" | "grid" | "subtle";
 }
 
-interface ThemeConfig {
+export interface ThemeConfig {
   mode: "light" | "dark" | "system";
   primaryColor: string;
   accentColor: string;
   borderRadius: "none" | "sm" | "md" | "lg" | "xl";
   fontScale: "sm" | "base" | "lg";
+  highContrast: boolean;
+  reducedMotion: boolean;
 }
 
-interface LayoutContextValue {
-  // Layout State
-  layoutConfig: LayoutConfig;
-  themeConfig: ThemeConfig;
-  isLoading: boolean;
-  isMobile: boolean;
-  isTablet: boolean;
-
-  // Layout Actions
-  updateLayoutConfig: (config: Partial<LayoutConfig>) => void;
-  updateThemeConfig: (config: Partial<ThemeConfig>) => void;
-  toggleSidebar: () => void;
-  toggleTheme: () => void;
-
-  // Navigation State
-  currentPath: string;
-  breadcrumbs: BreadcrumbItem[];
-  notifications: NotificationItem[];
-
-  // Session & Permissions
-  userRole: "user" | "admin" | "manager";
-  permissions: string[];
-  sessionExpiry: Date | null;
-}
-
-interface BreadcrumbItem {
+export interface BreadcrumbItem {
   label: string;
   path?: string;
   icon?: React.ComponentType<{ size?: number }>;
 }
 
-interface NotificationItem {
+export interface NotificationItem {
   id: string;
   type: "info" | "warning" | "error" | "success";
   title: string;
@@ -94,10 +67,36 @@ interface NotificationItem {
   };
 }
 
+export interface LayoutContextValue {
+  // Layout State
+  layoutConfig: LayoutConfig;
+  themeConfig: ThemeConfig;
+  isLoading: boolean;
+  isMobile: boolean;
+  isTablet: boolean;
+
+  // Layout Actions
+  updateLayoutConfig: (config: Partial<LayoutConfig>) => void;
+  updateThemeConfig: (config: Partial<ThemeConfig>) => void;
+  toggleSidebar: () => void;
+  toggleTheme: () => void;
+  setSidebarVariant: (variant: "expanded" | "collapsed" | "hidden") => void;
+
+  // Navigation State
+  currentPath: string;
+  breadcrumbs: BreadcrumbItem[];
+  notifications: NotificationItem[];
+
+  // Session & Permissions
+  userRole: "user" | "admin" | "manager";
+  permissions: string[];
+  sessionExpiry: Date | null;
+}
+
 // ===== LAYOUT CONTEXT =====
 const LayoutContext = createContext<LayoutContextValue | null>(null);
 
-export const useLayout = () => {
+export const useLayout = (): LayoutContextValue => {
   const context = useContext(LayoutContext);
   if (!context) {
     throw new Error("useLayout must be used within MainLayout");
@@ -105,211 +104,243 @@ export const useLayout = () => {
   return context;
 };
 
-// ===== ROUTE-BASED LAYOUT CONFIGURATIONS =====
-const LAYOUT_CONFIGS: Record<string, Partial<LayoutConfig>> = {
-  // Public routes (login, landing, etc.)
-  "/login": {
-    showSidebar: false,
-    showTopbar: false,
-    containerMaxWidth: "5xl",
-    backgroundPattern: "subtle",
-  },
-  "/register": {
-    showSidebar: false,
-    showTopbar: false,
-    containerMaxWidth: "5xl",
-    backgroundPattern: "subtle",
-  },
-  "/onboarding": {
-    showSidebar: false,
-    showTopbar: true,
-    topbarVariant: "minimal",
-    containerMaxWidth: "6xl",
-  },
+// ===== DEFAULT CONFIGURATIONS =====
+const DEFAULT_LAYOUT_CONFIG: LayoutConfig = {
+  showSidebar: true,
+  showTopbar: true,
+  sidebarVariant: "expanded",
+  topbarVariant: "standard",
+  containerMaxWidth: "full",
+  backgroundPattern: "none",
+};
 
-  // Private routes (main app)
-  "/painel": {
-    showSidebar: true,
-    showTopbar: true,
-    sidebarVariant: "expanded",
-    topbarVariant: "standard",
-    containerMaxWidth: "full",
-  },
-  "/crm-modern": {
-    showSidebar: true,
-    showTopbar: true,
-    sidebarVariant: "expanded",
-    topbarVariant: "standard",
-    containerMaxWidth: "full",
-  },
-
-  // Admin routes
-  "/admin": {
-    showSidebar: true,
-    showTopbar: true,
-    sidebarVariant: "expanded",
-    topbarVariant: "compact",
-    containerMaxWidth: "full",
-    backgroundPattern: "dots",
-  },
+const DEFAULT_THEME_CONFIG: ThemeConfig = {
+  mode: "light",
+  primaryColor: "#3b82f6",
+  accentColor: "#f59e0b",
+  borderRadius: "md",
+  fontScale: "base",
+  highContrast: false,
+  reducedMotion: false,
 };
 
 // ===== MAIN LAYOUT COMPONENT =====
 const MainLayout: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate();
 
-  // ===== RESPONSIVE DETECTION =====
-  const isMobile =
-    performanceUtils.responsiveUtils.useMediaQuery("(max-width: 768px)");
-  const isTablet = performanceUtils.responsiveUtils.useMediaQuery(
-    "(max-width: 1024px)",
+  // ===== PERSISTENT STATE =====
+  const [layoutConfig, setLayoutConfig] = useLocalStorage<LayoutConfig>(
+    "lawdesk-layout-config",
+    DEFAULT_LAYOUT_CONFIG,
   );
 
-  // ===== STATE MANAGEMENT =====
-  const [layoutConfig, setLayoutConfig] = useState<LayoutConfig>(() => ({
-    showSidebar: true,
-    showTopbar: true,
-    sidebarVariant: isMobile ? "hidden" : "expanded",
-    topbarVariant: "standard",
-    containerMaxWidth: "full",
-    backgroundPattern: "none",
-  }));
+  const [themeConfig, setThemeConfig] = useLocalStorage<ThemeConfig>(
+    "lawdesk-theme-config",
+    DEFAULT_THEME_CONFIG,
+  );
 
-  const [themeConfig, setThemeConfig] = useState<ThemeConfig>(() => {
-    const stored = ultimateDesignSystem.performance.getStoredTheme();
-    return {
-      mode: stored?.mode || "system",
-      primaryColor: stored?.primaryColor || "#3b82f6",
-      accentColor: stored?.accentColor || "#10b981",
-      borderRadius: "md",
-      fontScale: "base",
-    };
-  });
-
+  // ===== LOCAL STATE =====
   const [isLoading, setIsLoading] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
-  // ===== DERIVED STATE =====
-  const currentPath = location.pathname;
+  // ===== RESPONSIVE DETECTION =====
+  const [windowSize, setWindowSize] = useState({
+    width: typeof window !== "undefined" ? window.innerWidth : 1200,
+    height: typeof window !== "undefined" ? window.innerHeight : 800,
+  });
 
-  const breadcrumbs = useMemo(() => {
-    const pathSegments = currentPath.split("/").filter(Boolean);
-    const breadcrumbItems: BreadcrumbItem[] = [{ label: "Home", path: "/" }];
+  const isMobile = useMemo(() => windowSize.width < 768, [windowSize.width]);
+  const isTablet = useMemo(
+    () => windowSize.width >= 768 && windowSize.width < 1024,
+    [windowSize.width],
+  );
 
-    let buildPath = "";
-    pathSegments.forEach((segment, index) => {
-      buildPath += `/${segment}`;
-      const isLast = index === pathSegments.length - 1;
-
-      breadcrumbItems.push({
-        label: segment.charAt(0).toUpperCase() + segment.slice(1),
-        path: isLast ? undefined : buildPath,
+  // ===== RESPONSIVE WINDOW LISTENER =====
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
       });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // ===== MOBILE SIDEBAR AUTO-COLLAPSE =====
+  useEffect(() => {
+    if (isMobile && layoutConfig.sidebarVariant === "expanded") {
+      setLayoutConfig((prev) => ({
+        ...prev,
+        sidebarVariant: "hidden",
+      }));
+    } else if (!isMobile && layoutConfig.sidebarVariant === "hidden") {
+      setLayoutConfig((prev) => ({
+        ...prev,
+        sidebarVariant: "expanded",
+      }));
+    }
+  }, [isMobile, layoutConfig.sidebarVariant, setLayoutConfig]);
+
+  // ===== THEME APPLICATION =====
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+
+    // Remove existing theme classes
+    root.classList.remove("light", "dark", "high-contrast");
+    body.classList.remove("font-sm", "font-base", "font-lg");
+
+    // Apply theme mode
+    let effectiveMode = themeConfig.mode;
+    if (themeConfig.mode === "system") {
+      effectiveMode = window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    }
+
+    root.classList.add(effectiveMode);
+    root.setAttribute("data-theme", effectiveMode);
+
+    // Apply high contrast
+    if (themeConfig.highContrast) {
+      root.classList.add("high-contrast");
+    }
+
+    // Apply font scale
+    body.classList.add(`font-${themeConfig.fontScale}`);
+
+    // Apply reduced motion
+    if (themeConfig.reducedMotion) {
+      root.style.setProperty("--motion-reduce", "1");
+    } else {
+      root.style.removeProperty("--motion-reduce");
+    }
+
+    // Apply custom colors
+    root.style.setProperty("--primary-color", themeConfig.primaryColor);
+    root.style.setProperty("--accent-color", themeConfig.accentColor);
+
+    // Apply border radius
+    const radiusMap = {
+      none: "0",
+      sm: "0.125rem",
+      md: "0.375rem",
+      lg: "0.5rem",
+      xl: "0.75rem",
+    };
+    root.style.setProperty(
+      "--border-radius",
+      radiusMap[themeConfig.borderRadius],
+    );
+  }, [themeConfig]);
+
+  // ===== SYSTEM THEME LISTENER =====
+  useEffect(() => {
+    if (themeConfig.mode === "system") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handleChange = () => {
+        const root = document.documentElement;
+        root.classList.remove("light", "dark");
+        root.classList.add(mediaQuery.matches ? "dark" : "light");
+        root.setAttribute("data-theme", mediaQuery.matches ? "dark" : "light");
+      };
+
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    }
+  }, [themeConfig.mode]);
+
+  // ===== BREADCRUMBS GENERATION =====
+  const breadcrumbs = useMemo((): BreadcrumbItem[] => {
+    const pathSegments = location.pathname.split("/").filter(Boolean);
+    const crumbs: BreadcrumbItem[] = [{ label: "Início", path: "/" }];
+
+    const pathMap: Record<string, string> = {
+      painel: "Painel de Controle",
+      "crm-modern": "CRM Jurídico",
+      configuracoes: "Configurações",
+      "configuracao-armazenamento": "Armazenamento",
+      agenda: "Agenda",
+      publicacoes: "Publicações",
+      atendimento: "Atendimento",
+      financeiro: "Financeiro",
+      contratos: "Contratos",
+      tarefas: "Tarefas",
+    };
+
+    let currentPath = "";
+    pathSegments.forEach((segment) => {
+      currentPath += `/${segment}`;
+      const label =
+        pathMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
+      crumbs.push({ label, path: currentPath });
     });
 
-    return breadcrumbItems;
-  }, [currentPath]);
-
-  // Mock user data - replace with real auth
-  const userRole = "user" as const;
-  const permissions = ["read", "write"];
-  const sessionExpiry = new Date(Date.now() + 8 * 60 * 60 * 1000); // 8 hours
+    return crumbs;
+  }, [location.pathname]);
 
   // ===== LAYOUT ACTIONS =====
-  const updateLayoutConfig = useCallback((config: Partial<LayoutConfig>) => {
-    setLayoutConfig((prev) => ({ ...prev, ...config }));
-  }, []);
+  const updateLayoutConfig = useCallback(
+    (updates: Partial<LayoutConfig>) => {
+      setLayoutConfig((prev) => ({ ...prev, ...updates }));
+    },
+    [setLayoutConfig],
+  );
 
-  const updateThemeConfig = useCallback((config: Partial<ThemeConfig>) => {
-    setThemeConfig((prev) => {
-      const newConfig = { ...prev, ...config };
-      ultimateDesignSystem.performance.storeTheme(newConfig);
-      return newConfig;
-    });
-  }, []);
+  const updateThemeConfig = useCallback(
+    (updates: Partial<ThemeConfig>) => {
+      setThemeConfig((prev) => ({ ...prev, ...updates }));
+    },
+    [setThemeConfig],
+  );
 
   const toggleSidebar = useCallback(() => {
     setLayoutConfig((prev) => ({
       ...prev,
       sidebarVariant:
         prev.sidebarVariant === "expanded"
-          ? "collapsed"
-          : prev.sidebarVariant === "collapsed"
+          ? isMobile
             ? "hidden"
-            : "expanded",
+            : "collapsed"
+          : "expanded",
     }));
-  }, []);
+  }, [isMobile, setLayoutConfig]);
 
   const toggleTheme = useCallback(() => {
-    updateThemeConfig({
-      mode: themeConfig.mode === "light" ? "dark" : "light",
-    });
-  }, [themeConfig.mode, updateThemeConfig]);
-
-  // ===== ROUTE-BASED LAYOUT UPDATES =====
-  useEffect(() => {
-    const routeConfig = LAYOUT_CONFIGS[currentPath] || {};
-
-    // Apply route-specific layout configuration
-    setLayoutConfig((prev) => ({
+    setThemeConfig((prev) => ({
       ...prev,
-      ...routeConfig,
-      // Override for mobile
-      sidebarVariant: isMobile
-        ? "hidden"
-        : routeConfig.sidebarVariant || prev.sidebarVariant,
+      mode: prev.mode === "light" ? "dark" : "light",
     }));
-  }, [currentPath, isMobile]);
+  }, [setThemeConfig]);
 
-  // ===== THEME APPLICATION =====
-  useEffect(() => {
-    const applyTheme = () => {
-      // Apply CSS custom properties
-      const root = document.documentElement;
-      const mode =
-        themeConfig.mode === "system"
-          ? window.matchMedia("(prefers-color-scheme: dark)").matches
-            ? "dark"
-            : "light"
-          : themeConfig.mode;
+  const setSidebarVariant = useCallback(
+    (variant: "expanded" | "collapsed" | "hidden") => {
+      setLayoutConfig((prev) => ({ ...prev, sidebarVariant: variant }));
+    },
+    [setLayoutConfig],
+  );
 
-      root.setAttribute("data-theme", mode);
-      root.style.setProperty("--primary-color", themeConfig.primaryColor);
-      root.style.setProperty("--accent-color", themeConfig.accentColor);
-
-      // Apply body classes
-      document.body.className = `theme-${mode} font-scale-${themeConfig.fontScale} radius-${themeConfig.borderRadius}`;
-
-      // Store theme preference
-      ultimateDesignSystem.performance.storeTheme(themeConfig);
-    };
-
-    applyTheme();
-
-    // Listen for system theme changes
-    if (themeConfig.mode === "system") {
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      mediaQuery.addEventListener("change", applyTheme);
-      return () => mediaQuery.removeEventListener("change", applyTheme);
-    }
-  }, [themeConfig]);
-
-  // ===== PERFORMANCE OPTIMIZATIONS =====
-  useEffect(() => {
-    // Preload critical resources
-    performanceUtils.loadingPerformance.preloadCriticalResources();
-
-    // Initialize performance monitoring
-    const cleanup = performanceUtils.componentOptimization.measureRenderTime(
-      "MainLayout",
-      () => {
-        // Performance measurement callback
-      },
-    );
-
-    return cleanup;
-  }, []);
+  // ===== MOCK DATA =====
+  const mockNotifications: NotificationItem[] = [
+    {
+      id: "1",
+      type: "info",
+      title: "Nova atualização disponível",
+      message: "Versão 2.1.0 com melhorias de performance",
+      timestamp: new Date(Date.now() - 1000 * 60 * 30),
+      read: false,
+    },
+    {
+      id: "2",
+      type: "warning",
+      title: "Prazo se aproximando",
+      message: "Audiência agendada para amanhã às 14h",
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
+      read: false,
+    },
+  ];
 
   // ===== CONTEXT VALUE =====
   const contextValue: LayoutContextValue = useMemo(
@@ -326,16 +357,17 @@ const MainLayout: React.FC = () => {
       updateThemeConfig,
       toggleSidebar,
       toggleTheme,
+      setSidebarVariant,
 
       // Navigation State
-      currentPath,
+      currentPath: location.pathname,
       breadcrumbs,
-      notifications,
+      notifications: mockNotifications,
 
-      // Session & Permissions
-      userRole,
-      permissions,
-      sessionExpiry,
+      // Session & Permissions (mock data)
+      userRole: "admin",
+      permissions: ["read", "write", "admin"],
+      sessionExpiry: new Date(Date.now() + 1000 * 60 * 60 * 8),
     }),
     [
       layoutConfig,
@@ -347,125 +379,127 @@ const MainLayout: React.FC = () => {
       updateThemeConfig,
       toggleSidebar,
       toggleTheme,
-      currentPath,
+      setSidebarVariant,
+      location.pathname,
       breadcrumbs,
-      notifications,
-      userRole,
-      permissions,
-      sessionExpiry,
     ],
   );
 
-  // ===== RENDER LOGIC =====
-  const renderLayout = () => {
-    const {
-      showSidebar,
-      showTopbar,
-      sidebarVariant,
-      containerMaxWidth,
-      backgroundPattern,
-    } = layoutConfig;
+  // ===== COMPUTED CLASSES =====
+  const containerClasses = useMemo(() => {
+    const classes = ["min-h-screen", "bg-background", "text-foreground"];
 
-    return (
-      <div
-        className={`
-          min-h-screen transition-colors duration-200
-          ${backgroundPattern === "dots" ? "bg-dots-pattern" : ""}
-          ${backgroundPattern === "grid" ? "bg-grid-pattern" : ""}
-          ${backgroundPattern === "subtle" ? "bg-subtle-pattern" : ""}
-        `}
-        style={{
-          backgroundColor: "var(--surface-primary)",
-          color: "var(--text-primary)",
-        }}
-      >
-        {/* Loading Overlay */}
-        {isLoading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-            <div className="flex items-center space-x-3 rounded-lg bg-white px-6 py-4 shadow-lg dark:bg-gray-800">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-              <span className="text-sm font-medium">Carregando...</span>
-            </div>
-          </div>
+    if (layoutConfig.backgroundPattern !== "none") {
+      classes.push(`bg-pattern-${layoutConfig.backgroundPattern}`);
+    }
+
+    return classes.join(" ");
+  }, [layoutConfig.backgroundPattern]);
+
+  const mainClasses = useMemo(() => {
+    const classes = ["flex-1", "overflow-auto"];
+
+    // Add sidebar spacing
+    if (layoutConfig.showSidebar) {
+      if (layoutConfig.sidebarVariant === "expanded") {
+        classes.push(isMobile ? "ml-0" : "ml-64");
+      } else if (layoutConfig.sidebarVariant === "collapsed") {
+        classes.push("ml-16");
+      }
+    }
+
+    // Add topbar spacing
+    if (layoutConfig.showTopbar) {
+      classes.push("mt-16");
+    }
+
+    return classes.join(" ");
+  }, [layoutConfig, isMobile]);
+
+  return (
+    <LayoutContext.Provider value={contextValue}>
+      <div className={containerClasses}>
+        {/* Sidebar */}
+        {layoutConfig.showSidebar && (
+          <SidebarMain
+            variant={layoutConfig.sidebarVariant}
+            onToggle={toggleSidebar}
+            className="fixed left-0 top-0 z-40 h-full"
+          />
         )}
 
-        {/* Sidebar */}
-        {showSidebar && sidebarVariant !== "hidden" && (
-          <SidebarMain
-            variant={sidebarVariant}
-            onToggle={toggleSidebar}
-            className={`
-              ${isMobile ? "fixed inset-y-0 left-0 z-40" : ""}
-              ${sidebarVariant === "collapsed" ? "w-16" : "w-64"}
-              transition-all duration-300 ease-in-out
-            `}
+        {/* Topbar */}
+        {layoutConfig.showTopbar && (
+          <TopbarMain
+            variant={layoutConfig.topbarVariant}
+            onToggleSidebar={toggleSidebar}
+            onToggleTheme={toggleTheme}
+            showSidebarToggle={layoutConfig.showSidebar}
+            className="fixed right-0 top-0 z-30 w-full"
           />
         )}
 
         {/* Mobile Sidebar Overlay */}
-        {isMobile && showSidebar && sidebarVariant !== "hidden" && (
+        {isMobile && layoutConfig.sidebarVariant === "expanded" && (
           <div
-            className="fixed inset-0 z-30 bg-black/50"
+            className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm"
             onClick={toggleSidebar}
+            aria-hidden="true"
           />
         )}
 
-        {/* Main Content Area */}
-        <div
-          className={`
-            flex min-h-screen flex-col transition-all duration-300
-            ${showSidebar && sidebarVariant === "expanded" && !isMobile ? "ml-64" : ""}
-            ${showSidebar && sidebarVariant === "collapsed" && !isMobile ? "ml-16" : ""}
-          `}
-        >
-          {/* Top Bar */}
-          {showTopbar && (
-            <TopbarMain
-              variant={layoutConfig.topbarVariant}
-              onToggleSidebar={toggleSidebar}
-              onToggleTheme={toggleTheme}
-              showSidebarToggle={showSidebar}
-              className="sticky top-0 z-20 border-b bg-white/80 backdrop-blur-md dark:bg-gray-900/80"
-            />
-          )}
-
-          {/* Page Content */}
-          <main
-            className={`
-              flex-1 transition-all duration-200
-              ${containerMaxWidth === "full" ? "" : `mx-auto max-w-${containerMaxWidth}`}
-            `}
+        {/* Main Content */}
+        <main className={mainClasses}>
+          <div
+            className={`container mx-auto p-4 md:p-6 lg:p-8 ${
+              layoutConfig.containerMaxWidth !== "full"
+                ? `max-w-${layoutConfig.containerMaxWidth}`
+                : ""
+            }`}
           >
+            {/* Loading Overlay */}
+            {isLoading && (
+              <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center">
+                <div className="bg-card p-6 rounded-lg shadow-lg">
+                  <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+                  <p className="text-sm text-muted-foreground">Carregando...</p>
+                </div>
+              </div>
+            )}
+
+            {/* Page Content */}
             <Outlet />
-          </main>
-        </div>
+          </div>
+        </main>
 
         {/* Toast Notifications */}
         <Toaster
-          position="top-right"
+          position="bottom-right"
           toastOptions={{
-            className:
-              "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
-            duration: 4000,
+            style: {
+              background: "hsl(var(--card))",
+              border: "1px solid hsl(var(--border))",
+              color: "hsl(var(--card-foreground))",
+            },
           }}
         />
-      </div>
-    );
-  };
 
-  return (
-    <LayoutContext.Provider value={contextValue}>
-      {renderLayout()}
+        {/* Debug Info (Development Only) */}
+        {process.env.NODE_ENV === "development" && (
+          <div className="fixed bottom-4 left-4 z-50 bg-card border border-border rounded-lg p-2 text-xs font-mono opacity-50 hover:opacity-100 transition-opacity">
+            <div>Mode: {themeConfig.mode}</div>
+            <div>
+              Screen: {windowSize.width}x{windowSize.height}
+            </div>
+            <div>
+              Device: {isMobile ? "Mobile" : isTablet ? "Tablet" : "Desktop"}
+            </div>
+            <div>Sidebar: {layoutConfig.sidebarVariant}</div>
+          </div>
+        )}
+      </div>
     </LayoutContext.Provider>
   );
 };
 
-export default React.memo(MainLayout);
-
-// ===== UTILITY EXPORTS =====
-export {
-  LayoutContext,
-  type LayoutContextValue,
-  type LayoutConfig,
-  type ThemeConfig,
-};
+export default MainLayout;
