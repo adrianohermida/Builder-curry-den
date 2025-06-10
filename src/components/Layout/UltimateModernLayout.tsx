@@ -36,6 +36,7 @@ export const UltimateModernLayout: React.FC<UltimateModernLayoutProps> = ({
   // Initialize theme and setup
   useEffect(() => {
     initializeTheme();
+    initializeAnimations();
 
     // Apply theme mode
     const root = document.documentElement;
