@@ -157,6 +157,15 @@ const MENU_ITEMS: MenuItem[] = [
     description: "Recursos experimentais",
   },
   {
+    id: "theme-demo",
+    label: "Demo Temas",
+    icon: Palette,
+    path: "/theme-demo",
+    badge: "DEMO",
+    badgeType: "info",
+    description: "Demonstração do sistema de temas",
+  },
+  {
     id: "configuracoes",
     label: "Configurações",
     icon: Settings,
