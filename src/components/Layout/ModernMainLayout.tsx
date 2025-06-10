@@ -30,6 +30,9 @@ import CommunicationWidget from "./CommunicationWidget";
 // Hooks
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
+// Theme utilities
+import { applyThemeConfig } from "@/utils/themeUtils";
+
 // Types
 export interface ModernLayoutConfig {
   showSidebar: boolean;
@@ -132,56 +135,17 @@ export const ModernMainLayout: React.FC = () => {
 
   // Theme Application
   useEffect(() => {
-    const applyTheme = () => {
-      const root = document.documentElement;
-
-      if (layoutConfig.theme === "system") {
-        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-          .matches
-          ? "dark"
-          : "light";
-        root.classList.toggle("dark", systemTheme === "dark");
-      } else {
-        root.classList.toggle("dark", layoutConfig.theme === "dark");
-      }
-
-      // Apply reduced motion
-      if (layoutConfig.reducedMotion) {
-        root.style.setProperty("--transition-duration", "0ms");
-      } else {
-        root.style.removeProperty("--transition-duration");
-      }
-    };
-
-    applyTheme();
-
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = () => {
-      if (layoutConfig.theme === "system") {
-        applyTheme();
-      }
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [layoutConfig.theme, layoutConfig.reducedMotion]);
-
-  // Primary Color Application
-  useEffect(() => {
-    const root = document.documentElement;
-
-    const colorMap: Record<string, { primary: string; accent: string }> = {
-      blue: { primary: "217 91% 60%", accent: "217 91% 95%" },
-      green: { primary: "142 76% 36%", accent: "142 76% 95%" },
-      purple: { primary: "263 70% 50%", accent: "263 70% 95%" },
-      orange: { primary: "24 95% 53%", accent: "24 95% 95%" },
-    };
-
-    const colors = colorMap[layoutConfig.primaryColor] || colorMap.blue;
-    root.style.setProperty("--primary", colors.primary);
-    root.style.setProperty("--accent", colors.accent);
-  }, [layoutConfig.primaryColor]);
+    applyThemeConfig({
+      mode: layoutConfig.theme,
+      primaryColor: layoutConfig.primaryColor,
+      reducedMotion: layoutConfig.reducedMotion,
+      highContrast: false, // pode ser adicionado depois
+    });
+  }, [
+    layoutConfig.theme,
+    layoutConfig.primaryColor,
+    layoutConfig.reducedMotion,
+  ]);
 
   // Loading Effect
   useEffect(() => {
