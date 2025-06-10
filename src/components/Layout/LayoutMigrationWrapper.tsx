@@ -28,7 +28,7 @@ interface LayoutMigrationWrapperProps {
 // ===== CONFIGURATION =====
 const MIGRATION_CONFIG = {
   // Feature flag para habilitar novo layout globalmente
-  enableUnifiedLayout: true,
+  enableUnifiedLayout: false, // DESABILITADO - usar ProfessionalCleanLayout
 
   // Permitir override via query parameter em desenvolvimento
   allowQueryOverride: IS_DEVELOPMENT,
