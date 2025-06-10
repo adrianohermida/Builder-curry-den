@@ -4,6 +4,10 @@
  * Performance-optimized CSS with complete responsive coverage
  */
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* ===== CRITICAL RESET & BASE ===== */
 *,
 *::before,
