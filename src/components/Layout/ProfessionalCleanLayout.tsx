@@ -25,27 +25,90 @@ import { useTheme } from "@/lib/themeSystem";
 // Sidebar theme CSS
 import "@/styles/sidebar-theme.css";
 
-// Types
-interface NavigationItem {
-  id: string;
-  label: string;
-  icon: React.ElementType;
-  path: string;
-  children?: NavigationItem[];
-  isActive?: boolean;
+// ===== TYPES =====
+interface LayoutState {
+  sidebarOpen: boolean;
+  sidebarCollapsed: boolean;
+  isMobile: boolean;
+  isTablet: boolean;
 }
 
-const ProfessionalCleanLayout: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { user } = usePermissions();
+// ===== LAYOUT CONFIGURATION =====
+const DEFAULT_LAYOUT_STATE: LayoutState = {
+  sidebarOpen: true,
+  sidebarCollapsed: false,
+  isMobile: false,
+  isTablet: false,
+};
 
-  // State
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [expandedItems, setExpandedItems] = useState<string[]>(["crm"]);
+// ===== PROFESSIONAL CLEAN LAYOUT COMPONENT =====
+const ProfessionalCleanLayout: React.FC = () => {
+  const { colors, getModeClass } = useTheme();
+
+  // ===== PERSISTENT STATE =====
+  const [persistedState, setPersistedState] = useLocalStorage<
+    Partial<LayoutState>
+  >("lawdesk-professional-layout", {});
+
+  // ===== RESPONSIVE STATE =====
+  const [windowSize, setWindowSize] = React.useState({
+    width: typeof window !== "undefined" ? window.innerWidth : 1200,
+    height: typeof window !== "undefined" ? window.innerHeight : 800,
+  });
+
+  // ===== COMPUTED STATE =====
+  const layoutState = React.useMemo<LayoutState>(() => {
+    const isMobile = windowSize.width < 768;
+    const isTablet = windowSize.width >= 768 && windowSize.width < 1024;
+
+    return {
+      ...DEFAULT_LAYOUT_STATE,
+      ...persistedState,
+      isMobile,
+      isTablet,
+      sidebarOpen: isMobile ? false : (persistedState.sidebarOpen ?? true),
+      sidebarCollapsed: isTablet
+        ? true
+        : (persistedState.sidebarCollapsed ?? false),
+    };
+  }, [windowSize, persistedState]);
+
+  // ===== RESPONSIVE HANDLING =====
+  React.useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // ===== LAYOUT ACTIONS =====
+  const updateLayoutState = React.useCallback(
+    (updates: Partial<LayoutState>) => {
+      setPersistedState((prev) => ({ ...prev, ...updates }));
+    },
+    [setPersistedState],
+  );
+
+  const toggleSidebar = React.useCallback(() => {
+    updateLayoutState({ sidebarOpen: !layoutState.sidebarOpen });
+  }, [layoutState.sidebarOpen, updateLayoutState]);
+
+  const closeSidebar = React.useCallback(() => {
+    updateLayoutState({ sidebarOpen: false });
+  }, [updateLayoutState]);
+
+  const openSidebar = React.useCallback(() => {
+    updateLayoutState({ sidebarOpen: true });
+  }, [updateLayoutState]);
+
+  const toggleSidebarCollapse = React.useCallback(() => {
+    updateLayoutState({ sidebarCollapsed: !layoutState.sidebarCollapsed });
+  }, [layoutState.sidebarCollapsed, updateLayoutState]);
 
   // Navigation structure - COMPLETA COM FEED E INTEGRAÇÕES
   const navigationItems: NavigationItem[] = [
