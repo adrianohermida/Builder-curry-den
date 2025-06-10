@@ -1,13 +1,12 @@
 /**
- * 🎯 UNIFIED LAYOUT - LAYOUT PRINCIPAL CONSOLIDADO
+ * 🎯 UNIFIED LAYOUT - LAYOUT PRINCIPAL CORRIGIDO
  *
- * Layout unificado que substitui todas as variações de layout existentes:
- * - Design responsivo mobile-first
- * - Sidebar unificado com nova estrutura de menu
- * - Gestão de estado otimizada
- * - Performance aprimorada
- * - Acessibilidade completa
- * - Suporte a temas
+ * Layout principal com todas as correções aplicadas:
+ * - Sistema de temas integrado
+ * - Responsividade completa
+ * - Sem animações de movimento
+ * - Sidebar fixo e responsivo
+ * - Cores dinâmicas baseadas no modo
  */
 
 import React, {
@@ -31,32 +30,28 @@ import ResponsiveInspector from "@/components/dev/ResponsiveInspector";
 // Hooks
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
-// Environment utilities
-import { IS_DEVELOPMENT } from "@/lib/env";
-
 // Theme system
 import { useTheme } from "@/lib/themeSystem";
+import ThemeDiagnostic from "@/lib/themeDiagnostic";
+
+// Environment utilities
+import { IS_DEVELOPMENT } from "@/lib/env";
 
 // ===== TYPES =====
 interface LayoutState {
   sidebarOpen: boolean;
   sidebarCollapsed: boolean;
-  theme: "light" | "dark" | "system";
   isMobile: boolean;
   isTablet: boolean;
 }
 
 interface LayoutContextValue {
-  // State
   layoutState: LayoutState;
   currentPath: string;
-
-  // Actions
   toggleSidebar: () => void;
   closeSidebar: () => void;
   openSidebar: () => void;
   toggleSidebarCollapse: () => void;
-  setTheme: (theme: "light" | "dark" | "system") => void;
 }
 
 interface BreadcrumbItem {
@@ -79,45 +74,8 @@ export const useUnifiedLayout = (): LayoutContextValue => {
 const DEFAULT_LAYOUT_STATE: LayoutState = {
   sidebarOpen: true,
   sidebarCollapsed: false,
-  theme: "light",
   isMobile: false,
   isTablet: false,
-};
-
-// ===== UTILITIES =====
-const getBreakpoint = (width: number) => {
-  if (width < 768) return "mobile";
-  if (width < 1024) return "tablet";
-  if (width < 1280) return "desktop";
-  return "large";
-};
-
-const generateBreadcrumbs = (pathname: string): BreadcrumbItem[] => {
-  const pathSegments = pathname.split("/").filter(Boolean);
-  const breadcrumbs: BreadcrumbItem[] = [{ label: "Início", path: "/" }];
-
-  const pathMap: Record<string, string> = {
-    painel: "Dashboard",
-    "crm-modern": "CRM Jurídico",
-    agenda: "Calendário",
-    publicacoes: "Publicações",
-    atendimento: "Comunicação",
-    analytics: "Relatórios",
-    beta: "Beta",
-    configuracoes: "Configurações",
-    "configuracao-armazenamento": "Armazenamento",
-    ajuda: "Ajuda",
-  };
-
-  let currentPath = "";
-  pathSegments.forEach((segment) => {
-    currentPath += `/${segment}`;
-    const label =
-      pathMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
-    breadcrumbs.push({ label, path: currentPath });
-  });
-
-  return breadcrumbs;
 };
 
 // ===== UNIFIED LAYOUT COMPONENT =====
@@ -148,20 +106,14 @@ const UnifiedLayout: React.FC = () => {
       ...persistedState,
       isMobile,
       isTablet,
-      // Keep sidebar open by default, only hide on mobile if explicitly closed
-      sidebarOpen: persistedState.sidebarOpen ?? true,
-      // Auto-collapse on tablet only
+      // Sidebar sempre aberto no desktop, fechado no mobile por padrão
+      sidebarOpen: isMobile ? false : (persistedState.sidebarOpen ?? true),
+      // Auto-collapse no tablet
       sidebarCollapsed: isTablet
         ? true
         : (persistedState.sidebarCollapsed ?? false),
     };
   }, [windowSize, persistedState]);
-
-  // ===== BREADCRUMBS =====
-  const breadcrumbs = useMemo(
-    () => generateBreadcrumbs(location.pathname),
-    [location.pathname],
-  );
 
   // ===== RESPONSIVE HANDLING =====
   useEffect(() => {
@@ -176,50 +128,19 @@ const UnifiedLayout: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ===== THEME MANAGEMENT =====
+  // ===== DIAGNÓSTICO DE DESENVOLVIMENTO =====
   useEffect(() => {
-    const root = document.documentElement;
+    if (IS_DEVELOPMENT) {
+      // Rodar diagnóstico após um delay para garantir que o DOM está pronto
+      const timer = setTimeout(() => {
+        const diagnostic = new ThemeDiagnostic();
+        diagnostic.generateReport();
+        diagnostic.applyAutomaticFixes();
+      }, 1000);
 
-    // Remove existing theme classes
-    root.classList.remove("light", "dark");
-
-    // Apply theme
-    let effectiveTheme = layoutState.theme;
-    if (layoutState.theme === "system") {
-      effectiveTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
+      return () => clearTimeout(timer);
     }
-
-    root.classList.add(effectiveTheme);
-    root.setAttribute("data-theme", effectiveTheme);
-
-    // Update meta theme-color for mobile browsers
-    const metaThemeColor = document.querySelector(
-      'meta[name="theme-color"]',
-    ) as HTMLMetaElement;
-    if (metaThemeColor) {
-      metaThemeColor.content =
-        effectiveTheme === "dark" ? "#1f2937" : "#ffffff";
-    }
-  }, [layoutState.theme]);
-
-  // ===== SYSTEM THEME LISTENER =====
-  useEffect(() => {
-    if (layoutState.theme === "system") {
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      const handleChange = () => {
-        const root = document.documentElement;
-        const newTheme = mediaQuery.matches ? "dark" : "light";
-        root.classList.remove("light", "dark");
-        root.classList.add(newTheme);
-        root.setAttribute("data-theme", newTheme);
-      };
-
-      mediaQuery.addEventListener("change", handleChange);
-      return () => mediaQuery.removeEventListener("change", handleChange);
-    }
-  }, [layoutState.theme]);
+  }, []);
 
   // ===== LAYOUT ACTIONS =====
   const updateLayoutState = useCallback(
@@ -245,47 +166,6 @@ const UnifiedLayout: React.FC = () => {
     updateLayoutState({ sidebarCollapsed: !layoutState.sidebarCollapsed });
   }, [layoutState.sidebarCollapsed, updateLayoutState]);
 
-  const setTheme = useCallback(
-    (theme: "light" | "dark" | "system") => {
-      updateLayoutState({ theme });
-    },
-    [updateLayoutState],
-  );
-
-  // ===== KEYBOARD SHORTCUTS =====
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Ctrl/Cmd + B: Toggle sidebar
-      if ((event.ctrlKey || event.metaKey) && event.key === "b") {
-        event.preventDefault();
-        toggleSidebar();
-      }
-
-      // Ctrl/Cmd + Shift + B: Toggle sidebar collapse
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        event.shiftKey &&
-        event.key === "B"
-      ) {
-        event.preventDefault();
-        toggleSidebarCollapse();
-      }
-
-      // Escape: Close mobile sidebar
-      if (event.key === "Escape" && layoutState.isMobile) {
-        closeSidebar();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [
-    toggleSidebar,
-    toggleSidebarCollapse,
-    closeSidebar,
-    layoutState.isMobile,
-  ]);
-
   // ===== CONTEXT VALUE =====
   const contextValue: LayoutContextValue = useMemo(
     () => ({
@@ -295,7 +175,6 @@ const UnifiedLayout: React.FC = () => {
       closeSidebar,
       openSidebar,
       toggleSidebarCollapse,
-      setTheme,
     }),
     [
       layoutState,
@@ -304,14 +183,19 @@ const UnifiedLayout: React.FC = () => {
       closeSidebar,
       openSidebar,
       toggleSidebarCollapse,
-      setTheme,
     ],
   );
 
   // ===== COMPUTED CLASSES =====
   const mainClasses = useMemo(() => {
-    const classes = ["min-h-screen", "bg-gray-50", "dark:bg-gray-900", "pt-14"];
+    const classes = ["min-h-screen", "pt-14"];
 
+    // Aplicar cores do tema
+    classes.push(
+      themeConfig.themeMode === "dark" ? "bg-gray-900" : "bg-gray-50",
+    );
+
+    // Margin para sidebar (sem animações)
     if (layoutState.sidebarOpen && !layoutState.isMobile) {
       if (layoutState.sidebarCollapsed) {
         classes.push("lg:ml-16");
@@ -321,28 +205,28 @@ const UnifiedLayout: React.FC = () => {
     }
 
     return classes.join(" ");
-  }, [
-    layoutState.sidebarOpen,
-    layoutState.sidebarCollapsed,
-    layoutState.isMobile,
-  ]);
+  }, [layoutState, themeConfig.themeMode]);
 
   const contentClasses = useMemo(() => {
-    const classes = [
+    return [
       "flex-1",
       "p-4",
       "lg:p-6",
-      "transition-all",
-      "duration-300",
-      "ease-in-out",
-    ];
-
-    return classes.join(" ");
+      "transition-colors",
+      "duration-150",
+    ].join(" ");
   }, []);
 
   return (
     <LayoutContext.Provider value={contextValue}>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div
+        className={`min-h-screen ${getModeClass()}`}
+        data-layout-container="true"
+        style={{
+          backgroundColor: colors.background,
+          color: colors.text,
+        }}
+      >
         {/* Topbar */}
         <UnifiedTopbar />
 
@@ -355,10 +239,10 @@ const UnifiedLayout: React.FC = () => {
           isMobile={layoutState.isMobile}
         />
 
-        {/* Mobile Sidebar Overlay */}
+        {/* Mobile Sidebar Overlay - SEM ANIMAÇÕES */}
         {layoutState.isMobile && layoutState.sidebarOpen && (
           <div
-            className="fixed inset-0 top-16 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 top-14 z-30 bg-black bg-opacity-50 lg:hidden"
             onClick={closeSidebar}
             aria-hidden="true"
           />
@@ -366,72 +250,25 @@ const UnifiedLayout: React.FC = () => {
 
         {/* Main Content */}
         <div className={mainClasses}>
-          {/* Mobile Top Bar - Legacy (pode remover depois) */}
-          {false && layoutState.isMobile && (
-            <div className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3">
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={toggleSidebar}
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  aria-label="Abrir menu"
-                >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  </svg>
-                </button>
-                <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
-                    <span className="text-xs font-bold text-primary-foreground">
-                      L
-                    </span>
-                  </div>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    Lawdesk
-                  </span>
-                </div>
-                <div className="w-10"></div>
-              </div>
-
-              {/* Breadcrumbs on Mobile */}
-              {breadcrumbs.length > 1 && (
-                <div className="mt-2 flex items-center space-x-1 text-sm text-gray-500 dark:text-gray-400">
-                  {breadcrumbs.map((crumb, index) => (
-                    <React.Fragment key={crumb.path || crumb.label}>
-                      {index > 0 && <span>/</span>}
-                      <span
-                        className={
-                          index === breadcrumbs.length - 1
-                            ? "text-gray-900 dark:text-white font-medium"
-                            : ""
-                        }
-                      >
-                        {crumb.label}
-                      </span>
-                    </React.Fragment>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Page Content */}
           <main className={contentClasses}>
             {/* Loading Overlay */}
             {isLoading && (
-              <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center">
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                  <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center"
+                style={{ backgroundColor: `${colors.background}CC` }}
+              >
+                <div
+                  className="p-6 rounded-lg shadow-lg"
+                  style={{ backgroundColor: colors.surface }}
+                >
+                  <div
+                    className="animate-spin h-8 w-8 border-4 border-t-transparent rounded-full mx-auto mb-4"
+                    style={{
+                      borderColor: `${colors.primary}40`,
+                      borderTopColor: colors.primary,
+                    }}
+                  />
+                  <p className="text-sm" style={{ color: colors.textMuted }}>
                     Carregando...
                   </p>
                 </div>
@@ -448,9 +285,9 @@ const UnifiedLayout: React.FC = () => {
           position="bottom-right"
           toastOptions={{
             style: {
-              background: "hsl(var(--background))",
-              border: "1px solid hsl(var(--border))",
-              color: "hsl(var(--foreground))",
+              background: colors.surface,
+              border: `1px solid ${colors.border}`,
+              color: colors.text,
             },
           }}
         />
@@ -460,7 +297,14 @@ const UnifiedLayout: React.FC = () => {
 
         {/* Debug Info (Development Only) */}
         {IS_DEVELOPMENT && (
-          <div className="fixed bottom-4 left-4 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-xs font-mono shadow-lg opacity-75 hover:opacity-100 transition-opacity">
+          <div
+            className="fixed bottom-4 right-4 z-50 p-3 text-xs font-mono shadow-lg opacity-75 hover:opacity-100 rounded-lg border"
+            style={{
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              color: colors.text,
+            }}
+          >
             <div className="space-y-1">
               <div>
                 <strong>Layout Debug:</strong>
@@ -469,7 +313,7 @@ const UnifiedLayout: React.FC = () => {
                 Screen: {windowSize.width}x{windowSize.height}
               </div>
               <div>
-                Breakpoint:{" "}
+                Device:{" "}
                 {layoutState.isMobile
                   ? "Mobile"
                   : layoutState.isTablet
@@ -484,7 +328,8 @@ const UnifiedLayout: React.FC = () => {
                     : "Expanded"
                   : "Hidden"}
               </div>
-              <div>Theme: {layoutState.theme}</div>
+              <div>Theme: {themeConfig.themeMode}</div>
+              <div>Mode: {themeConfig.userMode}</div>
               <div>Path: {location.pathname}</div>
             </div>
           </div>
