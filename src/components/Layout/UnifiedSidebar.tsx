@@ -38,9 +38,6 @@ import {
 // Theme system
 import { useTheme } from "@/lib/themeSystem";
 
-// Color Picker
-import ColorPicker from "./ColorPicker";
-
 // ===== TYPES =====
 interface MenuItem {
   id: string;
