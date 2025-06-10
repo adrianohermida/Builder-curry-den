@@ -9,7 +9,7 @@
  */
 
 import React from "react";
-import MinimalistRouter from "@/router/minimalist";
+import RobustRouter from "@/router/robust";
 
 // Sistema de tema corrigido completo
 import ThemeInitializer from "@/components/ThemeInitializer";
