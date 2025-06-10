@@ -1,283 +1,215 @@
 /**
  * Application Constants
  *
- * Shared constants used throughout the application.
+ * Central place for all application constants including routes,
+ * configuration values, and shared constants.
  */
 
-// Application routes
+// Route constants
 export const ROUTES = {
   // Public routes
-  HOME: "/",
   LOGIN: "/login",
   REGISTER: "/registro",
   ONBOARDING: "/onboarding-start",
 
-  // Main application routes
-  DASHBOARD: "/painel",
-  DASHBOARD_ALT: "/dashboard",
-  CRM: "/crm-modern",
+  // Main routes
+  HOME: "/",
+  DASHBOARD: "/dashboard",
+  PAINEL: "/painel",
+
+  // Module routes
+  CRM: "/crm",
+  CRM_MODERN: "/crm-modern",
+  CRM_JURIDICO: "/crm-juridico",
+  PUBLICACOES: "/publicacoes",
   AGENDA: "/agenda",
-  PUBLICATIONS: "/publicacoes",
-  SERVICE: "/atendimento",
-  FINANCIAL: "/financeiro",
-  CONTRACTS: "/contratos",
-  TASKS: "/tarefas",
+  ATENDIMENTO: "/atendimento",
+  FINANCEIRO: "/financeiro",
+  CONTRATOS: "/contratos",
+  TAREFAS: "/tarefas",
   TICKETS: "/tickets",
-  SETTINGS: "/configuracoes",
-
-  // Specialized modules
-  AI: "/ia",
+  IA: "/ia",
   GED: "/ged",
-  GED_ORGANIZATIONAL: "/ged/organizacional",
-  CLIENT_PORTAL: "/portal-cliente",
+  PORTAL_CLIENTE: "/portal-cliente",
 
-  // Administrative routes
-  ADMIN: {
-    BASE: "/admin",
-    ACTION_PLAN: "/admin/action-plan",
-    SYSTEM_HEALTH: "/admin/system-health",
-    UPDATES: "/admin/updates",
-  },
+  // Admin routes
+  ADMIN: "/admin",
+  ADMIN_ACTION_PLAN: "/admin/action-plan",
+  ADMIN_SYSTEM_HEALTH: "/admin/system-health",
+  ADMIN_UPDATES: "/admin/updates",
 
   // Management routes
-  MANAGEMENT: {
-    BASE: "/gestao",
-    TASKS: "/gestao/tarefas",
-    USERS: "/gestao/usuarios",
-    METRICS: "/gestao/metricas",
-    FINANCIAL: "/gestao/financeiro",
-  },
+  GESTAO: "/gestao",
+  GESTAO_TAREFAS: "/gestao/tarefas",
+  GESTAO_USUARIOS: "/gestao/usuarios",
+  GESTAO_METRICAS: "/gestao/metricas",
+  GESTAO_FINANCEIRO: "/gestao/financeiro",
 
   // Executive routes
-  EXECUTIVE: {
-    BASE: "/executivo",
-    DASHBOARD: "/executivo/dashboard",
-  },
+  EXECUTIVO: "/executivo",
+  EXECUTIVO_DASHBOARD: "/executivo/dashboard",
+
+  // Settings routes
+  CONFIGURACOES: "/configuracoes",
+  CONFIGURACOES_PRAZOS: "/configuracoes/prazos",
+  CONFIGURACAO_ARMAZENAMENTO: "/configuracao-armazenamento",
 
   // Beta routes
-  BETA: {
-    BASE: "/beta",
-    DASHBOARD: "/beta/dashboard",
-    REPORTS: "/beta/reports",
-    OPTIMIZATION: "/beta/code-optimization",
-  },
+  BETA: "/beta",
 
-  // SaaS routes
-  SAAS: {
-    BASE: "/saas",
-    DASHBOARD: "/saas/dashboard",
-    CRM: "/saas/crm",
-    ANALYTICS: "/saas/analytics",
-    BILLING: "/saas/billing",
-  },
+  // Error routes
+  NOT_FOUND: "/404",
 } as const;
 
-// User roles and permissions
-export const USER_ROLES = {
-  SUPER_ADMIN: "super_admin",
-  ADMIN: "admin",
-  MANAGER: "manager",
-  LAWYER: "lawyer",
-  SECRETARY: "secretary",
-  CLIENT: "client",
-  BETA_USER: "beta",
-  PREMIUM_USER: "premium",
-  ENTERPRISE_USER: "enterprise",
+// Application metadata
+export const APP_CONFIG = {
+  NAME: "Lawdesk CRM",
+  VERSION: "2.0.0",
+  DESCRIPTION: "Sistema de gestão jurídica completo",
+  AUTHOR: "Lawdesk Team",
+  COPYRIGHT: "© 2024 Lawdesk. Todos os direitos reservados.",
 } as const;
 
-export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
-
-// Permission levels
-export const PERMISSIONS = {
-  READ: "read",
-  WRITE: "write",
-  DELETE: "delete",
-  ADMIN: "admin",
-  OWNER: "owner",
+// Theme constants
+export const THEME_CONFIG = {
+  DEFAULT_THEME: "light" as const,
+  STORAGE_KEY: "lawdesk-theme",
+  THEMES: ["light", "dark", "system"] as const,
 } as const;
 
-export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
+// UI constants
+export const UI_CONFIG = {
+  SIDEBAR_WIDTH: 280,
+  SIDEBAR_WIDTH_COLLAPSED: 64,
+  HEADER_HEIGHT: 64,
+  MOBILE_BREAKPOINT: 768,
+  TABLET_BREAKPOINT: 1024,
+  DESKTOP_BREAKPOINT: 1280,
+} as const;
 
-// Data table pagination
-export const PAGINATION = {
-  DEFAULT_PAGE_SIZE: 10,
-  PAGE_SIZE_OPTIONS: [5, 10, 20, 50, 100],
+// Performance constants
+export const PERFORMANCE_CONFIG = {
+  DEBOUNCE_DELAY: 300,
+  THROTTLE_DELAY: 100,
+  ANIMATION_DURATION: 150,
+  LONG_ANIMATION_DURATION: 300,
+} as const;
+
+// Data constants
+export const DATA_CONFIG = {
+  DEFAULT_PAGE_SIZE: 20,
   MAX_PAGE_SIZE: 100,
+  SEARCH_MIN_LENGTH: 2,
+  MAX_UPLOAD_SIZE: 10 * 1024 * 1024, // 10MB
 } as const;
 
-// Form validation
-export const VALIDATION = {
-  MIN_PASSWORD_LENGTH: 8,
-  MAX_PASSWORD_LENGTH: 128,
-  MIN_USERNAME_LENGTH: 3,
-  MAX_USERNAME_LENGTH: 50,
-  MAX_EMAIL_LENGTH: 255,
-  MAX_PHONE_LENGTH: 20,
-  MAX_NAME_LENGTH: 100,
-  MAX_DESCRIPTION_LENGTH: 1000,
-  MAX_COMMENT_LENGTH: 500,
-} as const;
-
-// Date and time formats
-export const DATE_FORMATS = {
-  DISPLAY: "dd/MM/yyyy",
-  DISPLAY_WITH_TIME: "dd/MM/yyyy HH:mm",
-  API: "yyyy-MM-dd",
-  API_WITH_TIME: "yyyy-MM-ddTHH:mm:ss",
-  TIME_ONLY: "HH:mm",
-  MONTH_YEAR: "MM/yyyy",
-  FULL_DATE: "EEEE, dd 'de' MMMM 'de' yyyy",
-} as const;
-
-// File types and sizes
-export const FILE_TYPES = {
-  IMAGE: ["image/jpeg", "image/png", "image/gif", "image/webp"],
-  DOCUMENT: [
-    "application/pdf",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/vnd.ms-excel",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "text/plain",
-  ],
-  ARCHIVE: ["application/zip", "application/rar"],
-} as const;
-
-export const FILE_SIZE_LIMITS = {
-  IMAGE: 5 * 1024 * 1024, // 5MB
-  DOCUMENT: 10 * 1024 * 1024, // 10MB
-  ARCHIVE: 50 * 1024 * 1024, // 50MB
-  AVATAR: 2 * 1024 * 1024, // 2MB
-} as const;
-
-// Status types
-export const STATUS_TYPES = {
+// Status constants
+export const STATUS = {
   ACTIVE: "active",
   INACTIVE: "inactive",
   PENDING: "pending",
-  SUSPENDED: "suspended",
-  ARCHIVED: "archived",
-  DRAFT: "draft",
-  PUBLISHED: "published",
   COMPLETED: "completed",
-  IN_PROGRESS: "in_progress",
   CANCELLED: "cancelled",
+  EXPIRED: "expired",
 } as const;
 
-export type StatusType = (typeof STATUS_TYPES)[keyof typeof STATUS_TYPES];
-
-// Priority levels
-export const PRIORITY_LEVELS = {
+// Priority constants
+export const PRIORITY = {
   LOW: "low",
   MEDIUM: "medium",
   HIGH: "high",
   URGENT: "urgent",
-  CRITICAL: "critical",
 } as const;
 
-export type PriorityLevel =
-  (typeof PRIORITY_LEVELS)[keyof typeof PRIORITY_LEVELS];
-
-// Notification types
-export const NOTIFICATION_TYPES = {
-  INFO: "info",
-  SUCCESS: "success",
-  WARNING: "warning",
-  ERROR: "error",
+// User roles
+export const USER_ROLES = {
+  ADMIN: "admin",
+  PARTNER: "partner",
+  SENIOR_LAWYER: "senior_lawyer",
+  LAWYER: "lawyer",
+  JUNIOR_LAWYER: "junior_lawyer",
+  PARALEGAL: "paralegal",
+  SECRETARY: "secretary",
+  INTERN: "intern",
+  CLIENT: "client",
 } as const;
 
-export type NotificationType =
-  (typeof NOTIFICATION_TYPES)[keyof typeof NOTIFICATION_TYPES];
+// Permissions
+export const PERMISSIONS = {
+  // CRM permissions
+  CRM_READ: "crm_read",
+  CRM_WRITE: "crm_write",
+  CRM_DELETE: "crm_delete",
 
-// Local storage keys (organized by feature)
-export const STORAGE_KEYS_BY_FEATURE = {
-  AUTH: {
-    TOKEN: "auth_token",
-    REFRESH_TOKEN: "refresh_token",
-    USER_DATA: "user_data",
-    REMEMBER_ME: "remember_me",
-  },
-  UI: {
-    THEME: "ui_theme",
-    SIDEBAR_COLLAPSED: "ui_sidebar_collapsed",
-    TABLE_PREFERENCES: "ui_table_preferences",
-    LANGUAGE: "ui_language",
-  },
-  CRM: {
-    FILTER_PREFERENCES: "crm_filter_preferences",
-    COLUMN_VISIBILITY: "crm_column_visibility",
-    LAST_SELECTED_CLIENT: "crm_last_selected_client",
-  },
-  AGENDA: {
-    VIEW_MODE: "agenda_view_mode",
-    CALENDAR_PREFERENCES: "agenda_calendar_preferences",
-  },
+  // CRM Juridico permissions
+  CRM_JURIDICO_READ: "crm_juridico_read",
+  CRM_JURIDICO_WRITE: "crm_juridico_write",
+  CRM_JURIDICO_DELETE: "crm_juridico_delete",
+
+  // Admin permissions
+  ADMIN_READ: "admin_read",
+  ADMIN_WRITE: "admin_write",
+
+  // System permissions
+  SYSTEM_ADMIN: "system_admin",
+  SYSTEM_CONFIG: "system_config",
 } as const;
 
-// Error codes
-export const ERROR_CODES = {
-  NETWORK_ERROR: "NETWORK_ERROR",
-  UNAUTHORIZED: "UNAUTHORIZED",
-  FORBIDDEN: "FORBIDDEN",
-  NOT_FOUND: "NOT_FOUND",
-  VALIDATION_ERROR: "VALIDATION_ERROR",
-  SERVER_ERROR: "SERVER_ERROR",
-  TIMEOUT_ERROR: "TIMEOUT_ERROR",
-} as const;
-
-export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
-
-// Success messages
-export const SUCCESS_MESSAGES = {
-  CREATED: "Item criado com sucesso",
-  UPDATED: "Item atualizado com sucesso",
-  DELETED: "Item removido com sucesso",
-  SAVED: "Dados salvos com sucesso",
-  SENT: "Dados enviados com sucesso",
-  UPLOADED: "Arquivo enviado com sucesso",
-  EXPORTED: "Dados exportados com sucesso",
-  IMPORTED: "Dados importados com sucesso",
+// Module feature flags
+export const FEATURES = {
+  CRM_JURIDICO: true,
+  AI_ASSISTANT: true,
+  AGENDA_JURIDICA: false, // In development
+  PROCESSOS_PUBLICACOES: false, // In development
+  CONTRATOS_FINANCEIRO: false, // In development
+  ATENDIMENTO_COMUNICACAO: false, // In development
+  GED_DOCUMENTOS: false, // In development
+  ADMIN_CONFIGURACOES: false, // In development
 } as const;
 
 // Error messages
 export const ERROR_MESSAGES = {
+  GENERIC: "Ocorreu um erro inesperado. Tente novamente.",
   NETWORK: "Erro de conexão. Verifique sua internet.",
-  UNAUTHORIZED: "Acesso não autorizado. Faça login novamente.",
+  UNAUTHORIZED: "Acesso não autorizado.",
   FORBIDDEN: "Você não tem permissão para esta ação.",
-  NOT_FOUND: "Item não encontrado.",
+  NOT_FOUND: "Recurso não encontrado.",
   VALIDATION: "Dados inválidos. Verifique os campos.",
-  SERVER: "Erro interno do servidor. Tente novamente.",
-  TIMEOUT: "Operação demorou muito. Tente novamente.",
-  FILE_TOO_LARGE: "Arquivo muito grande.",
-  FILE_TYPE_NOT_ALLOWED: "Tipo de arquivo não permitido.",
+  SERVER: "Erro no servidor. Tente novamente mais tarde.",
 } as const;
 
-// Animation durations (in milliseconds)
-export const ANIMATION_DURATIONS = {
-  INSTANT: 0,
-  FAST: 150,
-  NORMAL: 300,
-  SLOW: 500,
-  VERY_SLOW: 1000,
+// Success messages
+export const SUCCESS_MESSAGES = {
+  SAVE: "Salvo com sucesso!",
+  DELETE: "Excluído com sucesso!",
+  UPDATE: "Atualizado com sucesso!",
+  CREATE: "Criado com sucesso!",
+  SEND: "Enviado com sucesso!",
 } as const;
 
-// Z-index layers
-export const Z_INDEX = {
-  DROPDOWN: 1000,
-  STICKY: 1020,
-  FIXED: 1030,
-  MODAL_BACKDROP: 1040,
-  MODAL: 1050,
-  POPOVER: 1060,
-  TOOLTIP: 1070,
-  TOAST: 1080,
+// Loading messages
+export const LOADING_MESSAGES = {
+  LOADING: "Carregando...",
+  SAVING: "Salvando...",
+  DELETING: "Excluindo...",
+  UPDATING: "Atualizando...",
+  CREATING: "Criando...",
+  SENDING: "Enviando...",
 } as const;
 
-// Breakpoint values (for JavaScript usage)
-export const BREAKPOINT_VALUES = {
-  SM: 640,
-  MD: 768,
-  LG: 1024,
-  XL: 1280,
-  "2XL": 1536,
-} as const;
+export default {
+  ROUTES,
+  APP_CONFIG,
+  THEME_CONFIG,
+  UI_CONFIG,
+  PERFORMANCE_CONFIG,
+  DATA_CONFIG,
+  STATUS,
+  PRIORITY,
+  USER_ROLES,
+  PERMISSIONS,
+  FEATURES,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+  LOADING_MESSAGES,
+};
