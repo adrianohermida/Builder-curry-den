@@ -215,6 +215,80 @@ export class ThemeSystem {
     this.notifyListeners();
   }
 
+  // Set primary color and generate palette
+  setPrimaryColor(primaryColor: string): void {
+    const generatedColors = this.generateColorPalette(primaryColor);
+    this.setCustomColors(generatedColors);
+  }
+
+  // Generate color palette from primary color
+  private generateColorPalette(primaryColor: string): Partial<ThemeColors> {
+    // Convert hex to RGB
+    const hexToRgb = (hex: string) => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result
+        ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16),
+          }
+        : null;
+    };
+
+    // Convert RGB to hex
+    const rgbToHex = (r: number, g: number, b: number) => {
+      return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    };
+
+    // Darken color
+    const darkenColor = (hex: string, percent: number) => {
+      const rgb = hexToRgb(hex);
+      if (!rgb) return hex;
+
+      const factor = (100 - percent) / 100;
+      return rgbToHex(
+        Math.round(rgb.r * factor),
+        Math.round(rgb.g * factor),
+        Math.round(rgb.b * factor),
+      );
+    };
+
+    // Lighten color
+    const lightenColor = (hex: string, percent: number) => {
+      const rgb = hexToRgb(hex);
+      if (!rgb) return hex;
+
+      const factor = percent / 100;
+      return rgbToHex(
+        Math.round(rgb.r + (255 - rgb.r) * factor),
+        Math.round(rgb.g + (255 - rgb.g) * factor),
+        Math.round(rgb.b + (255 - rgb.b) * factor),
+      );
+    };
+
+    const baseColors = this.getColors();
+
+    return {
+      primary: primaryColor,
+      primaryHover: darkenColor(primaryColor, 10),
+      primaryActive: darkenColor(primaryColor, 20),
+      secondary: lightenColor(primaryColor, 40),
+      accent: primaryColor,
+    };
+  }
+
+  // Reset to default theme
+  resetToDefault(): void {
+    this.currentConfig = {
+      userMode: this.currentConfig.userMode, // Keep current user mode
+      themeMode: "light",
+      customColors: undefined,
+    };
+    this.saveConfig();
+    this.applyTheme();
+    this.notifyListeners();
+  }
+
   // Get current configuration
   getConfig(): ThemeConfig {
     return { ...this.currentConfig };
