@@ -66,10 +66,9 @@ const ProfessionalCleanLayout: React.FC = () => {
       ...persistedState,
       isMobile,
       isTablet,
-      sidebarOpen: isMobile ? false : (persistedState.sidebarOpen ?? true),
-      sidebarCollapsed: isTablet
-        ? true
-        : (persistedState.sidebarCollapsed ?? false),
+      // FORÇA SIDEBAR VISÍVEL EM DESKTOP PARA DEBUG
+      sidebarOpen: true, // isMobile ? false : (persistedState.sidebarOpen ?? true),
+      sidebarCollapsed: false, // isTablet ? true : (persistedState.sidebarCollapsed ?? false),
     };
   }, [windowSize, persistedState]);
 
