@@ -174,7 +174,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   storageKey = "lawdesk-theme",
 }) => {
   // Merge default theme with provided overrides
-  const initialTheme = { ...DEFAULT_THEME_CONFIG, ...defaultTheme };
+  const initialTheme = {
+    ...DEFAULT_THEME_CONFIG,
+    ...defaultTheme,
+    accessibility: {
+      ...DEFAULT_ACCESSIBILITY,
+      ...(defaultTheme?.accessibility || {}),
+    },
+    branding: {
+      ...DEFAULT_BRANDING,
+      ...(defaultTheme?.branding || {}),
+    },
+  };
 
   // Persistent theme state
   const [config, setConfig] = useLocalStorage<ThemeConfig>(
@@ -182,12 +193,26 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     initialTheme,
   );
 
+  // Ensure config always has proper defaults
+  const safeConfig = {
+    ...DEFAULT_THEME_CONFIG,
+    ...config,
+    accessibility: {
+      ...DEFAULT_ACCESSIBILITY,
+      ...(config.accessibility || {}),
+    },
+    branding: {
+      ...DEFAULT_BRANDING,
+      ...(config.branding || {}),
+    },
+  };
+
   // System theme detection
   const [systemTheme, setSystemTheme] = useState<"light" | "dark">("light");
 
   // Computed values
-  const isSystemTheme = config.mode === "system";
-  const effectiveMode = isSystemTheme ? systemTheme : config.mode;
+  const isSystemTheme = safeConfig.mode === "system";
+  const effectiveMode = isSystemTheme ? systemTheme : safeConfig.mode;
   const isDark = effectiveMode === "dark";
 
   // Detect system theme preference
@@ -218,23 +243,25 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     root.setAttribute("data-theme", effectiveMode);
 
     // Apply accessibility settings
-    if (config.accessibility.highContrast) {
+    const accessibility = safeConfig.accessibility;
+
+    if (accessibility.highContrast) {
       root.classList.add("high-contrast");
     }
 
-    if (config.accessibility.reducedMotion) {
+    if (accessibility.reducedMotion) {
       root.style.setProperty("--motion-reduce", "1");
     } else {
       root.style.removeProperty("--motion-reduce");
     }
 
-    if (config.accessibility.largeText) {
+    if (accessibility.largeText) {
       body.classList.add("large-text");
     } else {
       body.classList.remove("large-text");
     }
 
-    if (config.accessibility.focusVisible) {
+    if (accessibility.focusVisible) {
       body.classList.add("focus-visible");
     } else {
       body.classList.remove("focus-visible");
@@ -242,30 +269,29 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
     // Apply color theme
     const colors =
-      config.colorTheme === "custom"
-        ? config.customColors || COLOR_THEMES.default
-        : COLOR_THEMES[config.colorTheme];
+      safeConfig.colorTheme === "custom"
+        ? safeConfig.customColors || COLOR_THEMES.default
+        : COLOR_THEMES[safeConfig.colorTheme];
 
     Object.entries(colors).forEach(([key, value]) => {
       root.style.setProperty(`--color-${key}`, value);
     });
 
     // Apply branding
-    root.style.setProperty("--font-family", config.branding.fontFamily);
-    root.style.setProperty(
-      "--border-radius",
-      `${config.branding.borderRadius}rem`,
-    );
-    root.style.setProperty("--brand-primary", config.branding.primaryColor);
-    root.style.setProperty("--brand-secondary", config.branding.secondaryColor);
-    root.style.setProperty("--brand-accent", config.branding.accentColor);
+    const branding = safeConfig.branding;
+
+    root.style.setProperty("--font-family", branding.fontFamily);
+    root.style.setProperty("--border-radius", `${branding.borderRadius}rem`);
+    root.style.setProperty("--brand-primary", branding.primaryColor);
+    root.style.setProperty("--brand-secondary", branding.secondaryColor);
+    root.style.setProperty("--brand-accent", branding.accentColor);
 
     // Update meta theme color for mobile browsers
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
       metaThemeColor.setAttribute("content", isDark ? "#1e293b" : "#ffffff");
     }
-  }, [config, effectiveMode, isDark]);
+  }, [safeConfig, effectiveMode, isDark]);
 
   // Theme update functions
   const updateTheme = useCallback(
@@ -292,19 +318,27 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   const setAccessibility = useCallback(
     (settings: Partial<AccessibilitySettings>) => {
       updateTheme({
-        accessibility: { ...config.accessibility, ...settings },
+        accessibility: {
+          ...DEFAULT_ACCESSIBILITY,
+          ...(config.accessibility || {}),
+          ...settings,
+        },
       });
     },
-    [config.accessibility, updateTheme],
+    [safeConfig.accessibility, updateTheme],
   );
 
   const setBranding = useCallback(
     (settings: Partial<BrandingSettings>) => {
       updateTheme({
-        branding: { ...config.branding, ...settings },
+        branding: {
+          ...DEFAULT_BRANDING,
+          ...(safeConfig.branding || {}),
+          ...settings,
+        },
       });
     },
-    [config.branding, updateTheme],
+    [safeConfig.branding, updateTheme],
   );
 
   const resetTheme = useCallback(() => {
@@ -312,8 +346,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   }, [setConfig, initialTheme]);
 
   const exportTheme = useCallback((): string => {
-    return JSON.stringify(config, null, 2);
-  }, [config]);
+    return JSON.stringify(safeConfig, null, 2);
+  }, [safeConfig]);
 
   const importTheme = useCallback(
     (themeData: string): boolean => {
@@ -356,18 +390,24 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         event.key === "H"
       ) {
         event.preventDefault();
+        const accessibility = safeConfig.accessibility;
         setAccessibility({
-          highContrast: !config.accessibility.highContrast,
+          highContrast: !accessibility.highContrast,
         });
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isDark, config.accessibility.highContrast, setMode, setAccessibility]);
+  }, [
+    isDark,
+    safeConfig.accessibility.highContrast,
+    setMode,
+    setAccessibility,
+  ]);
 
   const contextValue: ThemeContextType = {
-    config,
+    config: safeConfig,
     updateTheme,
     setMode,
     setColorTheme,
