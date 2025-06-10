@@ -21,6 +21,9 @@ import "@/styles/professional.css";
 // Import environment utilities
 import { IS_DEVELOPMENT } from "@/lib/env";
 
+// Layout inspection for debugging
+import "@/utils/layoutInspector";
+
 // Development tools
 import DebugPanel from "@/components/Debug/DebugPanel";
 import DesignFixer from "@/components/DesignFixer";
