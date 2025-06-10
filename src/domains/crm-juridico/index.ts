@@ -11,7 +11,7 @@ export { default as CRMJuridicoRoutes } from "./routes";
 export { CRMJuridicoProvider } from "./provider";
 
 // Store do domínio
-export { useCRMJuridicoStore } from "./store";
+export { default as useCRMJuridicoStore, useCRMStore } from "./store";
 
 // Tipos principais
 export type * from "./types";
