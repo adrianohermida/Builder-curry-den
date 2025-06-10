@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 // Layout principal otimizado
-import ModernLayout from "@/components/Layout/ModernLayout";
+import UltimateModernLayout from "@/components/Layout/UltimateModernLayout";
 
 // Componente de Loading global
 const GlobalLoadingFallback = () => (
