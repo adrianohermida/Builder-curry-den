@@ -30,6 +30,7 @@ import {
   Layers,
   GitBranch,
   Shield,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +45,14 @@ import {
   type DuplicateComponent,
   type PerformanceIssue,
 } from "@/services/codeOptimizer";
+import {
+  useAutoCleanup,
+  type CleanupExecutionPlan,
+  type ExecutionResult,
+  runQuickCleanup,
+  runFullOptimization,
+} from "@/services/autoCleanupExecutor";
+import { useBackupSystem } from "@/services/backupSystem";
 import { usePermissions } from "@/hooks/usePermissions";
 
 export default function CodeOptimization() {
@@ -53,21 +62,37 @@ export default function CodeOptimization() {
   const [currentStep, setCurrentStep] = useState("");
   const [progress, setProgress] = useState(0);
   const [selectedTab, setSelectedTab] = useState<
-    "overview" | "issues" | "duplicates" | "performance" | "results"
+    | "overview"
+    | "issues"
+    | "duplicates"
+    | "performance"
+    | "results"
+    | "execution"
   >("overview");
+  const [executionResult, setExecutionResult] =
+    useState<ExecutionResult | null>(null);
+  const [availablePlans, setAvailablePlans] = useState<CleanupExecutionPlan[]>(
+    [],
+  );
+  const [selectedPlan, setSelectedPlan] = useState<string>("");
 
   const { runAnalysis, exportReport } = useCodeOptimizer();
+  const { getPlans, executePlan, getCurrentExecution, cancelExecution } =
+    useAutoCleanup();
+  const { generateReport: generateBackupReport } = useBackupSystem();
   const { hasPermission } = usePermissions();
 
   // Verificar se é admin
   const isAdmin = hasPermission("admin.sistema");
 
-  // Carregar análise inicial
+  // Carregar análise inicial e planos
   useEffect(() => {
     if (isAdmin) {
       loadInitialAnalysis();
+      setAvailablePlans(getPlans());
+      setSelectedPlan("quick_cleanup"); // Padrão
     }
-  }, [isAdmin]);
+  }, [isAdmin, getPlans]);
 
   const loadInitialAnalysis = async () => {
     setLoading(true);
@@ -81,38 +106,68 @@ export default function CodeOptimization() {
     }
   };
 
-  // Executar otimização completa
-  const handleRunOptimization = async () => {
+  // Executar plano selecionado
+  const handleExecutePlan = async () => {
+    if (!selectedPlan) return;
+
     setOptimizing(true);
     setProgress(0);
-    setCurrentStep("Iniciando análise...");
+    setCurrentStep("Iniciando execução...");
 
     try {
-      // Simular progresso
-      const steps = [
-        "Escaneando arquivos...",
-        "Detectando problemas...",
-        "Corrigindo erros automáticos...",
-        "Removendo duplicados...",
-        "Otimizando performance...",
-        "Gerando relatório...",
-      ];
+      const result = await executePlan(selectedPlan, (progressResult) => {
+        setProgress(progressResult.progress);
+        setCurrentStep(progressResult.currentStep || "Processando...");
+        setExecutionResult(progressResult);
+      });
 
-      for (let i = 0; i < steps.length; i++) {
-        setCurrentStep(steps[i]);
-        setProgress(((i + 1) / steps.length) * 100);
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+      setExecutionResult(result);
+      setSelectedTab("execution");
+
+      // Atualizar relatório se disponível
+      if (result.optimizationReport) {
+        setReport(result.optimizationReport);
       }
-
-      const finalReport = await runCompleteOptimization();
-      setReport(finalReport);
-      setSelectedTab("results");
     } catch (error) {
-      console.error("Erro durante otimização:", error);
+      console.error("Erro durante execução:", error);
     } finally {
       setOptimizing(false);
       setCurrentStep("");
       setProgress(0);
+    }
+  };
+
+  // Executar limpeza rápida
+  const handleQuickCleanup = async () => {
+    setOptimizing(true);
+    setCurrentStep("Executando limpeza rápida...");
+
+    try {
+      const result = await runQuickCleanup((progressResult) => {
+        setProgress(progressResult.progress);
+        setCurrentStep(progressResult.currentStep || "Processando...");
+      });
+
+      setExecutionResult(result);
+      setSelectedTab("execution");
+    } catch (error) {
+      console.error("Erro na limpeza rápida:", error);
+    } finally {
+      setOptimizing(false);
+      setCurrentStep("");
+      setProgress(0);
+    }
+  };
+
+  // Cancelar execução
+  const handleCancelExecution = async () => {
+    try {
+      await cancelExecution();
+      setOptimizing(false);
+      setCurrentStep("Execução cancelada");
+      setProgress(0);
+    } catch (error) {
+      console.error("Erro ao cancelar:", error);
     }
   };
 
@@ -203,9 +258,19 @@ export default function CodeOptimization() {
             )}
 
             <Button
+              variant="outline"
               size="sm"
-              onClick={handleRunOptimization}
-              disabled={optimizing || !report}
+              onClick={handleQuickCleanup}
+              disabled={optimizing}
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              Limpeza Rápida
+            </Button>
+
+            <Button
+              size="sm"
+              onClick={handleExecutePlan}
+              disabled={optimizing || !selectedPlan}
               className="bg-purple-600 hover:bg-purple-700"
             >
               {optimizing ? (
@@ -213,9 +278,42 @@ export default function CodeOptimization() {
               ) : (
                 <Play className="w-4 h-4 mr-2" />
               )}
-              {optimizing ? "Otimizando..." : "Iniciar Otimização"}
+              {optimizing ? "Executando..." : "Executar Plano"}
             </Button>
+
+            {optimizing && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCancelExecution}
+                className="text-red-600 border-red-300 hover:bg-red-50"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+            )}
           </div>
+
+          {/* Seleção de Plano */}
+          {!optimizing && availablePlans.length > 0 && (
+            <div className="flex items-center gap-3 mt-4">
+              <span className="text-sm font-medium text-gray-700">
+                Plano de Execução:
+              </span>
+              <select
+                value={selectedPlan}
+                onChange={(e) => setSelectedPlan(e.target.value)}
+                className="px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
+              >
+                {availablePlans.map((plan) => (
+                  <option key={plan.id} value={plan.id}>
+                    {plan.name} - {plan.estimatedDuration}min ({plan.riskLevel}{" "}
+                    risco)
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Progress Bar durante otimização */}
@@ -244,6 +342,7 @@ export default function CodeOptimization() {
               { id: "duplicates", label: "Duplicados", icon: Layers },
               { id: "performance", label: "Performance", icon: Zap },
               { id: "results", label: "Resultados", icon: Target },
+              { id: "execution", label: "Execução", icon: Play },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -674,6 +773,208 @@ export default function CodeOptimization() {
                     </div>
                   </Card>
                 </div>
+              </div>
+            )}
+
+            {/* Execution Tab */}
+            {selectedTab === "execution" && (
+              <div className="space-y-6">
+                {executionResult ? (
+                  <>
+                    {/* Status da Execução */}
+                    <Card className="p-6">
+                      <CardHeader className="p-0 pb-4">
+                        <CardTitle className="flex items-center justify-between">
+                          <span>Status da Execução</span>
+                          <Badge
+                            className={cn(
+                              executionResult.status === "completed"
+                                ? "bg-green-100 text-green-800"
+                                : executionResult.status === "failed"
+                                  ? "bg-red-100 text-red-800"
+                                  : executionResult.status === "rolled_back"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-blue-100 text-blue-800",
+                            )}
+                          >
+                            {executionResult.status}
+                          </Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-gray-600 mb-1">
+                              ID da Execução:
+                            </p>
+                            <p className="font-mono text-sm">
+                              {executionResult.executionId}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600 mb-1">
+                              Progresso:
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <Progress
+                                value={executionResult.progress}
+                                className="flex-1"
+                              />
+                              <span className="text-sm text-gray-500">
+                                {executionResult.progress.toFixed(0)}%
+                              </span>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600 mb-1">
+                              Steps Completados:
+                            </p>
+                            <p className="text-sm">
+                              {executionResult.completedSteps.length} de{" "}
+                              {executionResult.completedSteps.length +
+                                (executionResult.failedSteps?.length || 0)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600 mb-1">
+                              Duração:
+                            </p>
+                            <p className="text-sm">
+                              {executionResult.endTime
+                                ? `${Math.round(
+                                    (new Date(
+                                      executionResult.endTime,
+                                    ).getTime() -
+                                      new Date(
+                                        executionResult.startTime,
+                                      ).getTime()) /
+                                      1000,
+                                  )}s`
+                                : "Em execução..."}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Resultados da Performance */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      <Card className="p-4">
+                        <div className="text-center">
+                          <Clock className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                          <p className="text-2xl font-bold text-gray-900">
+                            {executionResult.results.performanceGain.renderTime}
+                            ms
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Ganho de Render
+                          </p>
+                        </div>
+                      </Card>
+
+                      <Card className="p-4">
+                        <div className="text-center">
+                          <Layers className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                          <p className="text-2xl font-bold text-gray-900">
+                            {executionResult.results.performanceGain.bundleSize}
+                            KB
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Bundle Reduzido
+                          </p>
+                        </div>
+                      </Card>
+
+                      <Card className="p-4">
+                        <div className="text-center">
+                          <FileText className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                          <p className="text-2xl font-bold text-gray-900">
+                            {
+                              executionResult.results.performanceGain
+                                .linesRemoved
+                            }
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Linhas Removidas
+                          </p>
+                        </div>
+                      </Card>
+                    </div>
+
+                    {/* Erros Encontrados */}
+                    {executionResult.results.errorsEncountered.length > 0 && (
+                      <Card className="p-6">
+                        <CardHeader className="p-0 pb-4">
+                          <CardTitle className="flex items-center gap-2 text-red-600">
+                            <AlertTriangle className="w-5 h-5" />
+                            Erros Encontrados
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          <div className="space-y-2">
+                            {executionResult.results.errorsEncountered.map(
+                              (error, index) => (
+                                <div
+                                  key={index}
+                                  className="p-3 bg-red-50 border border-red-200 rounded-lg"
+                                >
+                                  <p className="text-sm text-red-800">
+                                    {error}
+                                  </p>
+                                </div>
+                              ),
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Backup e Rollback Info */}
+                    {(executionResult.backupId ||
+                      executionResult.rollbackId) && (
+                      <Card className="p-6">
+                        <CardHeader className="p-0 pb-4">
+                          <CardTitle>Backup e Segurança</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          <div className="space-y-2">
+                            {executionResult.backupId && (
+                              <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <span className="text-sm text-blue-800">
+                                  Backup ID: {executionResult.backupId}
+                                </span>
+                                <Badge className="bg-blue-100 text-blue-800">
+                                  Disponível
+                                </Badge>
+                              </div>
+                            )}
+                            {executionResult.rollbackId && (
+                              <div className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <span className="text-sm text-yellow-800">
+                                  Rollback ID: {executionResult.rollbackId}
+                                </span>
+                                <Badge className="bg-yellow-100 text-yellow-800">
+                                  Executado
+                                </Badge>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-12">
+                    <GitBranch className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      Nenhuma Execução
+                    </h3>
+                    <p className="text-gray-600">
+                      Execute um plano de otimização para ver os resultados
+                      aqui.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
