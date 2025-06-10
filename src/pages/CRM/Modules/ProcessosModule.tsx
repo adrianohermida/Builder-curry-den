@@ -161,7 +161,7 @@ const MOCK_PROCESSOS: Processo[] = [
     responsavel: "Dr. João Santos",
     tribunal: "TJSP",
     vara: "4ª Vara Cível",
-    assunto: "Repetição de Indébito Tribut��rio",
+    assunto: "Repetição de Indébito Tributário",
     risco: "baixo",
     progresso: 75,
     proximaAudiencia: new Date("2025-02-10"),
@@ -413,7 +413,7 @@ export function ProcessosModule({
                   Timeline
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Sync className="h-4 w-4 mr-2" />
+                  <RefreshCw className="h-4 w-4 mr-2" />
                   Sincronizar Advise
                 </DropdownMenuItem>
               </DropdownMenuContent>
