@@ -360,6 +360,8 @@ export function useTheme() {
     setUserMode: themeSystem.setUserMode.bind(themeSystem),
     setThemeMode: themeSystem.setThemeMode.bind(themeSystem),
     setCustomColors: themeSystem.setCustomColors.bind(themeSystem),
+    setPrimaryColor: themeSystem.setPrimaryColor.bind(themeSystem),
+    resetToDefault: themeSystem.resetToDefault.bind(themeSystem),
     toggleTheme: themeSystem.toggleTheme.bind(themeSystem),
     switchToClientView: themeSystem.switchToClientView.bind(themeSystem),
     switchToAdminView: themeSystem.switchToAdminView.bind(themeSystem),
