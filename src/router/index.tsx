@@ -270,6 +270,22 @@ export const AppRouter: React.FC = () => {
                     }
                   />
 
+                  {/* Painel (route legada que aponta para dashboard) */}
+                  <Route
+                    path="painel"
+                    element={
+                      <PageWrapper title="Painel de Controle">
+                        <Suspense
+                          fallback={
+                            <DomainLoadingFallback domain="dashboard" />
+                          }
+                        >
+                          <ModernDashboard />
+                        </Suspense>
+                      </PageWrapper>
+                    }
+                  />
+
                   {/* ===== DOMÍNIOS FUNCIONAIS ===== */}
                   {DOMAIN_ROUTES.map((domain) => (
                     <Route
