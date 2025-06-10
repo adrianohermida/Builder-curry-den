@@ -1,11 +1,12 @@
 /**
- * OPTIMIZED BUTTON COMPONENT V2
- * Standardized button following design system
+ * OPTIMIZED BUTTON COMPONENT V3
+ * Standardized button using TailwindCSS classes
  * Focus: Performance, Accessibility, Consistency
  */
 
-import React, { forwardRef, useMemo, useCallback } from "react";
-import { performanceUtils } from "@/lib/performanceUtils";
+import React, { forwardRef } from "react";
+import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 // ===== TYPES =====
 export interface ButtonProps
@@ -16,13 +17,38 @@ export interface ButtonProps
     | "ghost"
     | "danger"
     | "success"
-    | "warning";
+    | "warning"
+    | "outline";
   size?: "sm" | "md" | "lg";
   loading?: boolean;
   icon?: React.ComponentType<{ size?: number; className?: string }>;
   iconPosition?: "left" | "right";
   fullWidth?: boolean;
 }
+
+// ===== VARIANT STYLES =====
+const buttonVariants = {
+  primary:
+    "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 border-blue-600",
+  secondary:
+    "bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500 border-gray-200",
+  ghost:
+    "bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500 border-transparent",
+  outline:
+    "bg-transparent text-gray-700 hover:bg-gray-50 focus:ring-blue-500 border-gray-300",
+  danger:
+    "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 border-red-600",
+  success:
+    "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 border-green-600",
+  warning:
+    "bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500 border-yellow-600",
+};
+
+const sizeVariants = {
+  sm: "px-3 py-1.5 text-sm h-8",
+  md: "px-4 py-2 text-sm h-10",
+  lg: "px-6 py-3 text-base h-12",
+};
 
 // ===== COMPONENT =====
 const OptimizedButton = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -36,223 +62,72 @@ const OptimizedButton = forwardRef<HTMLButtonElement, ButtonProps>(
       fullWidth = false,
       children,
       disabled,
-      className = "",
-      style,
+      className,
       ...props
     },
     ref,
   ) => {
-    // ===== COMPUTED STYLES =====
-    const buttonStyles = useMemo(() => {
-      const baseStyles = {
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "var(--spacing-xs)",
-        border: "1px solid transparent",
-        borderRadius: "var(--radius-md)",
-        fontWeight: "500",
-        textAlign: "center" as const,
-        cursor: disabled || loading ? "not-allowed" : "pointer",
-        transition: "all var(--duration-normal) var(--easing-default)",
-        position: "relative" as const,
-        overflow: "hidden",
-        textDecoration: "none",
-        width: fullWidth ? "100%" : "auto",
-        opacity: disabled ? 0.6 : 1,
-      };
-
-      // Size variants
-      const sizeStyles = {
-        sm: {
-          padding: "var(--spacing-xs) var(--spacing-sm)",
-          fontSize: "0.75rem",
-          minHeight: "2rem",
-        },
-        md: {
-          padding: "var(--spacing-sm) var(--spacing-md)",
-          fontSize: "0.875rem",
-          minHeight: "2.5rem",
-        },
-        lg: {
-          padding: "var(--spacing-md) var(--spacing-lg)",
-          fontSize: "1rem",
-          minHeight: "3rem",
-        },
-      };
+    // ===== COMPUTED CLASSES =====
+    const buttonClasses = cn(
+      // Base styles
+      "inline-flex items-center justify-center gap-2",
+      "font-medium rounded-lg border",
+      "transition-all duration-200",
+      "focus:outline-none focus:ring-2 focus:ring-offset-2",
+      "disabled:opacity-50 disabled:cursor-not-allowed",
+      "active:scale-95",
 
       // Variant styles
-      const variantStyles = {
-        primary: {
-          backgroundColor: "var(--primary-500)",
-          color: "white",
-          borderColor: "var(--primary-500)",
-        },
-        secondary: {
-          backgroundColor: "transparent",
-          color: "var(--primary-600)",
-          borderColor: "var(--border-primary)",
-        },
-        ghost: {
-          backgroundColor: "transparent",
-          color: "var(--text-secondary)",
-          borderColor: "transparent",
-        },
-        danger: {
-          backgroundColor: "var(--color-error)",
-          color: "white",
-          borderColor: "var(--color-error)",
-        },
-        success: {
-          backgroundColor: "var(--color-success)",
-          color: "white",
-          borderColor: "var(--color-success)",
-        },
-        warning: {
-          backgroundColor: "var(--color-warning)",
-          color: "white",
-          borderColor: "var(--color-warning)",
-        },
-      };
+      buttonVariants[variant],
 
-      return {
-        ...baseStyles,
-        ...sizeStyles[size],
-        ...variantStyles[variant],
-        ...style,
-      };
-    }, [variant, size, disabled, loading, fullWidth, style]);
+      // Size styles
+      sizeVariants[size],
 
-    // ===== HOVER STYLES =====
-    const handleMouseEnter = useCallback(
-      (e: React.MouseEvent) => {
-        if (disabled || loading) return;
+      // Width
+      fullWidth && "w-full",
 
-        const button = e.currentTarget as HTMLButtonElement;
-        const variantHoverStyles = {
-          primary: {
-            backgroundColor: "var(--primary-600)",
-            borderColor: "var(--primary-600)",
-            transform: "translateY(-1px)",
-            boxShadow: "var(--shadow-md)",
-          },
-          secondary: {
-            backgroundColor: "var(--surface-secondary)",
-            borderColor: "var(--border-accent)",
-            color: "var(--text-primary)",
-          },
-          ghost: {
-            backgroundColor: "var(--surface-secondary)",
-            color: "var(--text-primary)",
-          },
-          danger: {
-            backgroundColor: "#dc2626",
-            borderColor: "#dc2626",
-            transform: "translateY(-1px)",
-            boxShadow: "var(--shadow-md)",
-          },
-          success: {
-            backgroundColor: "#059669",
-            borderColor: "#059669",
-            transform: "translateY(-1px)",
-            boxShadow: "var(--shadow-md)",
-          },
-          warning: {
-            backgroundColor: "#d97706",
-            borderColor: "#d97706",
-            transform: "translateY(-1px)",
-            boxShadow: "var(--shadow-md)",
-          },
-        };
+      // Loading state
+      loading && "pointer-events-none",
 
-        Object.assign(button.style, variantHoverStyles[variant]);
-      },
-      [variant, disabled, loading],
+      // Custom className
+      className,
     );
-
-    const handleMouseLeave = useCallback(
-      (e: React.MouseEvent) => {
-        if (disabled || loading) return;
-
-        const button = e.currentTarget as HTMLButtonElement;
-        Object.assign(button.style, buttonStyles);
-      },
-      [buttonStyles, disabled, loading],
-    );
-
-    // ===== LOADING SPINNER =====
-    const LoadingSpinner = useMemo(() => {
-      if (!loading) return null;
-
-      return (
-        <div
-          style={{
-            width: "16px",
-            height: "16px",
-            border: "2px solid transparent",
-            borderTop: "2px solid currentColor",
-            borderRadius: "50%",
-            animation: "spin 1s linear infinite",
-          }}
-        />
-      );
-    }, [loading]);
 
     // ===== ICON SIZE =====
-    const iconSize = useMemo(() => {
-      switch (size) {
-        case "sm":
-          return 14;
-        case "lg":
-          return 20;
-        default:
-          return 16;
-      }
-    }, [size]);
+    const iconSize = size === "sm" ? 14 : size === "lg" ? 20 : 16;
 
     // ===== RENDER =====
     return (
-      <>
-        <style>
-          {`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          `}
-        </style>
-        <button
-          ref={ref}
-          style={buttonStyles}
-          className={`optimized-button ${className}`}
-          disabled={disabled || loading}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          aria-disabled={disabled || loading}
-          {...props}
-        >
-          {loading && LoadingSpinner}
+      <button
+        ref={ref}
+        className={buttonClasses}
+        disabled={disabled || loading}
+        {...props}
+      >
+        {/* Loading Spinner */}
+        {loading && <Loader2 size={iconSize} className="animate-spin" />}
 
-          {Icon && iconPosition === "left" && !loading && (
-            <Icon size={iconSize} />
-          )}
+        {/* Left Icon */}
+        {!loading && Icon && iconPosition === "left" && (
+          <Icon size={iconSize} className="shrink-0" />
+        )}
 
-          {children && <span style={{ lineHeight: 1 }}>{children}</span>}
+        {/* Button Text */}
+        {children && (
+          <span className={cn(loading && "opacity-70", !children && "sr-only")}>
+            {children}
+          </span>
+        )}
 
-          {Icon && iconPosition === "right" && !loading && (
-            <Icon size={iconSize} />
-          )}
-        </button>
-      </>
+        {/* Right Icon */}
+        {!loading && Icon && iconPosition === "right" && (
+          <Icon size={iconSize} className="shrink-0" />
+        )}
+      </button>
     );
   },
 );
 
-// ===== MEMOIZED EXPORT =====
-const OptimizedButtonMemo = React.memo(OptimizedButton);
-OptimizedButtonMemo.displayName = "OptimizedButton";
+OptimizedButton.displayName = "OptimizedButton";
 
-export default OptimizedButtonMemo;
-
-// Re-export for convenience
-export { OptimizedButtonMemo as Button };
+export default OptimizedButton;
