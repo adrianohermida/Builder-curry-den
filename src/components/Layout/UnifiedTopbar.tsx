@@ -1,28 +1,19 @@
 /**
- * 🎯 UNIFIED TOPBAR - CABEÇALHO ESTILO PAINEL DE CONTROLE
+ * 🎯 UNIFIED TOPBAR - CABEÇALHO MINIMALISTA
  *
- * Cabeçalho simples e clean baseado no design do painel:
- * - Menu hamburger à esquerda
+ * Cabeçalho clean e minimalista baseado no design:
+ * - Logo Lawdesk com balança branca e texto azul
+ * - Menu hamburger
  * - Título da página
- * - Busca centralizada
- * - Ações rápidas à direita
+ * - Ações mínimas à direita
  */
 
-import React, { useState } from "react";
+import React from "react";
 import { useLocation } from "react-router-dom";
-import {
-  Menu,
-  Search,
-  Bell,
-  Settings,
-  User,
-  RefreshCw,
-  MoreVertical,
-} from "lucide-react";
+import { Menu, Bell, Settings, MoreVertical, Scale } from "lucide-react";
 
 // UI Components
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -58,8 +49,7 @@ const PAGE_TITLES: Record<string, string> = {
 // ===== UNIFIED TOPBAR COMPONENT =====
 const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({ className = "" }) => {
   const location = useLocation();
-  const { layoutState, toggleSidebar } = useUnifiedLayout();
-  const [searchQuery, setSearchQuery] = useState("");
+  const { toggleSidebar } = useUnifiedLayout();
 
   // Get page title
   const pageTitle = PAGE_TITLES[location.pathname] || "Lawdesk";
@@ -70,11 +60,21 @@ const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({ className = "" }) => {
     >
       <div className="px-4">
         <div className="flex items-center justify-between h-14">
-          {/* Left Section - Logo, Menu and Title */}
+          {/* Left Section - Logo Lawdesk, Menu and Title */}
           <div className="flex items-center space-x-3">
-            {/* Logo */}
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">L</span>
+            {/* Logo Lawdesk */}
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Scale size={18} className="text-white" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-lg font-bold text-blue-600 leading-tight">
+                  Lawdesk
+                </span>
+                <span className="text-xs text-blue-500 leading-none">
+                  CRM Jurídico
+                </span>
+              </div>
             </div>
 
             {/* Menu Hamburger */}
@@ -82,42 +82,19 @@ const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({ className = "" }) => {
               variant="ghost"
               size="sm"
               onClick={toggleSidebar}
-              className="h-8 w-8 p-0 hover:bg-gray-100"
+              className="h-8 w-8 p-0 hover:bg-gray-100 ml-4"
             >
               <Menu size={18} className="text-gray-600" />
             </Button>
 
             {/* Page Title */}
-            <h1 className="text-lg font-semibold text-gray-900">{pageTitle}</h1>
+            <h1 className="text-lg font-semibold text-gray-900 ml-2">
+              {pageTitle}
+            </h1>
           </div>
 
-          {/* Center Section - Search */}
-          <div className="flex-1 max-w-md mx-8">
-            <div className="relative">
-              <Search
-                size={16}
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              />
-              <Input
-                placeholder="Buscar em todo o sistema..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 bg-gray-50 border-gray-300 focus:bg-white focus:border-blue-500 transition-colors"
-              />
-            </div>
-          </div>
-
-          {/* Right Section - Actions */}
-          <div className="flex items-center space-x-3">
-            {/* Refresh */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 hover:bg-gray-100"
-            >
-              <RefreshCw size={16} className="text-gray-600" />
-            </Button>
-
+          {/* Right Section - Minimal Actions */}
+          <div className="flex items-center space-x-2">
             {/* Notifications */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -207,28 +184,16 @@ const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({ className = "" }) => {
                   <p className="text-sm font-medium">Usuário Admin</p>
                   <p className="text-xs text-gray-500">admin@lawdesk.com</p>
                 </div>
+                <DropdownMenuItem>Perfil</DropdownMenuItem>
+                <DropdownMenuItem>Configurações</DropdownMenuItem>
                 <DropdownMenuItem>
-                  <User size={14} className="mr-2" />
-                  Perfil
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings size={14} className="mr-2" />
-                  Configurações
+                  <span className="text-blue-600">Modo Cliente</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600">
                   Sair
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* More Options */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 hover:bg-gray-100"
-            >
-              <MoreVertical size={16} className="text-gray-600" />
-            </Button>
           </div>
         </div>
       </div>
