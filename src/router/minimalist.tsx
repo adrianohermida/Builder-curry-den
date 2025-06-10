@@ -293,13 +293,30 @@ const MinimalistRouter: React.FC = () => {
                   />
 
                   {/* ===== CRM ROUTES =====  */}
-                  {/* CRM Main - Minimalist Version */}
+                  {/* CRM Main - Showcase Version */}
                   <Route
                     path="crm"
                     element={
                       <PageWrapper
                         title="CRM Jurídico"
                         breadcrumb={["Home", "CRM"]}
+                      >
+                        <Suspense
+                          fallback={<PageLoadingFallback title="CRM" />}
+                        >
+                          <CRMShowcase />
+                        </Suspense>
+                      </PageWrapper>
+                    }
+                  />
+
+                  {/* CRM Full Version */}
+                  <Route
+                    path="crm/full"
+                    element={
+                      <PageWrapper
+                        title="CRM Completo"
+                        breadcrumb={["Home", "CRM", "Completo"]}
                       >
                         <Suspense
                           fallback={<PageLoadingFallback title="CRM" />}
