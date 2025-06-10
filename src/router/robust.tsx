@@ -227,6 +227,11 @@ const Configuracoes = lazy(() =>
 const Beta = lazy(() =>
   import("@/pages/Beta").catch(() => ({ default: () => <FallbackNotFound /> })),
 );
+const ThemeDemo = lazy(() =>
+  import("@/pages/ThemeDemo").catch(() => ({
+    default: () => <FallbackNotFound />,
+  })),
+);
 const Ajuda = lazy(() =>
   import("@/pages/Ajuda").catch(() => ({
     default: () => <FallbackNotFound />,
