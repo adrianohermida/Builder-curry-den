@@ -211,6 +211,9 @@ function App() {
                     </PageWrapper>
                   }
                 />
+
+                {/* Publicações */}
+                <Route
                   path="publicacoes"
                   element={
                     <PageWrapper title="Publicações">
