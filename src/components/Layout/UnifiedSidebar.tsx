@@ -201,15 +201,7 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
         className,
       });
     }, [isOpen, isCollapsed, isMobile, className]);
-    const {
-      colors,
-      config,
-      toggleTheme,
-      setUserMode,
-      setThemeMode,
-      isAdminMode,
-      isClientMode,
-    } = useTheme();
+    const { colors } = useTheme();
 
     // ===== HANDLERS =====
     const handleNavigation = useCallback(
