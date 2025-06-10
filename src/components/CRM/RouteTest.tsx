@@ -62,6 +62,11 @@ export const RouteTest: React.FC = () => {
       description: "Versão simplificada para teste",
     },
     {
+      path: "/publicacoes",
+      label: "Publicações",
+      description: "Diário oficial e prazos",
+    },
+    {
       path: "/ged-juridico",
       label: "GED (Redirect)",
       description: "Deve redirecionar para /crm/ged",
