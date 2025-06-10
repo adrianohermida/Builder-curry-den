@@ -942,3 +942,19 @@ body.dark {
 .dark\:border-neutral-700 {
   border-color: rgb(214 211 209) !important;
 }
+
+/* ===== CRM UNICORN SPECIFIC STYLES ===== */
+.crm-unicorn-container {
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
+}
+
+.crm-unicorn-container .client-mode {
+  --primary: 221.2 83.2% 53.3%;
+}
+
+@media (max-width: 768px) {
+  .crm-unicorn-container {
+    padding: 0;
+  }
+}
