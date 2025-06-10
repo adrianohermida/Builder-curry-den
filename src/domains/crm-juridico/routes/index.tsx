@@ -8,7 +8,7 @@
 import React, { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { CRMJuridicoProvider } from "../provider";
-import { LoadingSpinner } from "@/shared/components/atoms/Spinner";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 // Lazy loading dos componentes
 const CRMJuridiroDashboard = React.lazy(() => import("../pages/Dashboard"));
