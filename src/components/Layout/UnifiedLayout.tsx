@@ -348,6 +348,7 @@ const UnifiedLayout: React.FC = () => {
           isCollapsed={layoutState.sidebarCollapsed}
           onToggle={toggleSidebar}
           onClose={closeSidebar}
+          isMobile={layoutState.isMobile}
         />
 
         {/* Mobile Sidebar Overlay */}
