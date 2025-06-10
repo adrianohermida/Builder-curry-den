@@ -1,11 +1,11 @@
 /**
- * 🎯 LAWDESK SIDEBAR - EXATO COMO A IMAGEM
+ * 🎯 LAWDESK SIDEBAR - PERFEITA COMO A IMAGEM
  *
- * Sidebar da Lawdesk idêntica à imagem fornecida:
- * - Logo oficial da Lawdesk
- * - Menu com ícones e badges corretos
- * - Estilo visual idêntico
- * - Badges vermelhos nos números corretos
+ * Sidebar da Lawdesk exatamente como mostrado:
+ * - Logo com ícone "L" azul
+ * - Menu items com ícones corretos
+ * - Badges vermelhos nos números exatos
+ * - Estado ativo no Contratos
  */
 
 import React, { useState, useEffect } from "react";
@@ -49,7 +49,7 @@ export const DefinitiveSidebar: React.FC<DefinitiveSidebarProps> = ({
     setIsMobileOpen(false);
   }, [location.pathname]);
 
-  // Menu items exatamente como na imagem
+  // Menu items EXATOS da imagem
   const sidebarItems: SidebarItem[] = [
     {
       id: "home",
@@ -62,14 +62,14 @@ export const DefinitiveSidebar: React.FC<DefinitiveSidebarProps> = ({
       title: "CRM Jurídico",
       path: "/crm-modern",
       icon: <Users className="w-5 h-5" />,
-      badge: 99, // Badge 99+ como na imagem
+      badge: 99, // 99+ na imagem
     },
     {
       id: "tasks",
       title: "Tarefas",
       path: "/crm-modern/tarefas",
       icon: <CheckSquare className="w-5 h-5" />,
-      badge: 47, // Badge 47 como na imagem
+      badge: 47, // 47 na imagem
     },
     {
       id: "calendar",
@@ -112,12 +112,16 @@ export const DefinitiveSidebar: React.FC<DefinitiveSidebarProps> = ({
       title: "Beta",
       path: "/beta",
       icon: <FlaskConical className="w-5 h-5" />,
-      badge: 25, // Badge 25 como na imagem
+      badge: 25, // 25 na imagem
     },
   ];
 
   const isActive = (path: string) => {
-    if (path === "/painel" && location.pathname === "/") return true;
+    if (
+      path === "/painel" &&
+      (location.pathname === "/" || location.pathname === "/painel")
+    )
+      return true;
     return location.pathname === path || location.pathname.startsWith(path);
   };
 
@@ -132,7 +136,7 @@ export const DefinitiveSidebar: React.FC<DefinitiveSidebarProps> = ({
     </button>
   );
 
-  // Sidebar Item Component - estilo idêntico à imagem
+  // Sidebar Item Component - EXATO como na imagem
   const SidebarItemComponent = ({
     item,
     isMobile = false,
@@ -148,16 +152,23 @@ export const DefinitiveSidebar: React.FC<DefinitiveSidebarProps> = ({
         className={cn(
           "flex items-center justify-between px-4 py-3 mx-3 rounded-lg transition-all duration-200 text-sm font-medium",
           itemIsActive
-            ? "bg-blue-100 text-blue-700 border-l-4 border-blue-600" // Estado ativo como na imagem
+            ? "bg-blue-50 text-blue-700" // Fundo azul claro quando ativo
             : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
         )}
       >
         <div className="flex items-center space-x-3">
-          {item.icon}
-          <span>{item.title}</span>
+          <div
+            className={cn(
+              "flex-shrink-0",
+              itemIsActive ? "text-blue-600" : "text-gray-500",
+            )}
+          >
+            {item.icon}
+          </div>
+          <span className="font-medium">{item.title}</span>
         </div>
 
-        {/* Badge - estilo idêntico à imagem */}
+        {/* Badge - EXATO como na imagem */}
         {item.badge && (
           <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full min-w-[24px] h-5">
             {item.badge >= 99 ? "99+" : item.badge}
@@ -167,15 +178,15 @@ export const DefinitiveSidebar: React.FC<DefinitiveSidebarProps> = ({
     );
   };
 
-  // Sidebar Content - layout idêntico à imagem
+  // Sidebar Content - layout IDÊNTICO à imagem
   const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-full shadow-sm">
-      {/* Header com Logo Lawdesk - exato como na imagem */}
+      {/* Header com Logo Lawdesk - EXATO como na imagem */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
         {/* Logo Lawdesk */}
         <div className="flex items-center space-x-3">
+          {/* Ícone azul com "L" branco - EXATO como na imagem */}
           <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-            {/* Ícone da Lawdesk - letra "L" estilizada como na imagem */}
             <span className="text-white font-bold text-lg">L</span>
           </div>
           <div>
@@ -196,8 +207,8 @@ export const DefinitiveSidebar: React.FC<DefinitiveSidebarProps> = ({
         )}
       </div>
 
-      {/* Navigation - Menu completo como na imagem */}
-      <nav className="flex-1 py-4 overflow-y-auto">
+      {/* Navigation - Menu EXATO como na imagem */}
+      <nav className="flex-1 py-2 overflow-y-auto">
         <div className="space-y-1">
           {sidebarItems.map((item) => (
             <SidebarItemComponent
@@ -216,7 +227,7 @@ export const DefinitiveSidebar: React.FC<DefinitiveSidebarProps> = ({
       {/* Mobile Menu Button */}
       <MobileMenuButton />
 
-      {/* Desktop Sidebar - sempre visível */}
+      {/* Desktop Sidebar - sempre visível e expandido */}
       <div className="hidden lg:block">
         <SidebarContent />
       </div>
