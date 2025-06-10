@@ -20,7 +20,6 @@ import {
   FolderOpen,
   Plus,
   Filter,
-  Search,
   MoreHorizontal,
   Maximize2,
   Minimize2,
@@ -325,7 +324,7 @@ const ModernCRMHubV2: React.FC<ModernCRMHubV2Props> = ({
                   key={tab.id}
                   value={tab.id}
                   className="
-                    relative h-12 px-0 bg-transparent border-0 
+                    relative h-12 px-0 bg-transparent border-0
                     data-[state=active]:bg-transparent data-[state=active]:shadow-none
                     data-[state=active]:text-blue-600
                     text-gray-600 hover:text-gray-900
