@@ -24,6 +24,24 @@ const NotFound = () => {
   const { user, isAdmin } = usePermissions();
   const { isAdminMode, isClientMode } = useViewMode();
 
+  // Early return with basic 404 if hooks fail
+  if (!location || !navigate) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center">
+          <h1 className="text-6xl font-bold text-gray-900 mb-4">404</h1>
+          <p className="text-gray-600 mb-4">Página não encontrada</p>
+          <button
+            onClick={() => (window.location.href = "/")}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Ir para início
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Log 404 error for monitoring
   React.useEffect(() => {
     const pathname = location?.pathname || "unknown";
