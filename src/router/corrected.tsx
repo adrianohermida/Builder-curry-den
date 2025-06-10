@@ -80,6 +80,11 @@ const CRMModerno = lazy(() => import("@/pages/CRM/index"));
 // Feed module
 const FeedModule = lazy(() => import("@/pages/Feed/index"));
 
+// Intelligence modules
+const DiagnosticoConclusaoPage = lazy(
+  () => import("@/pages/DiagnosticoConclusao"),
+);
+
 // Other modules
 const Agenda = lazy(() => import("@/pages/Agenda"));
 const Publicacoes = lazy(() => import("@/pages/Publicacoes"));
