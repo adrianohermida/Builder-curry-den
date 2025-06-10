@@ -649,6 +649,18 @@ const App: React.FC = () => {
                             }
                           />
                           <Route
+                            path="atendimento"
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <AtendimentoEnhanced />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
+                          <Route
                             path="agenda"
                             element={
                               <SafeRoute
