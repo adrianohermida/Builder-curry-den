@@ -52,7 +52,6 @@ const PAGE_TITLES: Record<string, string> = {
 // ===== UNIFIED TOPBAR COMPONENT =====
 const UnifiedTopbar: React.FC<UnifiedTopbarProps> = ({ className = "" }) => {
   const location = useLocation();
-  const { toggleSidebar } = useUnifiedLayout();
   const {
     config: themeConfig,
     colors,
