@@ -6,35 +6,22 @@
  */
 
 import React from "react";
-import AppRouter from "@/router";
+import OptimizedRouter from "@/router/optimized";
 
-// Import environment and theme utilities
+// Import environment utilities
 import { IS_DEVELOPMENT } from "@/lib/env";
-
-// Theme system
-import ThemeInitializer from "@/components/ThemeInitializer";
 
 // Development tools
 import DebugPanel from "@/components/Debug/DebugPanel";
-import {
-  LayoutSwitcher,
-  MigrationStatus,
-} from "@/components/Layout/LayoutMigrationWrapper";
 
 function App() {
   return (
-    <ThemeInitializer>
-      <AppRouter />
+    <>
+      <OptimizedRouter />
 
       {/* Development Tools - Development Only */}
-      {IS_DEVELOPMENT && (
-        <>
-          <DebugPanel />
-          <LayoutSwitcher />
-          <MigrationStatus />
-        </>
-      )}
-    </ThemeInitializer>
+      {IS_DEVELOPMENT && <DebugPanel />}
+    </>
   );
 }
 
