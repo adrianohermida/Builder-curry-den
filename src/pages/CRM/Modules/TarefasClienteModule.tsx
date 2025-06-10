@@ -1,840 +1,438 @@
 /**
- * ✅ MÓDULO TAREFAS POR CLIENTE - CRM Unicorn
+ * ✅ MÓDULO TAREFAS POR CLIENTE - CRM Jurídico
  *
- * Workflow personalizado e gestão inteligente de tarefas
- * - Recomendações automáticas baseadas em prazos processuais
- * - Workflow personalizado por cliente
- * - Automação de tarefas recorrentes
- * - Timeline integrada com processos e contratos
+ * Gestão de tarefas personalizada por cliente
+ * - Sistema Kanban drag & drop
+ * - Tarefas automáticas e manuais
+ * - Discussões por tarefa
+ * - Workflow inteligente
  */
 
-import React, { useState, useMemo, useCallback } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useMemo } from "react";
 import {
   CheckSquare,
   Plus,
-  Search,
-  Filter,
-  MoreVertical,
-  Calendar,
   Clock,
-  AlertTriangle,
-  CheckCircle,
+  AlertCircle,
+  TrendingUp,
+  Calendar,
   User,
-  Users,
-  Target,
-  Activity,
   Zap,
-  Brain,
-  Bell,
-  Flag,
-  Play,
-  Pause,
-  RotateCcw,
-  Eye,
-  Edit,
-  Trash2,
-  FileText,
-  Scale,
+  Repeat,
+  Target,
 } from "lucide-react";
 
-// Using existing UI components from the project
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-// Simplified components for now
-const Progress = ({ value, className }: any) => (
-  <div className={`w-full bg-gray-200 rounded-full h-2 ${className}`}>
-    <div
-      className="bg-blue-600 h-2 rounded-full"
-      style={{ width: `${value}%` }}
-    ></div>
-  </div>
-);
+import {
+  ConfigurableList,
+  ColumnConfig,
+  ListItem,
+  Discussion,
+} from "@/components/CRM/ConfigurableList";
 
-const Avatar = ({ children, className }: any) => (
-  <div className={`rounded-full ${className}`}>{children}</div>
-);
-const AvatarFallback = ({ children, className }: any) => (
-  <div className={`flex items-center justify-center ${className}`}>
-    {children}
-  </div>
-);
-
-const Select = ({ children, value, onValueChange }: any) => (
-  <select
-    value={value}
-    onChange={(e) => onValueChange?.(e.target.value)}
-    className="border rounded px-3 py-2"
-  >
-    {children}
-  </select>
-);
-const SelectTrigger = ({ children }: any) => <>{children}</>;
-const SelectValue = ({ placeholder }: any) => (
-  <option value="">{placeholder}</option>
-);
-const SelectContent = ({ children }: any) => <>{children}</>;
-const SelectItem = ({ value, children }: any) => (
-  <option value={value}>{children}</option>
-);
-
-const DropdownMenu = ({ children }: any) => (
-  <div className="relative">{children}</div>
-);
-const DropdownMenuTrigger = ({ children, asChild }: any) => <>{children}</>;
-const DropdownMenuContent = ({ children }: any) => (
-  <div className="absolute right-0 mt-2 bg-white border rounded shadow-lg">
-    {children}
-  </div>
-);
-const DropdownMenuItem = ({ children, onClick }: any) => (
-  <div onClick={onClick} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-    {children}
-  </div>
-);
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-
-// Hooks (using temporary stubs)
-const useTarefasClienteUnicorn = () => ({
-  tarefas: [],
-  loading: false,
-  createTask: async () => {},
-  updateTask: async () => {},
-  deleteTask: async () => {},
-  completeTask: async () => {},
-});
-
-const useWorkflowAutomation = () => ({
-  getWorkflowRecommendations: async () => {},
-  automateRecurringTasks: async () => {},
-  executeWorkflow: async () => {},
-});
-
-const useAITaskRecommendations = () => ({
-  getDeadlineRecommendations: async () => {},
-  getClientTaskRecommendations: async () => {},
-  analyzeTaskEfficiency: async () => {},
-});
-
-// Tipos
+// Tipos específicos
 interface Tarefa {
   id: string;
   titulo: string;
   descricao: string;
+  cliente: string;
   clienteId: string;
-  clienteNome: string;
-  processoId?: string;
-  contratoId?: string;
   tipo: "manual" | "automatica" | "recorrente" | "prazo_processual";
+  status: "pendente" | "em_andamento" | "concluida" | "cancelada";
   prioridade: "baixa" | "media" | "alta" | "critica";
-  status:
-    | "pendente"
-    | "em_andamento"
-    | "aguardando"
-    | "concluida"
-    | "cancelada";
-  responsavel: string;
   dataVencimento: Date;
   dataCriacao: Date;
-  dataConclusao?: Date;
+  responsavel: string;
   tempoEstimado: number; // em horas
-  tempoGasto?: number; // em horas
-  progresso: number;
+  tempoGasto?: number;
+  observacoes?: string;
   tags: string[];
-  anexos: string[];
-  comentarios: number;
-  dependencias: string[]; // IDs de outras tarefas
-  // Workflow
-  etapaWorkflow?: string;
-  proximaEtapa?: string;
-  workflowId?: string;
-  // IA
-  recomendadaPorIA: boolean;
-  confiancaIA?: number;
-  fonteRecomendacao?: string;
-  alertasVencimento: number;
-}
-
-interface Cliente {
-  id: string;
-  nome: string;
-  totalTarefas: number;
-  tarefasPendentes: number;
-  tarefasVencidas: number;
-  progressoGeral: number;
+  vinculadoProcesso?: string;
 }
 
 interface TarefasClienteModuleProps {
   searchQuery?: string;
+  viewMode?: "list" | "kanban";
   onNotification?: (message: string) => void;
   className?: string;
 }
 
-// Dados mock
-const MOCK_CLIENTES: Cliente[] = [
-  {
-    id: "cli-001",
-    nome: "Maria Silva Advocacia",
-    totalTarefas: 12,
-    tarefasPendentes: 4,
-    tarefasVencidas: 1,
-    progressoGeral: 75,
-  },
-  {
-    id: "cli-002",
-    nome: "Carlos Mendes",
-    totalTarefas: 8,
-    tarefasPendentes: 3,
-    tarefasVencidas: 0,
-    progressoGeral: 85,
-  },
-  {
-    id: "cli-003",
-    nome: "Tech Solutions Ltda",
-    totalTarefas: 15,
-    tarefasPendentes: 8,
-    tarefasVencidas: 3,
-    progressoGeral: 45,
-  },
-];
-
+// Mock data
 const MOCK_TAREFAS: Tarefa[] = [
   {
-    id: "task-001",
-    titulo: "Análise de Contrato de Parceria",
-    descricao: "Revisar cláusulas contratuais e identificar riscos potenciais",
-    clienteId: "cli-001",
-    clienteNome: "Maria Silva Advocacia",
-    contratoId: "cont-001",
+    id: "1",
+    titulo: "Preparar petição inicial",
+    descricao: "Elaborar petição inicial para ação trabalhista",
+    cliente: "João Silva & Associados",
+    clienteId: "1",
     tipo: "manual",
-    prioridade: "alta",
     status: "em_andamento",
-    responsavel: "Dr. João Santos",
-    dataVencimento: new Date("2025-01-28"),
-    dataCriacao: new Date("2025-01-20"),
+    prioridade: "alta",
+    dataVencimento: new Date(Date.now() + 86400000 * 2),
+    dataCriacao: new Date(Date.now() - 86400000),
+    responsavel: "Maria Santos",
     tempoEstimado: 4,
     tempoGasto: 2.5,
-    progresso: 60,
-    tags: ["Contrato", "Análise", "Urgente"],
-    anexos: ["contrato-parceria.pdf"],
-    comentarios: 3,
-    dependencias: [],
-    etapaWorkflow: "Análise",
-    proximaEtapa: "Aprovação",
-    workflowId: "wf-contrato-001",
-    recomendadaPorIA: false,
-    alertasVencimento: 1,
+    tags: ["petição", "trabalhista"],
+    vinculadoProcesso: "1001234-12.2024.8.26.0100",
   },
   {
-    id: "task-002",
-    titulo: "Protocolar Petição Inicial",
-    descricao:
-      "Protocolar petição inicial no processo trabalhista - prazo até 30/01",
-    clienteId: "cli-002",
-    clienteNome: "Carlos Mendes",
-    processoId: "proc-002",
+    id: "2",
+    titulo: "Prazo para contestação",
+    descricao: "Prazo para apresentar contestação",
+    cliente: "TechCorp Ltda",
+    clienteId: "2",
     tipo: "prazo_processual",
+    status: "pendente",
     prioridade: "critica",
-    status: "pendente",
-    responsavel: "Dra. Ana Costa",
-    dataVencimento: new Date("2025-01-30"),
-    dataCriacao: new Date("2025-01-22"),
-    tempoEstimado: 2,
-    progresso: 0,
-    tags: ["Processo", "Prazo", "Trabalhista"],
-    anexos: [],
-    comentarios: 1,
-    dependencias: [],
-    recomendadaPorIA: true,
-    confiancaIA: 95,
-    fonteRecomendacao: "Prazo processual detectado",
-    alertasVencimento: 2,
+    dataVencimento: new Date(Date.now() + 86400000 * 3),
+    dataCriacao: new Date(Date.now() - 86400000 * 2),
+    responsavel: "Carlos Oliveira",
+    tempoEstimado: 6,
+    tags: ["contestação", "prazo"],
+    vinculadoProcesso: "5005678-34.2024.4.03.6100",
   },
   {
-    id: "task-003",
-    titulo: "Renovação de Contrato",
-    descricao: "Preparar documentação para renovação automática do contrato",
-    clienteId: "cli-001",
-    clienteNome: "Maria Silva Advocacia",
-    contratoId: "cont-001",
-    tipo: "automatica",
+    id: "3",
+    titulo: "Reunião de alinhamento",
+    descricao: "Reunião mensal com o cliente",
+    cliente: "Ana Costa",
+    clienteId: "3",
+    tipo: "recorrente",
+    status: "concluida",
     prioridade: "media",
-    status: "aguardando",
-    responsavel: "Dr. João Santos",
-    dataVencimento: new Date("2025-02-15"),
-    dataCriacao: new Date("2025-01-15"),
+    dataVencimento: new Date(Date.now() - 86400000),
+    dataCriacao: new Date(Date.now() - 86400000 * 7),
+    responsavel: "João Silva",
     tempoEstimado: 1,
-    progresso: 100,
-    tags: ["Contrato", "Renovação", "Automática"],
-    anexos: [],
-    comentarios: 0,
-    dependencias: ["task-001"],
-    etapaWorkflow: "Aguardando Dependência",
-    proximaEtapa: "Execução",
-    workflowId: "wf-renovacao-001",
-    recomendadaPorIA: true,
-    confiancaIA: 88,
-    fonteRecomendacao: "Vencimento de contrato detectado",
-    alertasVencimento: 0,
+    tempoGasto: 1.5,
+    tags: ["reunião", "mensal"],
   },
   {
-    id: "task-004",
-    titulo: "Follow-up Cliente Inativo",
-    descricao: "Entrar em contato com cliente inativo há mais de 60 dias",
-    clienteId: "cli-003",
-    clienteNome: "Tech Solutions Ltda",
+    id: "4",
+    titulo: "Análise de documentos",
+    descricao: "Analisar documentos enviados pelo cliente",
+    cliente: "Pedro Almeida",
+    clienteId: "4",
     tipo: "automatica",
-    prioridade: "media",
     status: "pendente",
-    responsavel: "Dr. Pedro Oliveira",
-    dataVencimento: new Date("2025-01-25"),
-    dataCriacao: new Date("2025-01-23"),
-    tempoEstimado: 0.5,
-    progresso: 0,
-    tags: ["Cliente", "Follow-up", "Reativação"],
-    anexos: [],
-    comentarios: 0,
-    dependencias: [],
-    recomendadaPorIA: true,
-    confiancaIA: 92,
-    fonteRecomendacao: "Cliente inativo detectado pela IA",
-    alertasVencimento: 1,
+    prioridade: "baixa",
+    dataVencimento: new Date(Date.now() + 86400000 * 5),
+    dataCriacao: new Date(),
+    responsavel: "Ana Silva",
+    tempoEstimado: 2,
+    tags: ["análise", "documentos"],
   },
 ];
 
-export function TarefasClienteModule({
+// Configuração das colunas
+const DEFAULT_COLUMNS: ColumnConfig[] = [
+  { key: "titulo", label: "Título", visible: true, sortable: true },
+  { key: "cliente", label: "Cliente", visible: true, sortable: true },
+  { key: "tipo", label: "Tipo", visible: true, sortable: true },
+  { key: "status", label: "Status", visible: true, sortable: true },
+  { key: "prioridade", label: "Prioridade", visible: true, sortable: true },
+  { key: "dataVencimento", label: "Vencimento", visible: true, sortable: true },
+  { key: "responsavel", label: "Responsável", visible: true, sortable: true },
+  { key: "tempoEstimado", label: "Tempo Est.", visible: false, sortable: true },
+  { key: "progresso", label: "Progresso", visible: false, sortable: false },
+];
+
+export const TarefasClienteModule: React.FC<TarefasClienteModuleProps> = ({
   searchQuery = "",
+  viewMode = "list",
   onNotification,
   className,
-}: TarefasClienteModuleProps) {
-  // Estados
-  const [selectedClient, setSelectedClient] = useState<string>("todos");
-  const [selectedStatus, setSelectedStatus] = useState<string>("todas");
-  const [selectedPriority, setSelectedPriority] = useState<string>("todas");
-  const [viewMode, setViewMode] = useState<"lista" | "kanban" | "timeline">(
-    "lista",
-  );
-  const [showAIRecommendations, setShowAIRecommendations] = useState(true);
+}) => {
+  const [tarefas, setTarefas] = useState<Tarefa[]>(MOCK_TAREFAS);
+  const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
+  const [filterStatus, setFilterStatus] = useState<string>("todos");
+  const [filterPrioridade, setFilterPrioridade] = useState<string>("todos");
+  const [filterCliente, setFilterCliente] = useState<string>("todos");
 
-  // Hooks
-  const { tarefas, loading, createTask, updateTask, deleteTask, completeTask } =
-    useTarefasClienteUnicorn();
-
-  const {
-    getWorkflowRecommendations,
-    automateRecurringTasks,
-    executeWorkflow,
-  } = useWorkflowAutomation();
-
-  const {
-    getDeadlineRecommendations,
-    getClientTaskRecommendations,
-    analyzeTaskEfficiency,
-  } = useAITaskRecommendations();
-
-  // Dados filtrados
+  // Filtrar tarefas
   const filteredTarefas = useMemo(() => {
-    let filtered = MOCK_TAREFAS;
+    return tarefas.filter((tarefa) => {
+      const matchesSearch =
+        searchQuery === "" ||
+        tarefa.titulo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tarefa.cliente.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tarefa.tags.some((tag) =>
+          tag.toLowerCase().includes(searchQuery.toLowerCase()),
+        );
 
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (tarefa) =>
-          tarefa.titulo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          tarefa.descricao.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          tarefa.clienteNome.toLowerCase().includes(searchQuery.toLowerCase()),
+      const matchesStatus =
+        filterStatus === "todos" || tarefa.status === filterStatus;
+
+      const matchesPrioridade =
+        filterPrioridade === "todos" || tarefa.prioridade === filterPrioridade;
+
+      const matchesCliente =
+        filterCliente === "todos" || tarefa.clienteId === filterCliente;
+
+      return (
+        matchesSearch && matchesStatus && matchesPrioridade && matchesCliente
       );
-    }
-
-    if (selectedClient !== "todos") {
-      filtered = filtered.filter(
-        (tarefa) => tarefa.clienteId === selectedClient,
-      );
-    }
-
-    if (selectedStatus !== "todas") {
-      filtered = filtered.filter((tarefa) => tarefa.status === selectedStatus);
-    }
-
-    if (selectedPriority !== "todas") {
-      filtered = filtered.filter(
-        (tarefa) => tarefa.prioridade === selectedPriority,
-      );
-    }
-
-    return filtered.sort((a, b) => {
-      // Priorizar por vencimento e prioridade
-      const priorityOrder = { critica: 4, alta: 3, media: 2, baixa: 1 };
-      const aPriority = priorityOrder[a.prioridade];
-      const bPriority = priorityOrder[b.prioridade];
-
-      if (aPriority !== bPriority) {
-        return bPriority - aPriority;
-      }
-
-      return a.dataVencimento.getTime() - b.dataVencimento.getTime();
     });
-  }, [searchQuery, selectedClient, selectedStatus, selectedPriority]);
+  }, [tarefas, searchQuery, filterStatus, filterPrioridade, filterCliente]);
+
+  // Converter para formato da lista
+  const listItems: ListItem[] = useMemo(() => {
+    return filteredTarefas.map((tarefa) => {
+      const progresso = tarefa.tempoGasto
+        ? Math.round((tarefa.tempoGasto / tarefa.tempoEstimado) * 100)
+        : 0;
+
+      const diasRestantes = Math.ceil(
+        (tarefa.dataVencimento.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+      );
+
+      return {
+        id: tarefa.id,
+        status: tarefa.status,
+        data: {
+          titulo: tarefa.titulo,
+          cliente: tarefa.cliente,
+          tipo: getTipoLabel(tarefa.tipo),
+          status: tarefa.status,
+          prioridade: getPrioridadeLabel(tarefa.prioridade),
+          dataVencimento: `${tarefa.dataVencimento.toLocaleDateString()} (${diasRestantes}d)`,
+          responsavel: tarefa.responsavel,
+          tempoEstimado: `${tarefa.tempoEstimado}h`,
+          progresso: `${progresso}%`,
+          tags: tarefa.tags.join(", "),
+          descricao: tarefa.descricao,
+        },
+        discussions: [
+          {
+            id: "1",
+            author: tarefa.responsavel,
+            message: "Tarefa em andamento, aguardando documentos",
+            timestamp: new Date(),
+            internal: true,
+          },
+        ],
+      };
+    });
+  }, [filteredTarefas]);
+
+  // Status columns para Kanban
+  const statusColumns = ["pendente", "em_andamento", "concluida", "cancelada"];
+
+  // Clientes únicos para filtro
+  const clientesUnicos = useMemo(() => {
+    const clientes = tarefas.reduce(
+      (acc, tarefa) => {
+        if (!acc.find((c) => c.id === tarefa.clienteId)) {
+          acc.push({ id: tarefa.clienteId, nome: tarefa.cliente });
+        }
+        return acc;
+      },
+      [] as { id: string; nome: string }[],
+    );
+    return clientes;
+  }, [tarefas]);
+
+  // Handlers
+  const handleItemUpdate = (item: ListItem) => {
+    const updatedTarefas = tarefas.map((tarefa) => {
+      if (tarefa.id === item.id) {
+        return { ...tarefa, status: item.status as Tarefa["status"] };
+      }
+      return tarefa;
+    });
+    setTarefas(updatedTarefas);
+    onNotification?.("Tarefa atualizada com sucesso");
+  };
+
+  const handleDiscussion = (
+    itemId: string,
+    discussion: Omit<Discussion, "id" | "timestamp">,
+  ) => {
+    onNotification?.("Discussão adicionada à tarefa");
+  };
 
   // Estatísticas
   const stats = useMemo(() => {
-    const total = MOCK_TAREFAS.length;
-    const pendentes = MOCK_TAREFAS.filter(
-      (t) => t.status === "pendente",
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const atrasadas = tarefas.filter(
+      (t) => t.dataVencimento < hoje && t.status !== "concluida",
     ).length;
-    const emAndamento = MOCK_TAREFAS.filter(
-      (t) => t.status === "em_andamento",
-    ).length;
-    const concluidas = MOCK_TAREFAS.filter(
-      (t) => t.status === "concluida",
-    ).length;
-    const vencidas = MOCK_TAREFAS.filter(
-      (t) => t.dataVencimento < new Date() && t.status !== "concluida",
-    ).length;
-    const recomendadasIA = MOCK_TAREFAS.filter(
-      (t) => t.recomendadaPorIA,
-    ).length;
+
+    const vencemHoje = tarefas.filter((t) => {
+      const vencimento = new Date(t.dataVencimento);
+      vencimento.setHours(0, 0, 0, 0);
+      return (
+        vencimento.getTime() === hoje.getTime() && t.status !== "concluida"
+      );
+    }).length;
 
     return {
-      total,
-      pendentes,
-      emAndamento,
-      concluidas,
-      vencidas,
-      recomendadasIA,
+      total: tarefas.length,
+      pendentes: tarefas.filter((t) => t.status === "pendente").length,
+      emAndamento: tarefas.filter((t) => t.status === "em_andamento").length,
+      concluidas: tarefas.filter((t) => t.status === "concluida").length,
+      atrasadas,
+      vencemHoje,
     };
-  }, []);
-
-  // Handlers
-  const handleCompleteTask = useCallback(
-    async (taskId: string) => {
-      try {
-        await completeTask(taskId);
-        onNotification?.("Tarefa concluída com sucesso");
-      } catch (error) {
-        toast.error("Erro ao concluir tarefa");
-      }
-    },
-    [completeTask, onNotification],
-  );
-
-  const handleCreateAITask = useCallback(async () => {
-    try {
-      const recommendations = await getClientTaskRecommendations();
-      onNotification?.("Novas tarefas recomendadas pela IA");
-    } catch (error) {
-      toast.error("Erro ao gerar recomendações");
-    }
-  }, [getClientTaskRecommendations, onNotification]);
-
-  // Renderizador de card de tarefa
-  const renderTaskCard = (tarefa: Tarefa) => (
-    <motion.div
-      key={tarefa.id}
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      whileHover={{ y: -1 }}
-      transition={{ duration: 0.2 }}
-    >
-      <Card
-        className={cn(
-          "relative overflow-hidden cursor-pointer transition-all",
-          "hover:shadow-md border-l-4",
-          tarefa.prioridade === "critica" && "border-l-red-500 bg-red-50",
-          tarefa.prioridade === "alta" && "border-l-orange-500 bg-orange-50",
-          tarefa.prioridade === "media" && "border-l-yellow-500 bg-yellow-50",
-          tarefa.prioridade === "baixa" && "border-l-green-500 bg-green-50",
-        )}
-      >
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-2">
-                <Badge
-                  variant={
-                    tarefa.status === "concluida"
-                      ? "default"
-                      : tarefa.status === "em_andamento"
-                        ? "secondary"
-                        : tarefa.status === "pendente"
-                          ? "outline"
-                          : "destructive"
-                  }
-                  className="text-xs"
-                >
-                  {tarefa.status.replace("_", " ").toUpperCase()}
-                </Badge>
-
-                <Badge
-                  variant={
-                    tarefa.prioridade === "critica" ? "destructive" : "outline"
-                  }
-                  className="text-xs"
-                >
-                  {tarefa.prioridade.toUpperCase()}
-                </Badge>
-
-                {tarefa.recomendadaPorIA && (
-                  <Badge variant="secondary" className="text-xs">
-                    🤖 IA {tarefa.confiancaIA}%
-                  </Badge>
-                )}
-
-                {tarefa.tipo === "prazo_processual" && (
-                  <Badge variant="destructive" className="text-xs">
-                    PRAZO
-                  </Badge>
-                )}
-              </div>
-
-              <h3 className="font-semibold text-sm mb-1">{tarefa.titulo}</h3>
-              <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                {tarefa.descricao}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {tarefa.clienteNome}
-              </p>
-            </div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <Eye className="h-4 w-4 mr-2" />
-                  Ver Detalhes
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleCompleteTask(tarefa.id)}
-                  disabled={tarefa.status === "concluida"}
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Concluir
-                </DropdownMenuItem>
-                {tarefa.processoId && (
-                  <DropdownMenuItem>
-                    <Scale className="h-4 w-4 mr-2" />
-                    Ver Processo
-                  </DropdownMenuItem>
-                )}
-                {tarefa.contratoId && (
-                  <DropdownMenuItem>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Ver Contrato
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem className="text-red-600">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Excluir
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </CardHeader>
-
-        <CardContent className="pt-0">
-          {/* Progresso */}
-          {tarefa.progresso > 0 && (
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-muted-foreground">Progresso</span>
-                <span className="text-xs font-medium">{tarefa.progresso}%</span>
-              </div>
-              <Progress value={tarefa.progresso} className="h-2" />
-            </div>
-          )}
-
-          {/* Tempo */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <p className="text-xs text-muted-foreground">Tempo Estimado</p>
-              <p className="text-sm font-medium">{tarefa.tempoEstimado}h</p>
-            </div>
-            {tarefa.tempoGasto && (
-              <div>
-                <p className="text-xs text-muted-foreground">Tempo Gasto</p>
-                <p className="text-sm font-medium">{tarefa.tempoGasto}h</p>
-              </div>
-            )}
-          </div>
-
-          {/* Data de vencimento */}
-          <div className="mb-4">
-            <div className="flex items-center text-xs mb-1">
-              <Calendar className="h-3 w-3 mr-1" />
-              <span className="text-muted-foreground">Vence em:</span>
-            </div>
-            <p
-              className={cn(
-                "text-xs font-medium",
-                tarefa.dataVencimento < new Date() && "text-red-600",
-                tarefa.dataVencimento.getTime() - Date.now() <
-                  24 * 60 * 60 * 1000 && "text-orange-600",
-              )}
-            >
-              {tarefa.dataVencimento.toLocaleDateString("pt-BR")}
-            </p>
-          </div>
-
-          {/* Responsável */}
-          <div className="flex items-center mb-4">
-            <Avatar className="h-6 w-6 mr-2">
-              <AvatarFallback className="text-xs">
-                {tarefa.responsavel.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-xs text-muted-foreground">
-              {tarefa.responsavel}
-            </span>
-          </div>
-
-          {/* Workflow */}
-          {tarefa.etapaWorkflow && (
-            <div className="mb-4">
-              <p className="text-xs text-muted-foreground mb-1">
-                Etapa do Workflow:
-              </p>
-              <Badge variant="outline" className="text-xs">
-                {tarefa.etapaWorkflow}
-              </Badge>
-              {tarefa.proximaEtapa && (
-                <span className="text-xs text-muted-foreground ml-2">
-                  → {tarefa.proximaEtapa}
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Alertas */}
-          {tarefa.alertasVencimento > 0 && (
-            <div className="flex items-center text-xs text-red-600 mb-3">
-              <AlertTriangle className="h-3 w-3 mr-1" />
-              {tarefa.alertasVencimento} alerta(s) de vencimento
-            </div>
-          )}
-
-          {/* IA Recommendation Info */}
-          {tarefa.recomendadaPorIA && tarefa.fonteRecomendacao && (
-            <div className="flex items-center text-xs text-blue-600 mb-3">
-              <Brain className="h-3 w-3 mr-1" />
-              {tarefa.fonteRecomendacao}
-            </div>
-          )}
-
-          {/* Tags */}
-          <div className="flex flex-wrap gap-1">
-            {tarefa.tags.slice(0, 2).map((tag) => (
-              <Badge key={tag} variant="outline" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
-            {tarefa.tags.length > 2 && (
-              <Badge variant="outline" className="text-xs">
-                +{tarefa.tags.length - 2}
-              </Badge>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
+  }, [tarefas]);
 
   return (
-    <div className={cn("space-y-6", className)}>
-      {/* Header do módulo */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900">
-            Tarefas por Cliente
-          </h2>
-          <p className="text-muted-foreground">
-            Workflow personalizado e automação inteligente
-          </p>
-        </div>
-
-        <div className="flex items-center space-x-3">
-          <Button variant="outline" size="sm" onClick={handleCreateAITask}>
-            <Brain className="h-4 w-4 mr-2" />
-            Gerar IA
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAIRecommendations(!showAIRecommendations)}
-          >
-            <Zap className="h-4 w-4 mr-2" />
-            IA {showAIRecommendations ? "ON" : "OFF"}
-          </Button>
-
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Tarefa
-          </Button>
-        </div>
-      </div>
-
+    <div className={`p-6 space-y-6 ${className}`}>
       {/* Estatísticas */}
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-        {[
-          {
-            title: "Total",
-            value: stats.total,
-            icon: CheckSquare,
-            color: "text-blue-600",
-          },
-          {
-            title: "Pendentes",
-            value: stats.pendentes,
-            icon: Clock,
-            color: "text-orange-600",
-          },
-          {
-            title: "Em Andamento",
-            value: stats.emAndamento,
-            icon: Play,
-            color: "text-yellow-600",
-          },
-          {
-            title: "Concluídas",
-            value: stats.concluidas,
-            icon: CheckCircle,
-            color: "text-green-600",
-          },
-          {
-            title: "Vencidas",
-            value: stats.vencidas,
-            icon: AlertTriangle,
-            color: "text-red-600",
-          },
-          {
-            title: "IA Recs",
-            value: stats.recomendadasIA,
-            icon: Brain,
-            color: "text-purple-600",
-          },
-        ].map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card
-              key={index}
-              className={cn(
-                stat.title === "Vencidas" &&
-                  stats.vencidas > 0 &&
-                  "ring-2 ring-red-500",
-              )}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      {stat.title}
-                    </p>
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                  </div>
-                  <Icon className={cn("h-8 w-8", stat.color)} />
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+      <div className="grid grid-cols-4 gap-4">
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <CheckSquare className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Total de Tarefas</p>
+                <p className="text-xl font-semibold">{stats.total}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Clock className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Em Andamento</p>
+                <p className="text-xl font-semibold">{stats.emAndamento}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Atrasadas</p>
+                <p className="text-xl font-semibold">{stats.atrasadas}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <Target className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Vencem Hoje</p>
+                <p className="text-xl font-semibold">{stats.vencemHoje}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filtros */}
-      <div className="flex items-center space-x-4">
-        <Select value={selectedClient} onValueChange={setSelectedClient}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrar por cliente" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos os Clientes</SelectItem>
-            {MOCK_CLIENTES.map((cliente) => (
-              <SelectItem key={cliente.id} value={cliente.id}>
-                {cliente.nome}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os Status</SelectItem>
+              <SelectItem value="pendente">Pendente</SelectItem>
+              <SelectItem value="em_andamento">Em Andamento</SelectItem>
+              <SelectItem value="concluida">Concluída</SelectItem>
+              <SelectItem value="cancelada">Cancelada</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrar por status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todas">Todos os Status</SelectItem>
-            <SelectItem value="pendente">Pendentes</SelectItem>
-            <SelectItem value="em_andamento">Em Andamento</SelectItem>
-            <SelectItem value="aguardando">Aguardando</SelectItem>
-            <SelectItem value="concluida">Concluídas</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select value={filterPrioridade} onValueChange={setFilterPrioridade}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Prioridade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todas</SelectItem>
+              <SelectItem value="critica">Crítica</SelectItem>
+              <SelectItem value="alta">Alta</SelectItem>
+              <SelectItem value="media">Média</SelectItem>
+              <SelectItem value="baixa">Baixa</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select value={selectedPriority} onValueChange={setSelectedPriority}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrar por prioridade" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todas">Todas as Prioridades</SelectItem>
-            <SelectItem value="critica">Crítica</SelectItem>
-            <SelectItem value="alta">Alta</SelectItem>
-            <SelectItem value="media">Média</SelectItem>
-            <SelectItem value="baixa">Baixa</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select value={filterCliente} onValueChange={setFilterCliente}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Cliente" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os Clientes</SelectItem>
+              {clientesUnicos.map((cliente) => (
+                <SelectItem key={cliente.id} value={cliente.id}>
+                  {cliente.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <Button variant="outline" size="sm">
-          <Filter className="h-4 w-4 mr-2" />
-          Mais Filtros
+        <Button>
+          <Plus className="w-4 h-4 mr-2" />
+          Nova Tarefa
         </Button>
       </div>
 
-      {/* Lista de tarefas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredTarefas.map(renderTaskCard)}
-      </div>
-
-      {/* Loading state */}
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
-
-      {/* Empty state */}
-      {filteredTarefas.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <CheckSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">
-            Nenhuma tarefa encontrada
-          </h3>
-          <p className="text-muted-foreground mb-4">
-            Comece criando tarefas ou use recomendações da IA
-          </p>
-          <div className="flex items-center justify-center space-x-3">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Tarefa
-            </Button>
-            <Button variant="outline" onClick={handleCreateAITask}>
-              <Brain className="h-4 w-4 mr-2" />
-              Recomendações IA
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Lista configurável */}
+      <ConfigurableList
+        items={listItems}
+        columns={columns}
+        viewMode={viewMode}
+        onItemUpdate={handleItemUpdate}
+        onColumnUpdate={setColumns}
+        onDiscussion={handleDiscussion}
+        statusColumns={statusColumns}
+      />
     </div>
   );
-}
+};
+
+// Fun��ões auxiliares
+const getTipoLabel = (tipo: Tarefa["tipo"]): string => {
+  const labels = {
+    manual: "Manual",
+    automatica: "Automática",
+    recorrente: "Recorrente",
+    prazo_processual: "Prazo Processual",
+  };
+  return labels[tipo];
+};
+
+const getPrioridadeLabel = (prioridade: Tarefa["prioridade"]): string => {
+  const labels = {
+    baixa: "Baixa",
+    media: "Média",
+    alta: "Alta",
+    critica: "Crítica",
+  };
+  return labels[prioridade];
+};
+
+export default TarefasClienteModule;
