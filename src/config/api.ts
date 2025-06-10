@@ -27,10 +27,19 @@ export const API_ENDPOINTS = {
 
   // CRM
   CRM: {
+    BASE: "/crm",
     CLIENTS: "/crm/clients",
     PROCESSES: "/crm/processes",
     CONTACTS: "/crm/contacts",
     TASKS: "/crm/tasks",
+    JURIDICO: {
+      BASE: "/crm/juridico",
+      CLIENTES: "/crm/juridico/clientes",
+      PROCESSOS: "/crm/juridico/processos",
+      CONTRATOS: "/crm/juridico/contratos",
+      TAREFAS: "/crm/juridico/tarefas",
+      ANALYTICS: "/crm/juridico/analytics",
+    },
   },
 
   // Agenda
