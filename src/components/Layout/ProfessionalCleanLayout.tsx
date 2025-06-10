@@ -21,6 +21,7 @@ import {
   Rss,
   MessageCircle,
   FolderOpen,
+  Target,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
