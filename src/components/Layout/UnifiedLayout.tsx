@@ -317,7 +317,8 @@ const UnifiedLayout: React.FC = () => {
     }
 
     return classes.join(" ");
-  }, [layoutState.sidebarOpen, layoutState.sidebarCollapsed, layoutState.isMobile]);
+  }, [
+    layoutState.sidebarOpen,
     layoutState.sidebarCollapsed,
     layoutState.isMobile,
   ]);
