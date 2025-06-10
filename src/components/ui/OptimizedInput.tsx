@@ -1,11 +1,12 @@
 /**
- * OPTIMIZED INPUT COMPONENT V2
- * Standardized input following design system
+ * OPTIMIZED INPUT COMPONENT V3
+ * Standardized input using TailwindCSS classes
  * Focus: Performance, Accessibility, User Experience
  */
 
-import React, { forwardRef, useMemo, useState, useCallback } from "react";
-import { Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
+import React, { forwardRef, useState } from "react";
+import { cn } from "@/lib/utils";
+import { Eye, EyeOff, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 
 // ===== TYPES =====
 export interface InputProps
@@ -32,6 +33,21 @@ export interface TextareaProps
   loading?: boolean;
 }
 
+// ===== VARIANT STYLES =====
+const inputVariants = {
+  default:
+    "border border-gray-300 bg-white focus:border-blue-500 focus:ring-blue-500",
+  outlined:
+    "border-2 border-gray-300 bg-white focus:border-blue-500 focus:ring-blue-500",
+  filled: "border-0 bg-gray-100 focus:bg-white focus:ring-blue-500",
+};
+
+const sizeVariants = {
+  sm: "px-3 py-1.5 text-sm h-8",
+  md: "px-3 py-2 text-sm h-10",
+  lg: "px-4 py-3 text-base h-12",
+};
+
 // ===== INPUT COMPONENT =====
 const OptimizedInput = forwardRef<HTMLInputElement, InputProps>(
   (
@@ -47,358 +63,201 @@ const OptimizedInput = forwardRef<HTMLInputElement, InputProps>(
       showPasswordToggle = false,
       loading = false,
       type = "text",
-      className = "",
-      style,
-      disabled,
+      className,
+      id,
       ...props
     },
     ref,
   ) => {
+    // ===== STATE =====
     const [showPassword, setShowPassword] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
 
-    // ===== COMPUTED STYLES =====
-    const containerStyles = useMemo(
-      () => ({
-        display: "flex",
-        flexDirection: "column" as const,
-        gap: "var(--spacing-xs)",
-        width: "100%",
-      }),
-      [],
-    );
+    // ===== COMPUTED VALUES =====
+    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const inputType =
+      showPasswordToggle && type === "password"
+        ? showPassword
+          ? "text"
+          : "password"
+        : type;
 
-    const labelStyles = useMemo(
-      () => ({
-        fontSize: "0.875rem",
-        fontWeight: "500",
-        color: error ? "var(--color-error)" : "var(--text-primary)",
-        marginBottom: "var(--spacing-xs)",
-      }),
-      [error],
-    );
-
-    const inputWrapperStyles = useMemo(() => {
-      const baseStyles = {
-        position: "relative" as const,
-        display: "flex",
-        alignItems: "center",
-        transition: "all var(--duration-normal) var(--easing-default)",
-        borderRadius: "var(--radius-md)",
-      };
-
-      // Size styles
-      const sizeStyles = {
-        sm: { minHeight: "2rem" },
-        md: { minHeight: "2.5rem" },
-        lg: { minHeight: "3rem" },
-      };
-
-      // Variant styles
-      const variantStyles = {
-        default: {
-          backgroundColor: "var(--surface-primary)",
-          border: `1px solid ${
-            error
-              ? "var(--color-error)"
-              : success
-                ? "var(--color-success)"
-                : isFocused
-                  ? "var(--primary-500)"
-                  : "var(--border-primary)"
-          }`,
-          boxShadow: isFocused
-            ? `0 0 0 3px ${
-                error ? "rgba(239, 68, 68, 0.1)" : "rgba(59, 130, 246, 0.1)"
-              }`
-            : "none",
-        },
-        outlined: {
-          backgroundColor: "transparent",
-          border: `2px solid ${
-            error
-              ? "var(--color-error)"
-              : success
-                ? "var(--color-success)"
-                : isFocused
-                  ? "var(--primary-500)"
-                  : "var(--border-primary)"
-          }`,
-        },
-        filled: {
-          backgroundColor: "var(--surface-secondary)",
-          border: "1px solid transparent",
-          borderBottomColor: error
-            ? "var(--color-error)"
-            : success
-              ? "var(--color-success)"
-              : isFocused
-                ? "var(--primary-500)"
-                : "var(--border-primary)",
-        },
-      };
-
-      return {
-        ...baseStyles,
-        ...sizeStyles[size],
-        ...variantStyles[variant],
-      };
-    }, [variant, size, error, success, isFocused]);
-
-    const inputStyles = useMemo(() => {
-      const paddingLeft =
-        Icon && iconPosition === "left" ? "2.5rem" : "var(--spacing-md)";
-      const paddingRight =
-        (showPasswordToggle && type === "password") ||
-        (Icon && iconPosition === "right")
-          ? "2.5rem"
-          : "var(--spacing-md)";
-
-      return {
-        width: "100%",
-        height: "100%",
-        padding: `var(--spacing-sm) ${paddingRight} var(--spacing-sm) ${paddingLeft}`,
-        backgroundColor: "transparent",
-        border: "none",
-        outline: "none",
-        color: "var(--text-primary)",
-        fontSize:
-          size === "sm" ? "0.75rem" : size === "lg" ? "1rem" : "0.875rem",
-        fontFamily: "inherit",
-        borderRadius: "var(--radius-md)",
-      };
-    }, [Icon, iconPosition, showPasswordToggle, type, size]);
-
-    const iconStyles = useMemo(
-      () => ({
-        position: "absolute" as const,
-        top: "50%",
-        transform: "translateY(-50%)",
-        color: error
-          ? "var(--color-error)"
-          : success
-            ? "var(--color-success)"
-            : "var(--text-tertiary)",
-        pointerEvents: "none" as const,
-        zIndex: 1,
-      }),
-      [error, success],
-    );
-
-    const leftIconStyles = useMemo(
-      () => ({
-        ...iconStyles,
-        left: "var(--spacing-sm)",
-      }),
-      [iconStyles],
-    );
-
-    const rightIconStyles = useMemo(
-      () => ({
-        ...iconStyles,
-        right: "var(--spacing-sm)",
-        pointerEvents: showPasswordToggle
-          ? ("auto" as const)
-          : ("none" as const),
-        cursor: showPasswordToggle ? "pointer" : "default",
-      }),
-      [iconStyles, showPasswordToggle],
-    );
-
-    // ===== HANDLERS =====
-    const handleFocus = useCallback(
-      (e: React.FocusEvent<HTMLInputElement>) => {
-        setIsFocused(true);
-        props.onFocus?.(e);
-      },
-      [props],
-    );
-
-    const handleBlur = useCallback(
-      (e: React.FocusEvent<HTMLInputElement>) => {
-        setIsFocused(false);
-        props.onBlur?.(e);
-      },
-      [props],
-    );
-
-    const togglePasswordVisibility = useCallback(() => {
-      setShowPassword((prev) => !prev);
-    }, []);
+    const hasError = Boolean(error);
+    const hasSuccess = Boolean(success);
+    const hasIcon = Boolean(Icon);
+    const hasPasswordToggle = showPasswordToggle && type === "password";
 
     // ===== ICON SIZE =====
-    const iconSize = useMemo(() => {
-      switch (size) {
-        case "sm":
-          return 14;
-        case "lg":
-          return 20;
-        default:
-          return 16;
-      }
-    }, [size]);
+    const iconSize = size === "sm" ? 14 : size === "lg" ? 20 : 16;
 
-    // ===== VALIDATION ICON =====
-    const ValidationIcon = useMemo(() => {
-      if (loading) {
-        return (
-          <div
-            style={{
-              ...rightIconStyles,
-              right: showPasswordToggle ? "2.5rem" : "var(--spacing-sm)",
-            }}
-          >
-            <div
-              style={{
-                width: `${iconSize}px`,
-                height: `${iconSize}px`,
-                border: "2px solid transparent",
-                borderTop: "2px solid currentColor",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-              }}
-            />
-          </div>
-        );
-      }
+    // ===== COMPUTED CLASSES =====
+    const containerClasses = cn("relative w-full");
 
-      if (error) {
-        return (
-          <div
-            style={{
-              ...rightIconStyles,
-              right: showPasswordToggle ? "2.5rem" : "var(--spacing-sm)",
-            }}
-          >
-            <AlertCircle size={iconSize} />
-          </div>
-        );
-      }
+    const inputClasses = cn(
+      // Base styles
+      "w-full rounded-lg transition-all duration-200",
+      "focus:outline-none focus:ring-2 focus:ring-offset-0",
+      "disabled:opacity-50 disabled:cursor-not-allowed",
+      "placeholder:text-gray-400",
 
-      if (success) {
-        return (
-          <div
-            style={{
-              ...rightIconStyles,
-              right: showPasswordToggle ? "2.5rem" : "var(--spacing-sm)",
-            }}
-          >
-            <CheckCircle size={iconSize} />
-          </div>
-        );
-      }
+      // Variant styles
+      inputVariants[variant],
 
-      return null;
-    }, [
-      loading,
-      error,
-      success,
-      rightIconStyles,
-      showPasswordToggle,
-      iconSize,
-    ]);
+      // Size styles
+      sizeVariants[size],
+
+      // Icon padding
+      hasIcon && iconPosition === "left" && "pl-10",
+      hasIcon && iconPosition === "right" && "pr-10",
+      hasPasswordToggle && "pr-10",
+      hasIcon && hasPasswordToggle && "pr-16",
+
+      // Error/Success states
+      hasError && "border-red-500 focus:border-red-500 focus:ring-red-500",
+      hasSuccess &&
+        "border-green-500 focus:border-green-500 focus:ring-green-500",
+
+      // Loading state
+      loading && "opacity-60",
+
+      className,
+    );
+
+    const labelClasses = cn(
+      "block text-sm font-medium mb-1",
+      hasError
+        ? "text-red-700"
+        : hasSuccess
+          ? "text-green-700"
+          : "text-gray-700",
+    );
 
     // ===== RENDER =====
     return (
-      <>
-        <style>
-          {`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          `}
-        </style>
-        <div
-          style={containerStyles}
-          className={`optimized-input-container ${className}`}
-        >
-          {/* Label */}
-          {label && (
-            <label style={labelStyles} htmlFor={props.id}>
-              {label}
-              {props.required && (
-                <span
-                  style={{ color: "var(--color-error)", marginLeft: "2px" }}
-                >
-                  *
-                </span>
-              )}
-            </label>
+      <div className={containerClasses}>
+        {/* Label */}
+        {label && (
+          <label htmlFor={inputId} className={labelClasses}>
+            {label}
+          </label>
+        )}
+
+        {/* Input Container */}
+        <div className="relative">
+          {/* Left Icon */}
+          {Icon && iconPosition === "left" && (
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <Icon
+                size={iconSize}
+                className={cn(
+                  "transition-colors duration-200",
+                  hasError
+                    ? "text-red-500"
+                    : hasSuccess
+                      ? "text-green-500"
+                      : "text-gray-400",
+                  isFocused && !hasError && !hasSuccess && "text-blue-500",
+                )}
+              />
+            </div>
           )}
 
-          {/* Input Wrapper */}
-          <div style={inputWrapperStyles}>
-            {/* Left Icon */}
-            {Icon && iconPosition === "left" && (
-              <div style={leftIconStyles}>
-                <Icon size={iconSize} />
-              </div>
-            )}
+          {/* Input Field */}
+          <input
+            ref={ref}
+            id={inputId}
+            type={inputType}
+            className={inputClasses}
+            onFocus={(e) => {
+              setIsFocused(true);
+              props.onFocus?.(e);
+            }}
+            onBlur={(e) => {
+              setIsFocused(false);
+              props.onBlur?.(e);
+            }}
+            {...props}
+          />
 
-            {/* Input */}
-            <input
-              ref={ref}
-              type={showPasswordToggle && showPassword ? "text" : type}
-              style={inputStyles}
-              disabled={disabled || loading}
-              onFocus={handleFocus}
-              onBlur={handleBlur}
-              aria-invalid={!!error}
-              aria-describedby={
-                error || success || description
-                  ? `${props.id}-feedback`
-                  : undefined
-              }
-              {...props}
-            />
-
-            {/* Right Icon */}
-            {Icon && iconPosition === "right" && !showPasswordToggle && (
-              <div style={rightIconStyles}>
-                <Icon size={iconSize} />
-              </div>
-            )}
-
-            {/* Password Toggle */}
-            {showPasswordToggle && type === "password" && (
-              <button
-                type="button"
-                style={rightIconStyles}
-                onClick={togglePasswordVisibility}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? (
-                  <EyeOff size={iconSize} />
-                ) : (
-                  <Eye size={iconSize} />
+          {/* Right Icon */}
+          {Icon && iconPosition === "right" && !hasPasswordToggle && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <Icon
+                size={iconSize}
+                className={cn(
+                  "transition-colors duration-200",
+                  hasError
+                    ? "text-red-500"
+                    : hasSuccess
+                      ? "text-green-500"
+                      : "text-gray-400",
+                  isFocused && !hasError && !hasSuccess && "text-blue-500",
                 )}
-              </button>
-            )}
+              />
+            </div>
+          )}
 
-            {/* Validation Icon */}
-            {ValidationIcon}
-          </div>
+          {/* Loading Spinner */}
+          {loading && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <Loader2 size={iconSize} className="animate-spin text-blue-500" />
+            </div>
+          )}
 
-          {/* Description/Error/Success */}
-          {(description || error || success) && (
-            <div
-              id={`${props.id}-feedback`}
-              style={{
-                fontSize: "0.75rem",
-                color: error
-                  ? "var(--color-error)"
-                  : success
-                    ? "var(--color-success)"
-                    : "var(--text-secondary)",
-                lineHeight: 1.4,
-              }}
+          {/* Password Toggle */}
+          {hasPasswordToggle && !loading && (
+            <button
+              type="button"
+              className={cn(
+                "absolute top-1/2 transform -translate-y-1/2 p-1",
+                "text-gray-400 hover:text-gray-600 transition-colors duration-200",
+                Icon && iconPosition === "right" ? "right-8" : "right-3",
+              )}
+              onClick={() => setShowPassword(!showPassword)}
             >
-              {error || success || description}
+              {showPassword ? (
+                <EyeOff size={iconSize} />
+              ) : (
+                <Eye size={iconSize} />
+              )}
+            </button>
+          )}
+
+          {/* Status Icons */}
+          {hasError && !loading && !hasPasswordToggle && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <AlertCircle size={iconSize} className="text-red-500" />
+            </div>
+          )}
+
+          {hasSuccess && !loading && !hasPasswordToggle && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <CheckCircle size={iconSize} className="text-green-500" />
             </div>
           )}
         </div>
-      </>
+
+        {/* Description */}
+        {description && !error && !success && (
+          <p className="mt-1 text-sm text-gray-600">{description}</p>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+            <AlertCircle size={14} />
+            {error}
+          </p>
+        )}
+
+        {/* Success Message */}
+        {success && (
+          <p className="mt-1 text-sm text-green-600 flex items-center gap-1">
+            <CheckCircle size={14} />
+            {success}
+          </p>
+        )}
+      </div>
     );
   },
 );
@@ -413,143 +272,127 @@ const OptimizedTextarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       success,
       resize = "vertical",
       loading = false,
-      className = "",
-      style,
-      disabled,
+      className,
+      id,
       ...props
     },
     ref,
   ) => {
+    // ===== STATE =====
     const [isFocused, setIsFocused] = useState(false);
 
-    const containerStyles = useMemo(
-      () => ({
-        display: "flex",
-        flexDirection: "column" as const,
-        gap: "var(--spacing-xs)",
-        width: "100%",
-      }),
-      [],
+    // ===== COMPUTED VALUES =====
+    const textareaId =
+      id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
+    const hasError = Boolean(error);
+    const hasSuccess = Boolean(success);
+
+    // ===== COMPUTED CLASSES =====
+    const textareaClasses = cn(
+      // Base styles
+      "w-full px-3 py-2 rounded-lg border border-gray-300 bg-white",
+      "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+      "transition-all duration-200",
+      "disabled:opacity-50 disabled:cursor-not-allowed",
+      "placeholder:text-gray-400",
+
+      // Resize options
+      resize === "none" && "resize-none",
+      resize === "vertical" && "resize-y",
+      resize === "horizontal" && "resize-x",
+      resize === "both" && "resize",
+
+      // Error/Success states
+      hasError && "border-red-500 focus:border-red-500 focus:ring-red-500",
+      hasSuccess &&
+        "border-green-500 focus:border-green-500 focus:ring-green-500",
+
+      // Loading state
+      loading && "opacity-60",
+
+      className,
     );
 
-    const labelStyles = useMemo(
-      () => ({
-        fontSize: "0.875rem",
-        fontWeight: "500",
-        color: error ? "var(--color-error)" : "var(--text-primary)",
-        marginBottom: "var(--spacing-xs)",
-      }),
-      [error],
+    const labelClasses = cn(
+      "block text-sm font-medium mb-1",
+      hasError
+        ? "text-red-700"
+        : hasSuccess
+          ? "text-green-700"
+          : "text-gray-700",
     );
 
-    const textareaStyles = useMemo(
-      () => ({
-        width: "100%",
-        minHeight: "5rem",
-        padding: "var(--spacing-sm) var(--spacing-md)",
-        backgroundColor: "var(--surface-primary)",
-        border: `1px solid ${
-          error
-            ? "var(--color-error)"
-            : success
-              ? "var(--color-success)"
-              : isFocused
-                ? "var(--primary-500)"
-                : "var(--border-primary)"
-        }`,
-        borderRadius: "var(--radius-md)",
-        outline: "none",
-        color: "var(--text-primary)",
-        fontSize: "0.875rem",
-        fontFamily: "inherit",
-        lineHeight: 1.5,
-        resize,
-        transition: "all var(--duration-normal) var(--easing-default)",
-        boxShadow: isFocused
-          ? `0 0 0 3px ${
-              error ? "rgba(239, 68, 68, 0.1)" : "rgba(59, 130, 246, 0.1)"
-            }`
-          : "none",
-        ...style,
-      }),
-      [error, success, isFocused, resize, style],
-    );
-
-    const handleFocus = useCallback(
-      (e: React.FocusEvent<HTMLTextAreaElement>) => {
-        setIsFocused(true);
-        props.onFocus?.(e);
-      },
-      [props],
-    );
-
-    const handleBlur = useCallback(
-      (e: React.FocusEvent<HTMLTextAreaElement>) => {
-        setIsFocused(false);
-        props.onBlur?.(e);
-      },
-      [props],
-    );
-
+    // ===== RENDER =====
     return (
-      <div
-        style={containerStyles}
-        className={`optimized-textarea-container ${className}`}
-      >
+      <div className="w-full">
         {/* Label */}
         {label && (
-          <label style={labelStyles} htmlFor={props.id}>
+          <label htmlFor={textareaId} className={labelClasses}>
             {label}
-            {props.required && (
-              <span style={{ color: "var(--color-error)", marginLeft: "2px" }}>
-                *
-              </span>
-            )}
           </label>
         )}
 
         {/* Textarea */}
-        <textarea
-          ref={ref}
-          style={textareaStyles}
-          disabled={disabled || loading}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          aria-invalid={!!error}
-          aria-describedby={
-            error || success || description ? `${props.id}-feedback` : undefined
-          }
-          {...props}
-        />
-
-        {/* Description/Error/Success */}
-        {(description || error || success) && (
-          <div
-            id={`${props.id}-feedback`}
-            style={{
-              fontSize: "0.75rem",
-              color: error
-                ? "var(--color-error)"
-                : success
-                  ? "var(--color-success)"
-                  : "var(--text-secondary)",
-              lineHeight: 1.4,
+        <div className="relative">
+          <textarea
+            ref={ref}
+            id={textareaId}
+            className={textareaClasses}
+            onFocus={(e) => {
+              setIsFocused(true);
+              props.onFocus?.(e);
             }}
-          >
-            {error || success || description}
-          </div>
+            onBlur={(e) => {
+              setIsFocused(false);
+              props.onBlur?.(e);
+            }}
+            {...props}
+          />
+
+          {/* Loading Spinner */}
+          {loading && (
+            <div className="absolute top-3 right-3">
+              <Loader2 size={16} className="animate-spin text-blue-500" />
+            </div>
+          )}
+        </div>
+
+        {/* Description */}
+        {description && !error && !success && (
+          <p className="mt-1 text-sm text-gray-600">{description}</p>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+            <AlertCircle size={14} />
+            {error}
+          </p>
+        )}
+
+        {/* Success Message */}
+        {success && (
+          <p className="mt-1 text-sm text-green-600 flex items-center gap-1">
+            <CheckCircle size={14} />
+            {success}
+          </p>
         )}
       </div>
     );
   },
 );
 
-// ===== MEMOIZED EXPORTS =====
-const OptimizedInputMemo = React.memo(OptimizedInput);
-const OptimizedTextareaMemo = React.memo(OptimizedTextarea);
+// ===== DISPLAY NAMES =====
+OptimizedInput.displayName = "OptimizedInput";
+OptimizedTextarea.displayName = "OptimizedTextarea";
 
-OptimizedInputMemo.displayName = "OptimizedInput";
-OptimizedTextareaMemo.displayName = "OptimizedTextarea";
+// ===== EXPORTS =====
+export default OptimizedInput;
+export { OptimizedTextarea };
 
-export default OptimizedInputMemo;
-export { OptimizedTextareaMemo as Textarea };
+// ===== COMPOUND EXPORTS =====
+const Input = Object.assign(OptimizedInput, {
+  Textarea: OptimizedTextarea,
+});
+
+export { Input };
