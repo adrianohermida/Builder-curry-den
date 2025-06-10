@@ -14,6 +14,7 @@ export const ROUTES = {
 
   // Main application routes
   DASHBOARD: "/painel",
+  DASHBOARD_ALT: "/dashboard",
   CRM: "/crm-modern",
   AGENDA: "/agenda",
   PUBLICATIONS: "/publicacoes",
