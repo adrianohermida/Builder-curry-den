@@ -291,6 +291,16 @@ function App() {
                   }
                 />
 
+                {/* Storage Management */}
+                <Route
+                  path="configuracao-armazenamento"
+                  element={
+                    <PageWrapper title="Gestão de Armazenamento">
+                      <StorageManagement />
+                    </PageWrapper>
+                  }
+                />
+
                 {/* Gestão/Admin Routes */}
                 <Route path="gestao">
                   <Route
