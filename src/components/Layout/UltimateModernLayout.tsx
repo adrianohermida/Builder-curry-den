@@ -16,6 +16,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { initializeTheme } from "@/lib/theme";
 import { initializeAnimations, applyPageAnimation } from "@/lib/animations";
+import { initializeGlobalColorFix } from "@/lib/globalColorFix";
 
 // Modern Components
 import UltimateCompactSidebar from "./UltimateCompactSidebar";
