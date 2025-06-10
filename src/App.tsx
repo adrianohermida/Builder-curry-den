@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeInitializer } from "@/components/ThemeInitializer";
-import { TraditionalLayout } from "@/components/Layout/TraditionalLayout";
+import OptimizedTraditionalLayout from "@/components/Layout/OptimizedTraditionalLayout";
 
 // Lazy loading function
 const createLazyComponent = (
@@ -95,6 +95,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             {/* Main Application Routes with Traditional Layout */}
+            <OptimizedTraditionalLayout />
             <Route path="/" element={<TraditionalLayout />}>
               <Route index element={<Navigate to="/painel" replace />} />
 
