@@ -145,6 +145,7 @@ const ProfessionalCleanLayout: React.FC = () => {
     <div
       className={`min-h-screen ${getModeClass()}`}
       data-layout-container="true"
+      data-layout-type="professional-clean"
       style={{
         backgroundColor: colors.background,
         color: colors.text,
