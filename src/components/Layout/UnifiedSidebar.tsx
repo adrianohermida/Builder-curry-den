@@ -367,18 +367,6 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
               className={itemClasses}
               style={itemStyles}
               onClick={() => handleNavigation(item)}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = `${colors.primary}15`;
-                  e.currentTarget.style.color = colors.primary;
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                  e.currentTarget.style.color = colors.textMuted;
-                }
-              }}
             >
               {content}
             </button>
