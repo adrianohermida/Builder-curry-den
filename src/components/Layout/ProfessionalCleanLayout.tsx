@@ -1,44 +1,29 @@
-import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Search,
-  Bell,
-  Settings,
-  User,
-  Menu,
-  X,
-  Home,
-  Users,
-  Scale,
-  FileText,
-  Calendar,
-  BarChart3,
-  HelpCircle,
-  ChevronRight,
-  ChevronDown,
-  LogOut,
-  Rss,
-  MessageCircle,
-  FolderOpen,
-  Target,
-} from "lucide-react";
+/**
+ * 🎯 PROFESSIONAL CLEAN LAYOUT - ATUALIZADO COM NOVO SIDEBAR
+ *
+ * Layout profissional usando o novo UnifiedSidebar refatorado com:
+ * - Sistema de temas por modo (cliente/admin)
+ * - Sem cor preta no hover
+ * - Switch de modo escuro
+ * - Color picker personalizado
+ */
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import React from "react";
+import { Outlet } from "react-router-dom";
+import { Toaster } from "sonner";
 
-import { usePermissions } from "@/hooks/usePermissions";
-import GlobalNotificationsWidget from "@/components/Feed/GlobalNotificationsWidget";
-import { cn } from "@/lib/utils";
+// Components
+import UnifiedSidebar from "./UnifiedSidebar";
+import UnifiedTopbar from "./UnifiedTopbar";
+
+// Hooks
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+
+// Theme system
+import { useTheme } from "@/lib/themeSystem";
+
+// Sidebar theme CSS
+import "@/styles/sidebar-theme.css";
 
 // Types
 interface NavigationItem {
