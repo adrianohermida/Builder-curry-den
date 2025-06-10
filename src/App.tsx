@@ -13,6 +13,10 @@ import { IS_DEVELOPMENT } from "@/lib/env";
 
 // Development tools
 import DebugPanel from "@/components/Debug/DebugPanel";
+import {
+  LayoutSwitcher,
+  MigrationStatus,
+} from "@/components/Layout/LayoutMigrationWrapper";
 
 function App() {
   return (
