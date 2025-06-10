@@ -42,7 +42,7 @@ const createLazyPage = (
 
 // Páginas principais com lazy loading
 const PainelControle = createLazyPage(
-  () => import("./pages/ModernPainelControle"),
+  () => import("./pages/CleanPainelControle"),
   "Painel de Controle",
 );
 
