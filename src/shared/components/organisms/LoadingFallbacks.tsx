@@ -1,10 +1,16 @@
 /**
- * 🔄 LOADING FALLBACKS - COMPONENTES DE CARREGAMENTO
+ * Loading Fallbacks Components
  *
- * Componentes de fallback para carregamento de domínios
+ * Consistent loading components for different scenarios
  */
 
 import React from "react";
+import { Loader2 } from "lucide-react";
+
+interface LoadingFallbackProps {
+  message?: string;
+  size?: "sm" | "md" | "lg";
+}
 
 interface DomainLoadingFallbackProps {
   domain: string;
@@ -12,120 +18,111 @@ interface DomainLoadingFallbackProps {
   description?: string;
 }
 
+// Global loading fallback for the entire app
+export const GlobalLoadingFallback: React.FC<LoadingFallbackProps> = ({
+  message = "Carregando sistema...",
+  size = "lg",
+}) => {
+  const sizeClasses = {
+    sm: "h-4 w-4",
+    md: "h-8 w-8",
+    lg: "h-12 w-12",
+  };
+
+  return (
+    <div className="flex items-center justify-center h-screen bg-gray-50">
+      <div className="text-center">
+        <Loader2
+          className={`${sizeClasses[size]} border-b-2 border-blue-600 mx-auto mb-4 animate-spin`}
+        />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Lawdesk CRM
+        </h3>
+        <p className="text-gray-600">{message}</p>
+      </div>
+    </div>
+  );
+};
+
+// Domain-specific loading fallback
 export const DomainLoadingFallback: React.FC<DomainLoadingFallbackProps> = ({
   domain,
   title,
   description,
 }) => {
-  const getDomainIcon = (domain: string) => {
-    switch (domain) {
-      case "crm-juridico":
-        return "👥";
-      case "agenda-juridica":
-        return "📅";
-      case "processos-publicacoes":
-        return "⚖️";
-      case "contratos-financeiro":
-        return "💰";
-      case "atendimento-comunicacao":
-        return "💬";
-      case "ia-juridica":
-        return "🤖";
-      case "ged-documentos":
-        return "📁";
-      case "admin-configuracoes":
-        return "⚙️";
-      case "dashboard":
-        return "📊";
-      default:
-        return "⏳";
-    }
-  };
-
-  const getDomainName = (domain: string) => {
-    switch (domain) {
-      case "crm-juridico":
-        return "CRM Jurídico";
-      case "agenda-juridica":
-        return "Agenda Jurídica";
-      case "processos-publicacoes":
-        return "Processos e Publicações";
-      case "contratos-financeiro":
-        return "Contratos e Financeiro";
-      case "atendimento-comunicacao":
-        return "Atendimento e Comunicação";
-      case "ia-juridica":
-        return "IA Jurídica";
-      case "ged-documentos":
-        return "GED e Documentos";
-      case "admin-configuracoes":
-        return "Administração";
-      case "dashboard":
-        return "Dashboard";
-      default:
-        return "Módulo";
-    }
-  };
-
   return (
-    <div className="flex items-center justify-center h-64 w-full">
-      <div className="text-center space-y-4">
-        {/* Loading Animation */}
-        <div className="relative">
-          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center text-2xl animate-pulse">
-            {getDomainIcon(domain)}
-          </div>
-          <div className="absolute inset-0 w-16 h-16 mx-auto border-4 border-primary/20 border-t-primary rounded-xl animate-spin"></div>
-        </div>
-
-        {/* Text */}
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-foreground">
-            {title || `Carregando ${getDomainName(domain)}`}
-          </h3>
-          <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-            {description || "Preparando módulo..."}
-          </p>
-        </div>
-
-        {/* Progress Indicator */}
-        <div className="w-48 mx-auto">
-          <div className="h-1 bg-accent rounded-full overflow-hidden">
-            <div className="h-full bg-primary rounded-full animate-pulse w-3/4"></div>
-          </div>
-        </div>
+    <div className="flex items-center justify-center h-64">
+      <div className="text-center">
+        <Loader2 className="h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4 animate-spin" />
+        <p className="text-gray-600">
+          Carregando {title || domain}
+          {description && "..."}
+        </p>
+        {description && (
+          <p className="text-sm text-gray-500 mt-2">{description}</p>
+        )}
       </div>
     </div>
   );
 };
 
-export const GlobalLoadingFallback: React.FC = () => {
+// Page loading fallback
+export const PageLoadingFallback: React.FC<LoadingFallbackProps> = ({
+  message = "Carregando página...",
+}) => {
   return (
-    <div className="flex items-center justify-center h-screen bg-background">
-      <div className="text-center space-y-6">
-        {/* Logo */}
-        <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center mx-auto">
-          <span className="text-white font-bold text-xl">L</span>
-        </div>
-
-        {/* Loading Animation */}
-        <div className="relative">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-        </div>
-
-        {/* Text */}
-        <div className="space-y-2">
-          <h3 className="text-xl font-semibold text-foreground">Lawdesk CRM</h3>
-          <p className="text-muted-foreground">Carregando sistema...</p>
-        </div>
-
-        {/* Version */}
-        <div className="text-xs text-muted-foreground">
-          v2.0 • Sistema Jurídico Integrado
-        </div>
+    <div className="flex items-center justify-center h-96">
+      <div className="text-center">
+        <Loader2 className="h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2 animate-spin" />
+        <p className="text-sm text-gray-600">{message}</p>
       </div>
     </div>
   );
 };
 
-export default DomainLoadingFallback;
+// Component loading fallback (smaller)
+export const ComponentLoadingFallback: React.FC<LoadingFallbackProps> = ({
+  message = "Carregando...",
+}) => {
+  return (
+    <div className="flex items-center justify-center p-4">
+      <div className="text-center">
+        <Loader2 className="h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2 animate-spin" />
+        <p className="text-xs text-gray-500">{message}</p>
+      </div>
+    </div>
+  );
+};
+
+// Skeleton loading for lists
+export const SkeletonLoadingFallback: React.FC<{ items?: number }> = ({
+  items = 3,
+}) => {
+  return (
+    <div className="space-y-4 p-4">
+      {Array.from({ length: items }).map((_, index) => (
+        <div
+          key={index}
+          className="animate-pulse flex space-x-4 p-4 bg-gray-100 rounded-lg"
+        >
+          <div className="rounded-full bg-gray-300 h-10 w-10"></div>
+          <div className="flex-1 space-y-2 py-1">
+            <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+            <div className="space-y-2">
+              <div className="h-3 bg-gray-300 rounded"></div>
+              <div className="h-3 bg-gray-300 rounded w-5/6"></div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default {
+  GlobalLoadingFallback,
+  DomainLoadingFallback,
+  PageLoadingFallback,
+  ComponentLoadingFallback,
+  SkeletonLoadingFallback,
+};
