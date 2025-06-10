@@ -214,21 +214,10 @@ const ModernCRMHubV2: React.FC<ModernCRMHubV2Props> = ({
       ${isFullScreen ? "fixed inset-0 z-50 bg-white" : ""}
     `}
     >
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="px-6 py-4">
+      {/* Module Actions Bar */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="px-6 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">
-                  CRM Jurídico Moderno
-                </h1>
-                <p className="text-sm text-gray-600">
-                  Gestão inteligente e colaborativa
-                </p>
-              </div>
-            </div>
-
             <div className="flex items-center gap-2">
               {/* Quick Actions */}
               {getQuickActions(activeModule).map((action, index) => (
