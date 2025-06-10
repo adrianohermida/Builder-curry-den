@@ -80,6 +80,22 @@ const ConfiguracoesPage = createLazyPage(
   "Configurações",
 );
 
+// P��ginas Gerenciais
+const TarefasGerencialPage = createLazyPage(
+  () => import("./pages/TarefasGerencial"),
+  "Tarefas Gerenciais",
+);
+
+const GEDOrganizacionalPage = createLazyPage(
+  () => import("./pages/GEDOrganizacional"),
+  "GED Organizacional",
+);
+
+const FinanceiroGerencialPage = createLazyPage(
+  () => import("./pages/FinanceiroGerencial"),
+  "Financeiro Gerencial",
+);
+
 // Páginas Beta (órfãs)
 const BetaDashboard = createLazyPage(
   () => import("./pages/Beta/BetaDashboard"),
