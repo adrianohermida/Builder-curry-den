@@ -670,6 +670,24 @@ const RobustRouter: React.FC = () => {
                     />
 
                     <Route
+                      path="theme-demo"
+                      element={
+                        <SafePageWrapper
+                          title="Demonstração de Tema"
+                          breadcrumb={["Home", "Demo", "Temas"]}
+                        >
+                          <Suspense
+                            fallback={
+                              <SafePageLoadingFallback title="demonstração de tema" />
+                            }
+                          >
+                            <ThemeDemo />
+                          </Suspense>
+                        </SafePageWrapper>
+                      }
+                    />
+
+                    <Route
                       path="ajuda"
                       element={
                         <SafePageWrapper
