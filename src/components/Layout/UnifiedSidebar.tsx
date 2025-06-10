@@ -22,9 +22,6 @@ import {
   BarChart3,
   FlaskConical,
   Settings,
-  Moon,
-  Sun,
-  Palette,
 } from "lucide-react";
 
 // UI Components
