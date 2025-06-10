@@ -16,7 +16,7 @@ import { ViewModeProvider } from "@/contexts/ViewModeContext";
 import { PermissionsProvider } from "@/contexts/PermissionsContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuditProvider } from "@/contexts/AuditContext";
-import { CompactLayout } from "@/components/Layout/CompactLayout";
+import { TraditionalLayout } from "@/components/Layout/TraditionalLayout";
 import { ThemeInitializer } from "@/components/ThemeInitializer";
 import { StorageProvider } from "@/hooks/useStorageConfig";
 import { RegrasProcessuaisProvider } from "@/contexts/RegrasProcessuaisContext";
@@ -397,7 +397,7 @@ const App: React.FC = () => {
                         />
 
                         {/* Main Application Routes with ModernLayoutV2 */}
-                        <Route path="/" element={<CompactLayout />}>
+                        <Route path="/" element={<TraditionalLayout />}>
                           <Route
                             path="index"
                             element={
