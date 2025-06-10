@@ -58,10 +58,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-// Hooks
-import { useContratosUnicorn } from "@/hooks/useContratosUnicorn";
-import { useAIContractRecommendations } from "@/hooks/useAIContractRecommendations";
-import { useDigitalSignature } from "@/hooks/useDigitalSignature";
+// Hooks (using temporary stubs)
+const useContratosUnicorn = () => ({
+  contratos: [],
+  loading: false,
+  createContract: async () => {},
+  updateContract: async () => {},
+  deleteContract: async () => {},
+});
+
+const useAIContractRecommendations = () => ({
+  getTemplateRecommendations: async () => {},
+  analyzeContract: async () => {},
+});
+
+const useDigitalSignature = () => ({
+  signContract: async () => {},
+  sendForSignature: async () => {},
+  checkSignatureStatus: async () => {},
+});
 
 // Tipos
 interface Contrato {
