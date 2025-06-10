@@ -86,6 +86,37 @@ const ConfiguracoesPage = createLazyPage(
   "Configurações",
 );
 
+// Páginas Beta (órfãs)
+const BetaDashboard = createLazyPage(
+  () => import("./pages/Beta/BetaDashboard"),
+  "Beta Dashboard",
+);
+
+const AIEnhancedPage = createLazyPage(
+  () => import("./pages/AIEnhanced"),
+  "IA Avançada",
+);
+
+const TestDashboardPage = createLazyPage(
+  () => import("./pages/TestDashboard"),
+  "Dashboard de Testes",
+);
+
+const MobileDashboardPage = createLazyPage(
+  () => import("./pages/MobileDashboard"),
+  "Dashboard Mobile",
+);
+
+const TicketsPage = createLazyPage(
+  () => import("./pages/Tickets"),
+  "Sistema de Tickets",
+);
+
+const ThemeTestPage = createLazyPage(
+  () => import("./pages/ThemeTestPage"),
+  "Teste de Tema",
+);
+
 // Configuração do QueryClient otimizada
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -273,6 +304,93 @@ function App() {
                       </PageWrapper>
                     }
                   />
+
+                  {/* Seção Beta - Páginas Órfãs (Admin Only) */}
+                  <Route path="beta/*">
+                    <Route
+                      index
+                      element={
+                        <PageWrapper title="Beta - Páginas Órfãs">
+                          <BetaDashboard />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="aienhanced"
+                      element={
+                        <PageWrapper title="Beta - IA Avançada">
+                          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg mb-4">
+                            <div className="flex items-center gap-2 text-purple-800">
+                              <span className="text-sm font-medium">
+                                🧪 Página Beta: Não conectada ao menu principal
+                              </span>
+                            </div>
+                          </div>
+                          <AIEnhancedPage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="testdashboard"
+                      element={
+                        <PageWrapper title="Beta - Dashboard de Testes">
+                          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg mb-4">
+                            <div className="flex items-center gap-2 text-purple-800">
+                              <span className="text-sm font-medium">
+                                🧪 Página Beta: Não conectada ao menu principal
+                              </span>
+                            </div>
+                          </div>
+                          <TestDashboardPage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="mobiledashboard"
+                      element={
+                        <PageWrapper title="Beta - Dashboard Mobile">
+                          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg mb-4">
+                            <div className="flex items-center gap-2 text-purple-800">
+                              <span className="text-sm font-medium">
+                                🧪 Página Beta: Não conectada ao menu principal
+                              </span>
+                            </div>
+                          </div>
+                          <MobileDashboardPage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="tickets"
+                      element={
+                        <PageWrapper title="Beta - Sistema de Tickets">
+                          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg mb-4">
+                            <div className="flex items-center gap-2 text-purple-800">
+                              <span className="text-sm font-medium">
+                                🧪 Página Beta: Não conectada ao menu principal
+                              </span>
+                            </div>
+                          </div>
+                          <TicketsPage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="themetest"
+                      element={
+                        <PageWrapper title="Beta - Teste de Tema">
+                          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg mb-4">
+                            <div className="flex items-center gap-2 text-purple-800">
+                              <span className="text-sm font-medium">
+                                🧪 Página Beta: Não conectada ao menu principal
+                              </span>
+                            </div>
+                          </div>
+                          <ThemeTestPage />
+                        </PageWrapper>
+                      }
+                    />
+                  </Route>
                 </Route>
 
                 {/* Fallback para rotas não encontradas */}
