@@ -173,7 +173,7 @@ const Dashboard = memo(() => {
         title: "Consultar GED",
         description: "Buscar documentos",
         icon: FileText,
-        href: "/ged-juridico",
+        href: "/crm/ged",
         color: "bg-purple-500",
       },
       {
