@@ -521,6 +521,18 @@ const App: React.FC = () => {
                             }
                           />
                           <Route
+                            path="financeiro"
+                            element={
+                              <SafeRoute
+                                element={
+                                  <PageWrapper>
+                                    <Financeiro />
+                                  </PageWrapper>
+                                }
+                              />
+                            }
+                          />
+                          <Route
                             path="agenda"
                             element={
                               <SafeRoute
