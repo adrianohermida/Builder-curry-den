@@ -319,18 +319,13 @@ const ProgressoMetas: React.FC = () => {
 const CRMJuridicoModerno: React.FC<CRMDashboardProps> = ({
   onNavigateToModule,
 }) => {
-  const {
-    estatisticas,
-    atualizarFiltros,
-    filtros,
-    moduloAtivo,
-    setModuloAtivo,
-  } = useCRM();
+  const { estatisticas, atualizarFiltros, filtros } = useCRM();
   const location = useLocation();
   const navigate = useNavigate();
 
   const [showDashboard, setShowDashboard] = useState(true);
   const [viewMode, setViewMode] = useState<"lista" | "kanban">("lista");
+  const [moduloAtivo, setModuloAtivo] = useState<ModuloCRM>("clientes");
 
   // Determinar módulo ativo com base na URL
   useEffect(() => {
