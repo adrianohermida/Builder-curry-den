@@ -52,11 +52,27 @@ import { TarefasClienteModule } from "./Modules/TarefasClienteModule";
 import { FinanceiroModule } from "./Modules/FinanceiroModule";
 import { GEDVinculadoModule } from "./Modules/GEDVinculadoModule";
 
-// Hooks e integrações
+// Hooks e integrações (usando hooks existentes e criando stubs para os novos)
 import { useCRMUnicorn } from "@/hooks/useCRMUnicorn";
-import { useAdviseAPI } from "@/hooks/useAdviseAPI";
-import { useStripeIntegration } from "@/hooks/useStripeIntegration";
-import { useAIRecommendations } from "@/hooks/useAIRecommendations";
+// Temporary stubs for non-existing hooks - will be replaced with real implementations
+const useAdviseAPI = () => ({
+  getProcessUpdates: async () => {},
+  syncClientProcesses: async () => {},
+  loading: false,
+});
+
+const useStripeIntegration = () => ({
+  getClientFinancials: async () => {},
+  createPaymentLink: async () => {},
+  loading: false,
+});
+
+const useAIRecommendations = () => ({
+  recommendations: [],
+  processRecommendations: [],
+  clientInactiveAlerts: [],
+  riskAnalysis: {},
+});
 
 // Tipos principais
 export type CRMModule =
