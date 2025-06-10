@@ -1,11 +1,11 @@
 /**
- * 🎯 LAWDESK SIDEBAR - RESTORED AND FUNCTIONAL
+ * 🎯 LAWDESK SIDEBAR - EXATO COMO A IMAGEM
  *
- * Sidebar da Lawdesk restaurada:
+ * Sidebar da Lawdesk idêntica à imagem fornecida:
  * - Logo oficial da Lawdesk
- * - Menu expandido por padrão
- * - Ícones e badges corretos
- * - Design idêntico à imagem fornecida
+ * - Menu com ícones e badges corretos
+ * - Estilo visual idêntico
+ * - Badges vermelhos nos números corretos
  */
 
 import React, { useState, useEffect } from "react";
@@ -13,22 +13,16 @@ import { Link, useLocation } from "react-router-dom";
 import {
   Home,
   Users,
-  Scale,
   CheckSquare,
   Calendar,
   FolderOpen,
   FileSignature,
   DollarSign,
-  FileText,
   Headphones,
-  Clock,
   Settings,
-  ChevronLeft,
-  ChevronRight,
   Menu,
   X,
   FlaskConical,
-  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -42,106 +36,84 @@ interface SidebarItem {
   path: string;
   icon: React.ReactNode;
   badge?: number;
-  category: "main" | "secondary" | "admin";
 }
 
 export const DefinitiveSidebar: React.FC<DefinitiveSidebarProps> = ({
   mode = "client",
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true); // Expandido por padrão
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [showTooltip, setShowTooltip] = useState<string | null>(null);
   const location = useLocation();
-
-  const isAdmin = mode === "admin";
-  const orphanCount = 25;
 
   // Close mobile menu on route change
   useEffect(() => {
     setIsMobileOpen(false);
   }, [location.pathname]);
 
+  // Menu items exatamente como na imagem
   const sidebarItems: SidebarItem[] = [
-    // Main Navigation - exatamente como na imagem
     {
       id: "home",
       title: "Painel de Controle",
       path: "/painel",
       icon: <Home className="w-5 h-5" />,
-      category: "main",
     },
     {
       id: "crm",
       title: "CRM Jurídico",
       path: "/crm-modern",
       icon: <Users className="w-5 h-5" />,
-      badge: 99, // Como mostrado na imagem
-      category: "main",
+      badge: 99, // Badge 99+ como na imagem
     },
     {
       id: "tasks",
       title: "Tarefas",
       path: "/crm-modern/tarefas",
       icon: <CheckSquare className="w-5 h-5" />,
-      badge: 47, // Como mostrado na imagem
-      category: "main",
+      badge: 47, // Badge 47 como na imagem
     },
     {
       id: "calendar",
       title: "Agenda",
       path: "/agenda",
       icon: <Calendar className="w-5 h-5" />,
-      category: "main",
     },
     {
       id: "documents",
       title: "Documentos",
       path: "/crm-modern/documentos",
       icon: <FolderOpen className="w-5 h-5" />,
-      category: "main",
     },
     {
       id: "contracts",
       title: "Contratos",
       path: "/crm-modern/contratos",
       icon: <FileSignature className="w-5 h-5" />,
-      category: "main",
     },
     {
       id: "financial",
       title: "Financeiro",
       path: "/crm-modern/financeiro",
-      icon: <Scale className="w-5 h-5" />,
-      category: "main",
+      icon: <DollarSign className="w-5 h-5" />,
     },
     {
       id: "support",
       title: "Atendimento",
       path: "/atendimento",
       icon: <Headphones className="w-5 h-5" />,
-      category: "main",
     },
     {
       id: "settings",
       title: "Configurações",
       path: "/configuracoes-usuario",
       icon: <Settings className="w-5 h-5" />,
-      category: "main",
     },
-
-    // Admin/Beta section
-    ...(true // Sempre mostrar Beta como na imagem
-      ? [
-          {
-            id: "beta",
-            title: "Beta",
-            path: "/beta",
-            icon: <FlaskConical className="w-5 h-5" />,
-            badge: 25, // Como mostrado na imagem
-            category: "admin" as const,
-          },
-        ]
-      : []),
+    {
+      id: "beta",
+      title: "Beta",
+      path: "/beta",
+      icon: <FlaskConical className="w-5 h-5" />,
+      badge: 25, // Badge 25 como na imagem
+    },
   ];
 
   const isActive = (path: string) => {
@@ -153,14 +125,14 @@ export const DefinitiveSidebar: React.FC<DefinitiveSidebarProps> = ({
   const MobileMenuButton = () => (
     <button
       onClick={() => setIsMobileOpen(true)}
-      className="lg:hidden fixed top-3 left-3 z-50 p-2 bg-white rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+      className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors"
       aria-label="Abrir menu"
     >
-      <Menu className="w-4 h-4 text-gray-600" />
+      <Menu className="w-5 h-5 text-gray-600" />
     </button>
   );
 
-  // Sidebar Item Component
+  // Sidebar Item Component - estilo idêntico à imagem
   const SidebarItemComponent = ({
     item,
     isMobile = false,
@@ -174,26 +146,20 @@ export const DefinitiveSidebar: React.FC<DefinitiveSidebarProps> = ({
       <Link
         to={item.path}
         className={cn(
-          "relative flex items-center px-4 py-3 mx-2 rounded-lg transition-all duration-200 group text-sm",
+          "flex items-center justify-between px-4 py-3 mx-3 rounded-lg transition-all duration-200 text-sm font-medium",
           itemIsActive
-            ? "bg-blue-50 text-blue-600 border-r-4 border-blue-600"
+            ? "bg-blue-100 text-blue-700 border-l-4 border-blue-600" // Estado ativo como na imagem
             : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
-          item.category === "admin" && "mt-4", // Espaço antes do Beta
         )}
       >
-        <div className="flex items-center space-x-3 flex-1 min-w-0">
+        <div className="flex items-center space-x-3">
           {item.icon}
-          <span className="font-medium truncate">{item.title}</span>
+          <span>{item.title}</span>
         </div>
 
-        {/* Badge - exatamente como na imagem */}
+        {/* Badge - estilo idêntico à imagem */}
         {item.badge && (
-          <span
-            className={cn(
-              "text-xs px-2 py-1 rounded-full font-medium text-white",
-              item.badge >= 99 ? "bg-red-500" : "bg-red-500",
-            )}
-          >
+          <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full min-w-[24px] h-5">
             {item.badge >= 99 ? "99+" : item.badge}
           </span>
         )}
@@ -201,49 +167,33 @@ export const DefinitiveSidebar: React.FC<DefinitiveSidebarProps> = ({
     );
   };
 
-  // Sidebar Content
+  // Sidebar Content - layout idêntico à imagem
   const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => (
-    <aside
-      className={cn(
-        "bg-white border-r border-gray-200 flex flex-col shadow-sm h-full transition-all duration-300",
-        "w-64", // Sempre expandido como na imagem
-      )}
-    >
-      {/* Header com Logo Lawdesk */}
-      <div className="px-4 py-6 border-b border-gray-100">
-        <div className="flex items-center justify-between">
-          {/* Logo Lawdesk - Ícone oficial */}
-          <div className="flex items-center space-x-3 min-w-0">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-              {/* Ícone da Lawdesk - balança da justiça estilizada */}
-              <div className="relative">
-                <Scale className="w-5 h-5 text-white" />
-                <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-white rounded-full opacity-80"></div>
-              </div>
-            </div>
-
-            {/* Logo Text */}
-            <div className="min-w-0 flex-1">
-              <h1 className="font-bold text-xl text-gray-900 truncate">
-                Lawdesk
-              </h1>
-              <p className="text-sm text-gray-500 truncate">
-                CRM Jurídico Moderno
-              </p>
-            </div>
+    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-full shadow-sm">
+      {/* Header com Logo Lawdesk - exato como na imagem */}
+      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
+        {/* Logo Lawdesk */}
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+            {/* Ícone da Lawdesk - letra "L" estilizada como na imagem */}
+            <span className="text-white font-bold text-lg">L</span>
           </div>
-
-          {/* Close Button - Mobile only */}
-          {isMobile && (
-            <button
-              onClick={() => setIsMobileOpen(false)}
-              className="w-8 h-8 p-0 hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors"
-              aria-label="Fechar menu"
-            >
-              <X className="w-4 h-4 text-gray-500" />
-            </button>
-          )}
+          <div>
+            <h1 className="font-bold text-lg text-gray-900">Lawdesk</h1>
+            <p className="text-sm text-gray-500">CRM Jurídico Moderno</p>
+          </div>
         </div>
+
+        {/* Close Button - Mobile only */}
+        {isMobile && (
+          <button
+            onClick={() => setIsMobileOpen(false)}
+            className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="Fechar menu"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        )}
       </div>
 
       {/* Navigation - Menu completo como na imagem */}
@@ -258,16 +208,6 @@ export const DefinitiveSidebar: React.FC<DefinitiveSidebarProps> = ({
           ))}
         </div>
       </nav>
-
-      {/* Footer */}
-      <div className="px-4 py-3 border-t border-gray-100">
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-xs text-gray-500 font-medium">
-            Sistema Online
-          </span>
-        </div>
-      </div>
     </aside>
   );
 
@@ -276,7 +216,7 @@ export const DefinitiveSidebar: React.FC<DefinitiveSidebarProps> = ({
       {/* Mobile Menu Button */}
       <MobileMenuButton />
 
-      {/* Desktop Sidebar - sempre visível e expandido */}
+      {/* Desktop Sidebar - sempre visível */}
       <div className="hidden lg:block">
         <SidebarContent />
       </div>
