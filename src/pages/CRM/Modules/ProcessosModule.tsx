@@ -685,7 +685,7 @@ export function ProcessosModule({
               Adicionar Processo
             </Button>
             <Button variant="outline" onClick={handleAdviseSync}>
-              <Sync className="h-4 w-4 mr-2" />
+              <RefreshCw className="h-4 w-4 mr-2" />
               Sincronizar Advise
             </Button>
           </div>
