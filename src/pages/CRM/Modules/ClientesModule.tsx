@@ -57,9 +57,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-// Hooks
-import { useClientesUnicorn } from "@/hooks/useClientesUnicorn";
-import { useAIClassification } from "@/hooks/useAIClassification";
+// Hooks (using temporary stubs)
+const useClientesUnicorn = () => ({
+  clientes: [],
+  loading: false,
+  createClient: async () => {},
+  updateClient: async () => {},
+  deleteClient: async () => {},
+});
+
+const useAIClassification = () => ({
+  classifyClient: async () => {},
+  getRecommendations: async () => {},
+});
 
 // Tipos
 interface Cliente {
