@@ -122,6 +122,11 @@ const BetaReportsPage = createLazyPage(
   "Relatórios Beta",
 );
 
+const CodeOptimizationPage = createLazyPage(
+  () => import("./pages/Beta/CodeOptimization"),
+  "Higienização de Código",
+);
+
 // Configuração do QueryClient otimizada
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -400,6 +405,14 @@ function App() {
                       element={
                         <PageWrapper title="Beta - Relatórios">
                           <BetaReportsPage />
+                        </PageWrapper>
+                      }
+                    />
+                    <Route
+                      path="optimization"
+                      element={
+                        <PageWrapper title="Beta - Higienização de Código">
+                          <CodeOptimizationPage />
                         </PageWrapper>
                       }
                     />
