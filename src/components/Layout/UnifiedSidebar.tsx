@@ -409,38 +409,6 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
             {MENU_ITEMS.map((item) => renderMenuItem(item))}
           </nav>
         </ScrollArea>
-
-        {/* Theme Controls */}
-        <div
-          className="border-t py-4"
-          style={{ borderTopColor: colors.border }}
-        >
-          {renderThemeControls()}
-        </div>
-
-        {/* Mode Indicator */}
-        {!isCollapsed && (
-          <div
-            className="px-4 py-2 border-t"
-            style={{ borderTopColor: colors.border }}
-          >
-            <div className="flex items-center space-x-2">
-              <div
-                className="w-2 h-2 rounded-full"
-                style={{
-                  backgroundColor: isAdminMode() ? "#dc2626" : "#3b82f6",
-                }}
-              />
-              <span
-                className="text-xs font-medium"
-                style={{ color: colors.textMuted }}
-              >
-                {isAdminMode() ? "Admin" : "Cliente"} •{" "}
-                {config.themeMode === "dark" ? "Escuro" : "Claro"}
-              </span>
-            </div>
-          </div>
-        )}
       </div>
     );
   },
