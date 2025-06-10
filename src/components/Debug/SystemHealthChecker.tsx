@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { IS_DEVELOPMENT, getNodeEnv } from "@/lib/env";
 import {
   Heart,
   AlertTriangle,
@@ -356,13 +357,13 @@ const SystemHealthChecker: React.FC = () => {
 
   const checkReactEnvironment = async (): Promise<HealthCheck> => {
     try {
-      const isDevelopment = process.env.NODE_ENV === "development";
+      const isDevelopment = IS_DEVELOPMENT;
       const hasReactDevTools =
         typeof window !== "undefined" &&
         !!(window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__;
 
       let status: "healthy" | "warning" | "error" = "healthy";
-      let message = `React environment: ${process.env.NODE_ENV}`;
+      let message = `React environment: ${getNodeEnv()}`;
 
       if (isDevelopment && !hasReactDevTools) {
         status = "warning";
@@ -466,7 +467,7 @@ const SystemHealthChecker: React.FC = () => {
   };
 
   // Only show in development
-  if (process.env.NODE_ENV !== "development") {
+  if (!IS_DEVELOPMENT) {
     return null;
   }
 
