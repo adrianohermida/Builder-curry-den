@@ -23,6 +23,7 @@ import { Toaster } from "sonner";
 
 // Components
 import UnifiedSidebar from "./UnifiedSidebar";
+import UnifiedTopbar from "./UnifiedTopbar";
 
 // Dev Components
 import ResponsiveInspector from "@/components/dev/ResponsiveInspector";
