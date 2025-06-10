@@ -586,6 +586,125 @@ export class ProcessoApiService {
 // ===== SINGLETON EXPORT =====
 export const processoApiService = ProcessoApiService.getInstance();
 
+// ===== REACT HOOK =====
+import { useCallback } from "react";
+
+export const useProcessoApi = () => {
+  const service = ProcessoApiService.getInstance();
+
+  const obterAndamentosProcesso = useCallback(
+    async (numeroProcesso: string) => {
+      return await service.consultarProcessoTJSP(numeroProcesso);
+    },
+    [],
+  );
+
+  const consultarTJSP = useCallback(async (numeroProcesso: string) => {
+    return await service.consultarProcessoTJSP(numeroProcesso);
+  }, []);
+
+  const consultarOAB = useCallback(
+    async (numeroOAB: string, seccional = "SP") => {
+      return await service.consultarOAB(numeroOAB, seccional);
+    },
+    [],
+  );
+
+  const consultarCNJ = useCallback(async (numeroProcesso: string) => {
+    return await service.consultarProcessoCNJ(numeroProcesso);
+  }, []);
+
+  const buscarProcessos = useCallback(
+    async (filtros: Parameters<typeof service.buscarProcessos>[0]) => {
+      return await service.buscarProcessos(filtros);
+    },
+    [],
+  );
+
+  const criarProcesso = useCallback(
+    async (dadosProcesso: Parameters<typeof service.criarProcesso>[0]) => {
+      return await service.criarProcesso(dadosProcesso);
+    },
+    [],
+  );
+
+  const atualizarProcesso = useCallback(
+    async (
+      id: string,
+      dados: Parameters<typeof service.atualizarProcesso>[1],
+    ) => {
+      return await service.atualizarProcesso(id, dados);
+    },
+    [],
+  );
+
+  const adicionarMovimentacao = useCallback(
+    async (
+      processoId: string,
+      movimentacao: Parameters<typeof service.adicionarMovimentacao>[1],
+    ) => {
+      return await service.adicionarMovimentacao(processoId, movimentacao);
+    },
+    [],
+  );
+
+  const monitorarPublicacoes = useCallback(async (processosIds: string[]) => {
+    return await service.monitorarPublicacoes(processosIds);
+  }, []);
+
+  const criarAlerta = useCallback(
+    async (
+      processoId: string,
+      tipo: "prazo" | "audiencia" | "publicacao" | "movimentacao",
+      descricao: string,
+      dataLimite?: Date,
+    ) => {
+      try {
+        // Simula criação de alerta
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        toast.success(`Alerta de ${tipo} criado com sucesso`);
+        return true;
+      } catch (error) {
+        console.error("Erro ao criar alerta:", error);
+        toast.error("Erro ao criar alerta");
+        return false;
+      }
+    },
+    [],
+  );
+
+  const clearCache = useCallback(() => {
+    service.clearCache();
+  }, []);
+
+  const getCacheStats = useCallback(() => {
+    return service.getCacheStats();
+  }, []);
+
+  return {
+    // Main service methods
+    obterAndamentosProcesso,
+    consultarTJSP,
+    consultarOAB,
+    consultarCNJ,
+    buscarProcessos,
+    criarProcesso,
+    atualizarProcesso,
+    adicionarMovimentacao,
+    monitorarPublicacoes,
+    criarAlerta,
+
+    // Utility methods
+    clearCache,
+    getCacheStats,
+
+    // Static utilities
+    formatarNumeroProcesso: ProcessoApiService.formatarNumeroProcesso,
+    validarNumeroProcesso: ProcessoApiService.validarNumeroProcesso,
+    extrairInfoCNJ: ProcessoApiService.extrairInfoCNJ,
+  };
+};
+
 // ===== UTILITY FUNCTIONS =====
 export const formatarNumeroProcesso = ProcessoApiService.formatarNumeroProcesso;
 export const validarNumeroProcesso = ProcessoApiService.validarNumeroProcesso;
