@@ -17,7 +17,6 @@ import { DEBUG_FLAGS } from "@/config/environment";
 import { ROUTES } from "@/config/constants";
 
 // Layout principal
-import MainLayout from "@/components/Layout/MainLayout";
 import ModernMainLayout from "@/components/Layout/ModernMainLayout";
 import PublicLayout from "@/components/Layout/PublicLayout";
 
@@ -30,65 +29,20 @@ import {
 // Debug Panel
 import DebugPanel from "@/components/Debug/DebugPanel";
 
-// Lazy loading de domínios funcionais
+// Lazy loading de domínios funcionais EXISTENTES
 const CRMJuridicoModule = React.lazy(() =>
   import("@/domains/crm-juridico").then((module) => ({
     default: module.CRMJuridicoRoutes,
   })),
 );
 
-const AgendaJuridicaModule = React.lazy(() =>
-  import("@/domains/agenda-juridica").then((module) => ({
-    default: module.AgendaJuridicaRoutes,
-  })),
-);
-
-const ProcessosPublicacoesModule = React.lazy(() =>
-  import("@/domains/processos-publicacoes").then((module) => ({
-    default: module.ProcessosPublicacoesRoutes,
-  })),
-);
-
-const ContratosFinanceiroModule = React.lazy(() =>
-  import("@/domains/contratos-financeiro").then((module) => ({
-    default: module.ContratosFinanceiroRoutes,
-  })),
-);
-
-const AtendimentoComunicacaoModule = React.lazy(() =>
-  import("@/domains/atendimento-comunicacao").then((module) => ({
-    default: module.AtendimentoComunicacaoRoutes,
-  })),
-);
-
-const IAJuridicaModule = React.lazy(() =>
-  import("@/domains/ia-juridica").then((module) => ({
-    default: module.IAJuridicaRoutes,
-  })),
-);
-
-const GEDDocumentosModule = React.lazy(() =>
-  import("@/domains/ged-documentos").then((module) => ({
-    default: module.GEDDocumentosRoutes,
-  })),
-);
-
-const AdminConfiguraciesModule = React.lazy(() =>
-  import("@/domains/admin-configuracoes").then((module) => ({
-    default: module.AdminConfiguracoesRoutes,
-  })),
-);
-
-// Páginas gerais (fora de domínios específicos)
-const DashboardPrincipal = React.lazy(
-  () => import("@/pages/DashboardPrincipal"),
-);
+// Páginas principais
 const ModernDashboard = React.lazy(() => import("@/pages/ModernDashboard"));
 const LoginPage = React.lazy(() => import("@/pages/Login"));
 const OnboardingPage = React.lazy(() => import("@/pages/Onboarding"));
 const NotFoundPage = React.lazy(() => import("@/pages/NotFound"));
 
-// Meta-dados dos domínios para roteamento
+// Meta-dados dos domínios EXISTENTES
 const DOMAIN_ROUTES = [
   {
     path: "/crm-juridico/*",
@@ -99,83 +53,6 @@ const DOMAIN_ROUTES = [
       domain: "crm-juridico",
       title: "CRM Jurídico",
       description: "Gestão de relacionamento com clientes jurídicos",
-    },
-  },
-  {
-    path: "/agenda-juridica/*",
-    element: <AgendaJuridicaModule />,
-    preload: true,
-    permissions: ["agenda_juridica_read"],
-    meta: {
-      domain: "agenda-juridica",
-      title: "Agenda Jurídica",
-      description: "Calendário jurídico e gestão de prazos",
-    },
-  },
-  {
-    path: "/processos-publicacoes/*",
-    element: <ProcessosPublicacoesModule />,
-    preload: false,
-    permissions: ["processos_read"],
-    meta: {
-      domain: "processos-publicacoes",
-      title: "Processos e Publicações",
-      description: "Acompanhamento processual e publicações",
-    },
-  },
-  {
-    path: "/contratos-financeiro/*",
-    element: <ContratosFinanceiroModule />,
-    preload: false,
-    permissions: ["financeiro_read"],
-    meta: {
-      domain: "contratos-financeiro",
-      title: "Contratos e Financeiro",
-      description: "Gestão de contratos e controle financeiro",
-    },
-  },
-  {
-    path: "/atendimento-comunicacao/*",
-    element: <AtendimentoComunicacaoModule />,
-    preload: false,
-    permissions: ["atendimento_read"],
-    meta: {
-      domain: "atendimento-comunicacao",
-      title: "Atendimento e Comunicação",
-      description: "Central de atendimento e comunicação",
-    },
-  },
-  {
-    path: "/ia-juridica/*",
-    element: <IAJuridicaModule />,
-    preload: false,
-    permissions: ["ia_juridica_read"],
-    meta: {
-      domain: "ia-juridica",
-      title: "IA Jurídica",
-      description: "Inteligência Artificial aplicada ao Direito",
-    },
-  },
-  {
-    path: "/ged-documentos/*",
-    element: <GEDDocumentosModule />,
-    preload: false,
-    permissions: ["ged_read"],
-    meta: {
-      domain: "ged-documentos",
-      title: "GED e Documentos",
-      description: "Gestão eletrônica de documentos",
-    },
-  },
-  {
-    path: "/admin-configuracoes/*",
-    element: <AdminConfiguraciesModule />,
-    preload: false,
-    permissions: ["admin_read"],
-    meta: {
-      domain: "admin-configuracoes",
-      title: "Administração e Configurações",
-      description: "Configurações do sistema e administração",
     },
   },
 ];
@@ -221,7 +98,12 @@ export const AppRouter: React.FC = () => {
                     index
                     element={
                       <PageWrapper title="Login">
-                        <LoginPage />
+                        <Suspense fallback={<div>Carregando login...</div>}>
+                          <div className="p-8 text-center">
+                            <h1 className="text-2xl font-bold mb-4">Login</h1>
+                            <p>Página de login em desenvolvimento</p>
+                          </div>
+                        </Suspense>
                       </PageWrapper>
                     }
                   />
@@ -232,7 +114,16 @@ export const AppRouter: React.FC = () => {
                     index
                     element={
                       <PageWrapper title="Bem-vindo">
-                        <OnboardingPage />
+                        <Suspense
+                          fallback={<div>Carregando onboarding...</div>}
+                        >
+                          <div className="p-8 text-center">
+                            <h1 className="text-2xl font-bold mb-4">
+                              Bem-vindo ao Lawdesk
+                            </h1>
+                            <p>Página de onboarding em desenvolvimento</p>
+                          </div>
+                        </Suspense>
                       </PageWrapper>
                     }
                   />
@@ -299,11 +190,155 @@ export const AppRouter: React.FC = () => {
                     />
                   ))}
 
-                  {/* Compatibilidade com rotas legadas */}
+                  {/* ===== ROTAS TEMPORÁRIAS PARA MÓDULOS NÃO IMPLEMENTADOS ===== */}
                   <Route
-                    path="painel"
-                    element={<Navigate to="/dashboard" replace />}
+                    path="agenda-juridica/*"
+                    element={
+                      <PageWrapper title="Agenda Jurídica">
+                        <div className="p-8 text-center">
+                          <h1 className="text-2xl font-bold mb-4">
+                            📅 Agenda Jurídica
+                          </h1>
+                          <p className="text-muted-foreground mb-6">
+                            Este módulo está em desenvolvimento
+                          </p>
+                          <div className="space-y-2">
+                            <p>• Calendário jurídico</p>
+                            <p>• Gestão de prazos</p>
+                            <p>• Agendamento de audiências</p>
+                          </div>
+                        </div>
+                      </PageWrapper>
+                    }
                   />
+
+                  <Route
+                    path="processos-publicacoes/*"
+                    element={
+                      <PageWrapper title="Processos e Publicações">
+                        <div className="p-8 text-center">
+                          <h1 className="text-2xl font-bold mb-4">
+                            ⚖️ Processos e Publicações
+                          </h1>
+                          <p className="text-muted-foreground mb-6">
+                            Este módulo está em desenvolvimento
+                          </p>
+                          <div className="space-y-2">
+                            <p>• Acompanhamento processual</p>
+                            <p>• Gestão de publicações</p>
+                            <p>• Monitoramento automático</p>
+                          </div>
+                        </div>
+                      </PageWrapper>
+                    }
+                  />
+
+                  <Route
+                    path="contratos-financeiro/*"
+                    element={
+                      <PageWrapper title="Contratos e Financeiro">
+                        <div className="p-8 text-center">
+                          <h1 className="text-2xl font-bold mb-4">
+                            💰 Contratos e Financeiro
+                          </h1>
+                          <p className="text-muted-foreground mb-6">
+                            Este módulo está em desenvolvimento
+                          </p>
+                          <div className="space-y-2">
+                            <p>• Gestão de contratos</p>
+                            <p>• Controle financeiro</p>
+                            <p>• Faturamento</p>
+                          </div>
+                        </div>
+                      </PageWrapper>
+                    }
+                  />
+
+                  <Route
+                    path="atendimento-comunicacao/*"
+                    element={
+                      <PageWrapper title="Atendimento e Comunicação">
+                        <div className="p-8 text-center">
+                          <h1 className="text-2xl font-bold mb-4">
+                            💬 Atendimento e Comunicação
+                          </h1>
+                          <p className="text-muted-foreground mb-6">
+                            Este módulo está em desenvolvimento
+                          </p>
+                          <div className="space-y-2">
+                            <p>• Central de atendimento</p>
+                            <p>• Gestão de tickets</p>
+                            <p>• Comunicação com clientes</p>
+                          </div>
+                        </div>
+                      </PageWrapper>
+                    }
+                  />
+
+                  <Route
+                    path="ia-juridica/*"
+                    element={
+                      <PageWrapper title="IA Jurídica">
+                        <div className="p-8 text-center">
+                          <h1 className="text-2xl font-bold mb-4">
+                            🤖 IA Jurídica
+                          </h1>
+                          <p className="text-muted-foreground mb-6">
+                            Este módulo está em desenvolvimento
+                          </p>
+                          <div className="space-y-2">
+                            <p>• Assistente jurídico IA</p>
+                            <p>• Análise de documentos</p>
+                            <p>• Predições jurídicas</p>
+                          </div>
+                        </div>
+                      </PageWrapper>
+                    }
+                  />
+
+                  <Route
+                    path="ged-documentos/*"
+                    element={
+                      <PageWrapper title="GED e Documentos">
+                        <div className="p-8 text-center">
+                          <h1 className="text-2xl font-bold mb-4">
+                            📁 GED e Documentos
+                          </h1>
+                          <p className="text-muted-foreground mb-6">
+                            Este módulo está em desenvolvimento
+                          </p>
+                          <div className="space-y-2">
+                            <p>• Gestão eletrônica de documentos</p>
+                            <p>• Repositório de arquivos</p>
+                            <p>• Pesquisa avançada</p>
+                          </div>
+                        </div>
+                      </PageWrapper>
+                    }
+                  />
+
+                  <Route
+                    path="admin-configuracoes/*"
+                    element={
+                      <PageWrapper title="Administração e Configurações">
+                        <div className="p-8 text-center">
+                          <h1 className="text-2xl font-bold mb-4">
+                            ⚙️ Administração e Configurações
+                          </h1>
+                          <p className="text-muted-foreground mb-6">
+                            Este módulo está em desenvolvimento
+                          </p>
+                          <div className="space-y-2">
+                            <p>• Gestão de usuários</p>
+                            <p>• Configurações do sistema</p>
+                            <p>• Permissões e roles</p>
+                          </div>
+                        </div>
+                      </PageWrapper>
+                    }
+                  />
+
+                  {/* Compatibilidade com rotas legadas */}
                   <Route
                     path="crm-modern/*"
                     element={<Navigate to="/crm-juridico" replace />}
@@ -342,7 +377,14 @@ export const AppRouter: React.FC = () => {
                     path="404"
                     element={
                       <PageWrapper title="Página Não Encontrada">
-                        <NotFoundPage />
+                        <div className="p-8 text-center">
+                          <h1 className="text-2xl font-bold mb-4">
+                            404 - Página não encontrada
+                          </h1>
+                          <p className="text-muted-foreground">
+                            A página solicitada não foi encontrada.
+                          </p>
+                        </div>
                       </PageWrapper>
                     }
                   />
@@ -375,9 +417,6 @@ export const preloadCriticalDomains = async () => {
       switch (domain.meta.domain) {
         case "crm-juridico":
           await import("@/domains/crm-juridico");
-          break;
-        case "agenda-juridica":
-          await import("@/domains/agenda-juridica");
           break;
         default:
           break;
