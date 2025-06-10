@@ -1,8 +1,8 @@
 /**
  * Atoms - Basic UI Building Blocks
  *
- * Atoms are the basic building blocks of matter. Applied to web interfaces,
- * atoms are our HTML tags, such as a form label, an input or a button.
+ * Complete index of all atomic components following the design system.
+ * These are the fundamental building blocks used throughout the application.
  */
 
 // Form elements
@@ -39,3 +39,8 @@ export { Box } from "./Box";
 // Interactive
 export { Tooltip } from "./Tooltip";
 export { Tag } from "./Tag";
+
+// Re-export existing UI components for backward compatibility
+export { Input as UIInput } from "@/components/ui/input";
+export { Button as UIButton } from "@/components/ui/button";
+export { Badge as UIBadge } from "@/components/ui/badge";
