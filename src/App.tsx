@@ -414,16 +414,17 @@ function App() {
                 }
               />
               <Route
-                path="/onboarding"
+                path="onboarding"
                 element={
-                  <PageWrapper title="Configuração Inicial - Lawdesk">
+                  <PageWrapper title="Configuração Inicial">
                     <OnboardingPage />
                   </PageWrapper>
                 }
               />
 
               {/* Fallback para rotas não encontradas */}
-                <Route path="*" element={<Navigate to="/painel" replace />} />
+              <Route path="*" element={<Navigate to="/painel" replace />} />
+            </Route>
               </Route>
 
               {/* SaaS Routes with Enhanced Layout */}
