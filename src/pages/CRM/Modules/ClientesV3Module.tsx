@@ -45,6 +45,19 @@ import ContextualMenu, {
   ContextualAction,
 } from "@/components/CRM/ContextualMenu";
 
+interface DropResult {
+  destination?: {
+    droppableId: string;
+    index: number;
+  } | null;
+  source: {
+    droppableId: string;
+    index: number;
+  };
+  draggableId: string;
+  reason: string;
+}
+
 const ClientesV3Module: React.FC = () => {
   const { clientes, dashboardStats, viewMode, setViewMode } = useCRMV3();
   const [selectedClient, setSelectedClient] = useState<string | null>(null);
