@@ -23,6 +23,7 @@ import { IS_DEVELOPMENT } from "@/lib/env";
 
 // Development tools
 import DebugPanel from "@/components/Debug/DebugPanel";
+import DesignFixer from "@/components/DesignFixer";
 
 function App() {
   return (
@@ -31,6 +32,9 @@ function App() {
 
       {/* Development Tools - Development Only */}
       {IS_DEVELOPMENT && <DebugPanel />}
+
+      {/* Design Fixer - Always Available */}
+      <DesignFixer />
     </ThemeInitializer>
   );
 }
