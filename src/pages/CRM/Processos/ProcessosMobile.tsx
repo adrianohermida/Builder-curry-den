@@ -24,7 +24,7 @@ import {
   Download,
   Star,
   Bell,
-  SwipeUp,
+  ArrowUp,
   Menu,
   X,
   Zap,
@@ -476,7 +476,7 @@ const ProcessosMobile: React.FC = () => {
               if (isAtTop) handlePullToRefresh();
             }}
           >
-            <SwipeUp className="h-5 w-5" />
+            <ArrowUp className="h-5 w-5" />
             <span className="ml-2 text-sm">Deslize para atualizar</span>
           </motion.div>
 
