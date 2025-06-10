@@ -20,20 +20,20 @@ import React, {
 import { Outlet, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 
-// Shared components
-import { TopbarMain } from "../TopbarMain";
-import { SidebarMain } from "../SidebarMain";
+// Layout Components (use existing)
+import TopbarMain from "@/components/Layout/TopbarMain";
+import SidebarMain from "@/components/Layout/SidebarMain";
 
 // Configuration and constants
 import { STORAGE_KEYS } from "@/config/environment";
 import { ROUTES } from "@/config/constants";
 
-// Shared hooks
-import { useLocalStorage } from "@/shared/hooks/useLocalStorage";
-import { useResponsive } from "@/shared/hooks/useResponsive";
+// Hooks (use existing)
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useMobile } from "@/hooks/use-mobile";
 
 // Development components
-import { ResponsiveInspector } from "@/shared/components/organisms/ResponsiveInspector";
+import ResponsiveInspector from "@/components/dev/ResponsiveInspector";
 
 // Types
 import type {
@@ -78,7 +78,8 @@ const DEFAULT_THEME_CONFIG: ThemeConfig = {
 // ===== MAIN LAYOUT COMPONENT =====
 const MainLayout: React.FC = () => {
   const location = useLocation();
-  const { isMobile, isTablet } = useResponsive();
+  const isMobile = useMobile();
+  const isTablet = false; // Simple fallback for now
 
   // ===== PERSISTENT STATE =====
   const [layoutConfig, setLayoutConfig] = useLocalStorage<LayoutConfig>(
