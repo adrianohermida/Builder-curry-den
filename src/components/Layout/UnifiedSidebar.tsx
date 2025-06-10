@@ -78,6 +78,7 @@ interface UnifiedSidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
   onClose: () => void;
+  isMobile?: boolean;
   className?: string;
 }
 
