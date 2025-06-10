@@ -26,6 +26,9 @@ import {
 // Context
 import { useUnifiedLayout } from "./UnifiedLayout";
 
+// Theme system
+import { useTheme } from "@/lib/themeSystem";
+
 // ===== TYPES =====
 interface UnifiedTopbarProps {
   className?: string;
