@@ -118,9 +118,9 @@ const Login = createLazyComponent(() => import("./pages/Login"), "Login");
 const Painel = createLazyComponent(() => import("./pages/Painel"), "Painel");
 const Index = createLazyComponent(() => import("./pages/Index"), "Index");
 const CRM = createLazyComponent(() => import("./pages/CRM"), "CRM");
-const CRMUnicorn = createLazyComponent(
-  () => import("./pages/CRM/CRMUnicorn"),
-  "CRM Unicorn",
+const CRMJuridico = createLazyComponent(
+  () => import("./pages/CRM/CRMJuridico"),
+  "CRM Jurídico",
 );
 const Tarefas = createLazyComponent(() => import("./pages/Tarefas"), "Tarefas");
 const Contratos = createLazyComponent(
@@ -379,7 +379,7 @@ const App: React.FC = () => {
                             }
                           />
 
-                          {/* CRM Unicorn Routes */}
+                          {/* CRM Jurídico Routes */}
                           <Route path="crm/*">
                             <Route
                               index
@@ -387,7 +387,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <CRMUnicorn />
+                                      <CRMJuridico />
                                     </PageWrapper>
                                   }
                                 />
@@ -399,7 +399,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <CRMUnicorn defaultModule="clientes" />
+                                      <CRMJuridico defaultModule="clientes" />
                                     </PageWrapper>
                                   }
                                 />
@@ -411,7 +411,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <CRMUnicorn defaultModule="processos" />
+                                      <CRMJuridico defaultModule="processos" />
                                     </PageWrapper>
                                   }
                                 />
@@ -423,7 +423,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <CRMUnicorn defaultModule="contratos" />
+                                      <CRMJuridico defaultModule="contratos" />
                                     </PageWrapper>
                                   }
                                 />
@@ -435,7 +435,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <CRMUnicorn defaultModule="tarefas" />
+                                      <CRMJuridico defaultModule="tarefas" />
                                     </PageWrapper>
                                   }
                                 />
@@ -447,7 +447,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <CRMUnicorn defaultModule="financeiro" />
+                                      <CRMJuridico defaultModule="financeiro" />
                                     </PageWrapper>
                                   }
                                 />
@@ -459,7 +459,7 @@ const App: React.FC = () => {
                                 <SafeRoute
                                   element={
                                     <PageWrapper>
-                                      <CRMUnicorn defaultModule="ged" />
+                                      <CRMJuridico defaultModule="ged" />
                                     </PageWrapper>
                                   }
                                 />
