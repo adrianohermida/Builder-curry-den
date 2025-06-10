@@ -45,6 +45,12 @@ const DEFAULT_LAYOUT_STATE: LayoutState = {
 const ProfessionalCleanLayout: React.FC = () => {
   const { colors, getModeClass } = useTheme();
 
+  // DEBUG LOG
+  React.useEffect(() => {
+    console.log("🏗️ ProfessionalCleanLayout mounted");
+    console.log("🎨 Theme colors:", colors);
+  }, [colors]);
+
   // ===== PERSISTENT STATE =====
   const [persistedState, setPersistedState] = useLocalStorage<
     Partial<LayoutState>
