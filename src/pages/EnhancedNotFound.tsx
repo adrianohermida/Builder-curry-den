@@ -26,14 +26,15 @@ const NotFound = () => {
 
   // Log 404 error for monitoring
   React.useEffect(() => {
+    const pathname = location?.pathname || "unknown";
     console.error(
       "404 Error: User attempted to access non-existent route:",
-      location.pathname,
+      pathname,
     );
 
     // In production, send to analytics
-    // analytics.track('404_Error', { path: location.pathname, user: user?.id });
-  }, [location.pathname, user?.id]);
+    // analytics.track('404_Error', { path: pathname, user: user?.id });
+  }, [location?.pathname, user?.id]);
 
   const suggestedRoutes = React.useMemo(() => {
     const routes = [];
