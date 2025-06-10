@@ -22,7 +22,10 @@ import ModernMainLayout from "@/components/Layout/ModernMainLayout";
 import PublicLayout from "@/components/Layout/PublicLayout";
 
 // Componentes de loading
-import { DomainLoadingFallback } from "@/shared/components/organisms/LoadingFallbacks";
+import {
+  DomainLoadingFallback,
+  GlobalLoadingFallback,
+} from "@/shared/components/organisms/LoadingFallbacks";
 
 // Debug Panel
 import DebugPanel from "@/components/Debug/DebugPanel";
@@ -177,18 +180,7 @@ const DOMAIN_ROUTES = [
   },
 ];
 
-// Loading global
-const GlobalLoadingFallback = () => (
-  <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-        Lawdesk CRM
-      </h3>
-      <p className="text-gray-600 dark:text-gray-400">Carregando sistema...</p>
-    </div>
-  </div>
-);
+// Loading global importado de LoadingFallbacks
 
 // Wrapper para páginas com título
 const PageWrapper: React.FC<{
