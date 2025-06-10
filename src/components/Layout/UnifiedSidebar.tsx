@@ -820,7 +820,7 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = React.memo(
         bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800
         transition-all duration-300 ease-in-out
         flex flex-col
-        ${isMobile ? "top-0" : "top-16 h-[calc(100vh-4rem)]"}
+        ${isMobile ? "top-0" : "top-14 h-[calc(100vh-3.5rem)]"}
         ${className}
       `}
       >
